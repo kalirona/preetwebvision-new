@@ -227,3 +227,48 @@ Work Log:
 Stage Summary:
 - Project is complete and verified end-to-end. All 6 pages render and navigate; contact form persists to DB; live LLM assistant works; design is stunning and cohesive; responsive + sticky footer confirmed; lint clean.
 - Remaining: create the recurring 15-minute webDevReview cron job (Task 13).
+
+---
+Task ID: 14 (Cron Review Round 1)
+Agent: main (Z.ai Code)
+Task: Assess project status, QA test via agent-browser, then improve styling + add features per mandatory requirements.
+
+## Current Project Status (assessment)
+- Project was stable and complete (6 pages, contact API, AI chatbot, lint clean). Verified via agent-browser: all 6 pages render/navigate, contact form persists to DB, AI assistant returns on-brand replies, sticky footer + responsive confirmed.
+- VLM visual QA surfaced minor opportunities: inconsistent service card heights, potential for deeper glassmorphism, text-glow behind gradient headings.
+
+## Completed Modifications
+### Styling polish (globals.css)
+- Added new utilities: `.text-glow-brand` / `.text-glow-soft` (glow behind gradient text), `.glass-deep` (deeper glass with inner highlight), `.card-sheen` (hover sheen sweep), `.ring-conic` (conic gradient), `.noise-overlay` (SVG noise texture), `.link-underline` (animated underline), `.scroll-progress` (gradient progress bar), `.cursor-blink`, `.animate-rise`.
+- Applied `text-glow-brand`/`text-glow-soft` to hero headline gradient words ("stunning", "grow").
+- Fixed service card height inconsistency: added `h-full` to staggerItem wrappers + `mt-auto` on the "Learn more" CTA so cards align at the bottom.
+- Added `card-sheen` hover sweep to service cards; icon tiles now `group-hover:scale-110`; tagline now uses brand-pink.
+
+### New features
+1. **Scroll progress bar** (`site-chrome.tsx`) — brand-gradient bar at top of viewport using `useScroll`/`useSpring`, wired into page shell.
+2. **Back-to-top button** (`site-chrome.tsx`) — appears after 600px scroll, glass-strong circle, smooth scroll, positioned bottom-left to avoid AI assistant.
+3. **Cookie consent banner** (`site-chrome.tsx`) — glass-deep card with noise overlay, Accept/Decline, persisted in localStorage (`pwv-cookie-consent-v1`), appears after 1.4s delay, links to Privacy Policy.
+4. **Newsletter API + persistence** (`/api/newsletter`) — new Prisma `NewsletterLead` model (unique email). POST uses raw SQL `INSERT OR IGNORE` (resilient to Prisma client delegate staleness in dev). GET returns count. Footer form wired: controlled email state, async submit with loading spinner + success check icon, live subscriber count display ("N growth-minded folks already subscribed").
+5. **Interactive ROI/Growth Calculator** (`roi-calculator.tsx`) — reusable widget with: 4 service selectors (Web/AI/SEO/Ecommerce, each with base conversion lift %), 3 custom-styled gradient sliders (monthly visitors, conversion rate, avg order value), animated results panel showing projected annual uplift, monthly uplift, new conv. rate, conv. lift, ROI multiple, and a now-vs-after bar comparison. "Claim this growth" CTA → contact. Shown on Home (full) + Pricing (compact).
+6. **Auto-rotating testimonials** (home-page.tsx) — 5.5s auto-rotation with pause-on-hover, prev/next arrow controls, dot indicators, AnimatePresence crossfade, "Auto/Paused" status indicator.
+7. **Pricing billing toggle** (pricing-page.tsx) — animated pill toggle (One-time project ↔ Monthly retainer) with `layoutId` spring, "Save 20%" badge, dynamically swaps prices (Launch→"Retainer ready" note, Growth→$1.9k/mo, Enterprise→Custom/mo) with animated number transitions.
+
+### Bug fixed
+- Newsletter POST initially 500'd (`db.newsletterLead` undefined) due to stale Prisma singleton cached in dev server `globalThis` from before the model was added. Added self-healing cache-bust in `db.ts` (detects missing `newsletterLead` delegate → discards cached client) AND switched the newsletter route to raw SQL (`$executeRaw` / `$queryRaw`) as a bulletproof fix. Verified: POST returns `{ok:true}`, count increments, browser submit persists.
+
+## Verification Results
+- `bun run lint` → clean (0 errors).
+- agent-browser QA: scroll progress bar present; cookie banner present → Accept → dismissed + persisted (no reappear on reload); ROI calculator interactive (switching to SEO updates projected revenue to +$276,480); pricing billing toggle swaps prices correctly (Launch→Retainer ready, Growth→$1.9k, Enterprise→Custom); newsletter form persists (count 0→2); back-to-top button appears after scroll; footer shows live subscriber count.
+- VLM visual QA: hero text glow "vibrant and saturated, avoiding washed-out"; ROI calculator "premium... sophisticated dark-mode aesthetic... clear visual hierarchy"; pricing toggle "clean, pill-shaped... high contrast"; testimonials "well-structured... intuitive controls"; "excellent consistency in spacing, font weights, and color palette".
+- Dev log: no new errors after raw-SQL fix.
+
+## Unresolved Issues / Risks
+- Prisma client singleton staleness in dev is a known dev-only quirk; mitigated with cache-bust + raw SQL for newsletter. The contact API (`db.contactSubmission`) works because those models existed before the singleton was cached. If new models are added in future rounds, either restart the dev server or use raw SQL for them.
+- Newsletter count display can be momentarily stale vs. API after an in-page subscribe (optimistic +1 may race with re-fetch); minor, self-corrects on next page load.
+
+## Priority Recommendations for Next Round
+- Add a **blog/insights** page or **case study detail modals** on portfolio cards for more depth.
+- Add a **multi-step project inquiry wizard** on the contact page (service → budget → timeline → details).
+- Generate branded images for portfolio project cards (currently gradient + emoji) to add visual realism.
+- Add **team member detail modals** or a **careers** section.
+- Consider a **service comparison table** on the Services or Pricing page.

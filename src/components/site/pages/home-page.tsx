@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   ArrowRight,
   Star,
@@ -12,6 +12,10 @@ import {
   CheckCircle2,
   Play,
   Zap,
+  ChevronLeft,
+  ChevronRight,
+  Pause,
+  Calculator,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -33,6 +37,7 @@ import {
   GradientText,
 } from '@/components/site/primitives'
 import { AmbientBackground } from '@/components/site/ambient-background'
+import { RoiCalculator } from '@/components/site/roi-calculator'
 import { useNav } from '@/lib/nav-store'
 import {
   SERVICES,
@@ -67,12 +72,12 @@ function Hero() {
             <Reveal delay={0.05}>
               <h1 className="mt-5 font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
                 We build{' '}
-                <span className="text-gradient-brand animate-gradient-pan bg-[length:220%_220%]">
+                <span className="text-gradient-brand animate-gradient-pan bg-[length:220%_220%] text-glow-brand">
                   stunning
                 </span>{' '}
                 digital experiences that{' '}
                 <span className="relative whitespace-nowrap">
-                  <span className="text-gradient-warm">grow</span>
+                  <span className="text-gradient-warm text-glow-soft">grow</span>
                   <svg
                     className="absolute -bottom-2 left-0 w-full"
                     viewBox="0 0 200 12"
@@ -291,7 +296,7 @@ function ServicesOverview() {
 
         <StaggerGroup className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {SERVICES.map((s, i) => (
-            <motion.div key={s.id} variants={staggerItem}>
+            <motion.div key={s.id} variants={staggerItem} className="h-full">
               <ServiceCard service={s} index={i} />
             </motion.div>
           ))}
@@ -336,7 +341,7 @@ function ServiceCard({
   return (
     <button
       onClick={() => setPage('services')}
-      className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-border/60 bg-card p-6 text-left transition-all duration-300 hover:-translate-y-1 hover:border-border hover:shadow-xl"
+      className="group card-sheen relative flex h-full flex-col overflow-hidden rounded-3xl border border-border/60 bg-card p-6 text-left transition-all duration-300 hover:-translate-y-1 hover:border-border hover:shadow-xl"
     >
       <span
         className={cn(
@@ -347,7 +352,7 @@ function ServiceCard({
       <div className="relative flex items-center justify-between">
         <span
           className={cn(
-            'grid size-12 place-items-center rounded-2xl bg-gradient-to-br text-white shadow-lg',
+            'grid size-12 place-items-center rounded-2xl bg-gradient-to-br text-white shadow-lg transition-transform duration-300 group-hover:scale-110',
             service.accent
           )}
         >
@@ -360,7 +365,7 @@ function ServiceCard({
       <h3 className="relative mt-5 font-display text-xl font-bold tracking-tight">
         {service.title}
       </h3>
-      <p className="relative mt-1 text-sm font-medium text-muted-foreground">
+      <p className="relative mt-1 text-sm font-medium" style={{ color: 'var(--brand-pink)' }}>
         {service.tagline}
       </p>
       <p className="relative mt-3 text-sm leading-relaxed text-muted-foreground/90">
@@ -376,7 +381,7 @@ function ServiceCard({
           </span>
         ))}
       </div>
-      <span className="relative mt-6 inline-flex items-center gap-1.5 text-sm font-semibold">
+      <span className="relative mt-auto inline-flex items-center gap-1.5 pt-6 text-sm font-semibold">
         Learn more
         <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
       </span>
@@ -581,7 +586,20 @@ function PortfolioPreview() {
 /* ============================== TESTIMONIALS ============================== */
 function Testimonials() {
   const [active, setActive] = React.useState(0)
+  const [paused, setPaused] = React.useState(false)
   const t = TESTIMONIALS[active]
+
+  const go = React.useCallback(
+    (dir: 1 | -1) => setActive((a) => (a + dir + TESTIMONIALS.length) % TESTIMONIALS.length),
+    []
+  )
+
+  React.useEffect(() => {
+    if (paused) return
+    const id = setInterval(() => setActive((a) => (a + 1) % TESTIMONIALS.length), 5500)
+    return () => clearInterval(id)
+  }, [paused])
+
   return (
     <section className="relative py-20 sm:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
@@ -593,46 +611,82 @@ function Testimonials() {
             </>
           }
         />
-        <div className="relative mx-auto mt-14 max-w-3xl">
+        <div
+          className="relative mx-auto mt-14 max-w-3xl"
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+        >
           <div className="pointer-events-none absolute -inset-x-10 -top-10 bottom-0 rounded-[3rem] bg-brand-gradient opacity-10 blur-3xl" />
           <Reveal>
             <Card className="relative overflow-hidden rounded-3xl border-border/60 bg-card p-8 sm:p-10">
               <Quote className="absolute right-6 top-6 size-16 text-muted-foreground/10" />
-              <div className="flex gap-1">
-                {[...Array(t.rating)].map((_, i) => (
-                  <Star key={i} className="size-5 fill-amber-400 text-amber-400" />
-                ))}
-              </div>
-              <blockquote className="mt-5 font-display text-xl font-medium leading-relaxed sm:text-2xl">
-                &ldquo;{t.quote}&rdquo;
-              </blockquote>
-              <div className="mt-7 flex items-center gap-3">
-                <Avatar className="size-12 border-2 border-background">
-                  <AvatarFallback className={cn('bg-gradient-to-br text-white', t.accent)}>
-                    {t.initials}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-display font-bold">{t.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {t.role}, {t.company}
-                  </p>
-                </div>
-              </div>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={active}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -16 }}
+                  transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <div className="flex gap-1">
+                    {[...Array(t.rating)].map((_, i) => (
+                      <Star key={i} className="size-5 fill-amber-400 text-amber-400" />
+                    ))}
+                  </div>
+                  <blockquote className="mt-5 font-display text-xl font-medium leading-relaxed sm:text-2xl">
+                    &ldquo;{t.quote}&rdquo;
+                  </blockquote>
+                  <div className="mt-7 flex items-center gap-3">
+                    <Avatar className="size-12 border-2 border-background">
+                      <AvatarFallback className={cn('bg-gradient-to-br text-white', t.accent)}>
+                        {t.initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-display font-bold">{t.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {t.role}, {t.company}
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
             </Card>
           </Reveal>
-          <div className="mt-6 flex items-center justify-center gap-2">
-            {TESTIMONIALS.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setActive(i)}
-                aria-label={`Testimonial ${i + 1}`}
-                className={cn(
-                  'h-2 rounded-full transition-all',
-                  i === active ? 'w-8 bg-brand-gradient' : 'w-2 bg-border hover:bg-muted-foreground/40'
-                )}
-              />
-            ))}
+
+          {/* Controls */}
+          <div className="mt-6 flex items-center justify-center gap-4">
+            <button
+              onClick={() => go(-1)}
+              aria-label="Previous testimonial"
+              className="grid size-9 place-items-center rounded-full border border-border/70 bg-muted/30 text-muted-foreground transition-colors hover:text-foreground hover:border-border"
+            >
+              <ChevronLeft className="size-4" />
+            </button>
+            <div className="flex items-center gap-2">
+              {TESTIMONIALS.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActive(i)}
+                  aria-label={`Testimonial ${i + 1}`}
+                  className={cn(
+                    'h-2 rounded-full transition-all',
+                    i === active ? 'w-8 bg-brand-gradient' : 'w-2 bg-border hover:bg-muted-foreground/40'
+                  )}
+                />
+              ))}
+            </div>
+            <button
+              onClick={() => go(1)}
+              aria-label="Next testimonial"
+              className="grid size-9 place-items-center rounded-full border border-border/70 bg-muted/30 text-muted-foreground transition-colors hover:text-foreground hover:border-border"
+            >
+              <ChevronRight className="size-4" />
+            </button>
+            <span className="ml-1 flex items-center gap-1 text-[11px] text-muted-foreground">
+              {paused ? <Pause className="size-3" /> : null}
+              {paused ? 'Paused' : 'Auto'}
+            </span>
           </div>
         </div>
       </div>
@@ -775,6 +829,28 @@ function FaqSection() {
   )
 }
 
+/* ============================== ROI CALCULATOR ============================== */
+function RoiSection() {
+  return (
+    <section className="relative py-20 sm:py-28">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <SectionHeading
+          eyebrow="See your potential"
+          title={
+            <>
+              What could <GradientText>your growth</GradientText> look like?
+            </>
+          }
+          description="A quick, interactive estimate based on the lifts our clients typically see. Drag, explore, and imagine the upside."
+        />
+        <Reveal delay={0.1} className="mt-12">
+          <RoiCalculator />
+        </Reveal>
+      </div>
+    </section>
+  )
+}
+
 /* ============================== PAGE ============================== */
 export function HomePage() {
   return (
@@ -783,6 +859,7 @@ export function HomePage() {
       <TrustedBy />
       <ServicesOverview />
       <StatsBand />
+      <RoiSection />
       <WhyUs />
       <Process />
       <PortfolioPreview />

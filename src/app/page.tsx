@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Navbar } from '@/components/site/navbar'
 import { Footer } from '@/components/site/footer'
 import { AiAssistant } from '@/components/site/ai-assistant'
+import { ScrollProgress, BackToTop, CookieConsent } from '@/components/site/site-chrome'
 import { useNav } from '@/lib/nav-store'
 import { HomePage } from '@/components/site/pages/home-page'
 import { ServicesPage } from '@/components/site/pages/services-page'
@@ -17,6 +18,7 @@ export default function Home() {
 
   return (
     <div className="relative flex min-h-screen flex-col">
+      <ScrollProgress />
       <Navbar />
       <main className="relative flex-1 pt-24">
         <AnimatePresence mode="wait">
@@ -38,6 +40,8 @@ export default function Home() {
       </main>
       <Footer />
       <AiAssistant />
+      <BackToTop />
+      <CookieConsent />
     </div>
   )
 }

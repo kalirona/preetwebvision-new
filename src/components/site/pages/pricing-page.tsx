@@ -35,6 +35,7 @@ import {
   GradientText,
 } from '@/components/site/primitives'
 import { AmbientBackground } from '@/components/site/ambient-background'
+import { RoiCalculator } from '@/components/site/roi-calculator'
 import { useNav } from '@/lib/nav-store'
 import {
   PRICING,
@@ -114,15 +115,79 @@ function Hero() {
 }
 
 /* ============================== PRICING CARDS ============================== */
+type BillingMode = 'project' | 'monthly'
+
+// Monthly retainer equivalents (for the billing toggle)
+const MONTHLY_PRICING: Record<string, { price: string; period: string }> = {
+  Launch: { price: '$0', period: '/ one-time' },
+  Growth: { price: '$1.9k', period: '/ month' },
+  Enterprise: { price: 'Custom', period: '/ month' },
+}
+
+function BillingToggle({
+  mode,
+  onChange,
+}: {
+  mode: BillingMode
+  onChange: (m: BillingMode) => void
+}) {
+  return (
+    <div className="flex items-center justify-center">
+      <div className="relative inline-flex items-center rounded-full border border-border/60 bg-muted/30 p-1 backdrop-blur">
+        {(['project', 'monthly'] as BillingMode[]).map((m) => {
+          const active = mode === m
+          return (
+            <button
+              key={m}
+              onClick={() => onChange(m)}
+              className={cn(
+                'relative rounded-full px-5 py-2 text-sm font-semibold transition-colors',
+                active ? 'text-white' : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              {active && (
+                <motion.span
+                  layoutId="billing-pill"
+                  className="absolute inset-0 rounded-full bg-brand-gradient shadow-[0_4px_20px_-6px_rgba(255,45,117,0.6)]"
+                  transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                />
+              )}
+              <span className="relative z-10 flex items-center gap-1.5">
+                {m === 'project' ? 'One-time project' : 'Monthly retainer'}
+                {m === 'monthly' && (
+                  <span className={cn(
+                    'rounded-full px-1.5 py-0.5 text-[10px] font-bold',
+                    active ? 'bg-white/20 text-white' : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                  )}>
+                    Save 20%
+                  </span>
+                )}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 function PricingCards() {
   const { setPage } = useNav()
+  const [billing, setBilling] = React.useState<BillingMode>('project')
   return (
     <section className="relative py-12 sm:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <StaggerGroup className="grid items-stretch gap-6 lg:grid-cols-3 lg:gap-5">
+        <Reveal>
+          <BillingToggle mode={billing} onChange={setBilling} />
+        </Reveal>
+        <StaggerGroup className="mt-10 grid items-stretch gap-6 lg:grid-cols-3 lg:gap-5">
           {PRICING.map((plan) => (
             <motion.div key={plan.name} variants={staggerItem} className="h-full">
-              <PricingCard plan={plan} onCta={() => setPage('contact')} />
+              <PricingCard
+                plan={plan}
+                billing={billing}
+                onCta={() => setPage('contact')}
+              />
             </motion.div>
           ))}
         </StaggerGroup>
@@ -141,12 +206,25 @@ function PricingCards() {
   )
 }
 
-function PricingCard({ plan, onCta }: { plan: PricingPlan; onCta: () => void }) {
+function PricingCard({
+  plan,
+  billing,
+  onCta,
+}: {
+  plan: PricingPlan
+  billing: BillingMode
+  onCta: () => void
+}) {
   const featured = !!plan.featured
+  const monthly = MONTHLY_PRICING[plan.name]
+  const showPrice = billing === 'monthly' && monthly ? monthly.price : plan.price
+  const showPeriod = billing === 'monthly' && monthly ? monthly.period : plan.period
+  // For the Launch plan, monthly retainer isn't offered — show a note instead
+  const launchMonthlyNote = billing === 'monthly' && plan.name === 'Launch'
   return (
     <div
       className={cn(
-        'group relative flex h-full flex-col overflow-hidden rounded-3xl transition-all duration-300',
+        'group card-sheen relative flex h-full flex-col overflow-hidden rounded-3xl transition-all duration-300',
         featured
           ? 'gradient-border glow-brand lg:scale-105 lg:-translate-y-2'
           : 'border border-border/60 bg-card hover:-translate-y-1 hover:border-border hover:shadow-xl'
@@ -191,21 +269,35 @@ function PricingCard({ plan, onCta }: { plan: PricingPlan; onCta: () => void }) 
 
         {/* Price */}
         <div className="mt-5 flex items-end gap-1.5">
-          <span
-            className={cn(
-              'font-display text-5xl font-bold tracking-tight',
-              featured && 'text-gradient-brand'
-            )}
-          >
-            {plan.price}
-          </span>
-          <span className="mb-1.5 text-sm font-medium text-muted-foreground">
-            {plan.period}
-          </span>
+          {launchMonthlyNote ? (
+            <span className="font-display text-3xl font-bold tracking-tight text-muted-foreground">
+              Retainer ready
+            </span>
+          ) : (
+            <motion.span
+              key={showPrice}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className={cn(
+                'font-display text-5xl font-bold tracking-tight',
+                featured && 'text-gradient-brand'
+              )}
+            >
+              {showPrice}
+            </motion.span>
+          )}
+          {!launchMonthlyNote && (
+            <span className="mb-1.5 text-sm font-medium text-muted-foreground">
+              {showPeriod}
+            </span>
+          )}
         </div>
 
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          {plan.description}
+          {launchMonthlyNote
+            ? 'Launch is a one-time project. Upgrade to a Growth or Enterprise retainer for ongoing work.'
+            : plan.description}
         </p>
 
         {/* CTA */}
@@ -628,10 +720,32 @@ export function PricingPage() {
       <PricingCards />
       <ServiceMapping />
       <AddOns />
+      <RoiSection />
       <StatsBand />
       <TestimonialHighlight />
       <FaqSection />
       <FinalCta />
     </div>
+  )
+}
+
+function RoiSection() {
+  return (
+    <section className="relative py-20 sm:py-28">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <SectionHeading
+          eyebrow="See the upside"
+          title={
+            <>
+              What&apos;s your <GradientText>return</GradientText>?
+            </>
+          }
+          description="Drag the sliders to estimate the revenue upside of each plan. Numbers speak louder than price tags."
+        />
+        <Reveal delay={0.1} className="mt-12">
+          <RoiCalculator compact />
+        </Reveal>
+      </div>
+    </section>
   )
 }

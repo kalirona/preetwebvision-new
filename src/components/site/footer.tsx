@@ -1,6 +1,7 @@
 'use client'
 
-import { Mail, MapPin, Phone, ArrowUpRight, Instagram, Linkedin, Twitter, Github, Send } from 'lucide-react'
+import * as React from 'react'
+import { Mail, MapPin, Phone, ArrowUpRight, Instagram, Linkedin, Twitter, Github, Send, Loader2, Check } from 'lucide-react'
 import { useNav } from '@/lib/nav-store'
 import { NAV_ITEMS, SERVICES } from '@/lib/site-data'
 import { Input } from '@/components/ui/input'
@@ -9,13 +10,42 @@ import { toast } from 'sonner'
 
 export function Footer() {
   const { setPage } = useNav()
+  const [email, setEmail] = React.useState('')
+  const [subscribing, setSubscribing] = React.useState(false)
+  const [subscribed, setSubscribed] = React.useState(false)
+  const [subCount, setSubCount] = React.useState<number | null>(null)
 
-  const subscribe = (e: React.FormEvent) => {
+  React.useEffect(() => {
+    fetch('/api/newsletter')
+      .then((r) => r.json())
+      .then((d) => d?.ok && setSubCount(d.count))
+      .catch(() => {})
+  }, [])
+
+  const subscribe = async (e: React.FormEvent) => {
     e.preventDefault()
-    toast.success('You\'re on the list!', {
-      description: 'Expect growth tips and studio updates in your inbox.',
-    })
-    ;(e.target as HTMLFormElement).reset()
+    if (!email || subscribing) return
+    setSubscribing(true)
+    try {
+      const res = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, source: 'footer' }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.ok) throw new Error(data.error || 'Request failed')
+      setSubscribed(true)
+      setSubCount((c) => (c != null ? c + 1 : 1))
+      toast.success("You're on the list!", {
+        description: 'Expect growth tips and studio updates in your inbox.',
+      })
+      setEmail('')
+      setTimeout(() => setSubscribed(false), 3500)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not subscribe.')
+    } finally {
+      setSubscribing(false)
+    }
   }
 
   return (
@@ -74,13 +104,36 @@ export function Footer() {
               <Input
                 type="email"
                 required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="Your email for growth tips"
                 className="rounded-full bg-background/60"
+                disabled={subscribing}
               />
-              <Button type="submit" size="icon" className="rounded-full bg-brand-gradient text-white shrink-0" aria-label="Subscribe">
-                <Send className="size-4" />
+              <Button
+                type="submit"
+                size="icon"
+                disabled={subscribing || subscribed}
+                className="rounded-full bg-brand-gradient text-white shrink-0 transition-transform hover:scale-105 disabled:opacity-70"
+                aria-label="Subscribe"
+              >
+                {subscribed ? (
+                  <Check className="size-4" />
+                ) : subscribing ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Send className="size-4" />
+                )}
               </Button>
             </form>
+            {subCount != null && (
+              <p className="mt-2 text-xs text-muted-foreground">
+                <span className="font-semibold text-foreground">
+                  {subCount.toLocaleString()}
+                </span>{' '}
+                growth-minded folks already subscribed
+              </p>
+            )}
             <div className="mt-5 flex items-center gap-2">
               {[
                 { Icon: Linkedin, label: 'LinkedIn' },
