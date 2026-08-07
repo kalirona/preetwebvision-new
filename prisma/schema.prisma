@@ -35,3 +35,9 @@ model NewsletterLead {
   source    String   @default("footer")
   createdAt DateTime @default(now())
 }
+
+model BlogView {
+  id        String   @id @default(cuid())
+  slug      String
+  createdAt DateTime @default(now())
+}

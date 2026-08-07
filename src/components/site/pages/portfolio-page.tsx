@@ -28,6 +28,7 @@ import {
   Marquee,
 } from '@/components/site/primitives'
 import { AmbientBackground } from '@/components/site/ambient-background'
+import { CaseStudyModal } from '@/components/site/case-study-modal'
 import { useNav } from '@/lib/nav-store'
 import {
   PROJECTS,
@@ -156,8 +157,7 @@ function FilterBar({
 }
 
 /* ============================== PROJECT CARD ============================== */
-function ProjectCard({ project }: { project: Project }) {
-  const { setPage } = useNav()
+function ProjectCard({ project, onOpen }: { project: Project; onOpen: (p: Project) => void }) {
   return (
     <motion.button
       layout
@@ -165,12 +165,23 @@ function ProjectCard({ project }: { project: Project }) {
       initial="hidden"
       animate="show"
       exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.25 } }}
-      onClick={() => setPage('contact')}
+      onClick={() => onOpen(project)}
       aria-label={`View case study: ${project.title}`}
       className="group relative aspect-[16/11] w-full overflow-hidden rounded-3xl border border-border/60 text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
     >
-      {/* Gradient backdrop */}
-      <div className={cn('absolute inset-0 bg-gradient-to-br', project.gradient)} />
+      {/* Gradient backdrop (or image) */}
+      {project.image ? (
+        <>
+          <img
+            src={project.image}
+            alt={`${project.title} — ${project.client}`}
+            className="absolute inset-0 size-full object-cover transition-transform duration-700 group-hover:scale-105"
+          />
+          <div className={cn('absolute inset-0 bg-gradient-to-br opacity-30 mix-blend-multiply', project.gradient)} />
+        </>
+      ) : (
+        <div className={cn('absolute inset-0 bg-gradient-to-br', project.gradient)} />
+      )}
       {/* Grid overlay */}
       <div className="absolute inset-0 grid-bg opacity-20" />
       {/* Dark overlay for legibility */}
@@ -233,7 +244,7 @@ function ProjectCard({ project }: { project: Project }) {
 }
 
 /* ============================== PROJECT GALLERY ============================== */
-function ProjectGallery() {
+function ProjectGallery({ onOpen }: { onOpen: (p: Project) => void }) {
   const categories: FilterId[] = React.useMemo(() => {
     const unique = Array.from(new Set(PROJECTS.map((p) => p.category)))
     return ['All', ...unique]
@@ -283,7 +294,7 @@ function ProjectGallery() {
         >
           <AnimatePresence mode="popLayout">
             {filtered.map((p) => (
-              <ProjectCard key={p.id} project={p} />
+              <ProjectCard key={p.id} project={p} onOpen={onOpen} />
             ))}
           </AnimatePresence>
         </motion.div>
@@ -582,14 +593,16 @@ function FinalCta() {
 
 /* ============================== PAGE ============================== */
 export function PortfolioPage() {
+  const [active, setActive] = React.useState<Project | null>(null)
   return (
     <div className="relative">
       <Hero />
-      <ProjectGallery />
+      <ProjectGallery onOpen={setActive} />
       <ProcessStrip />
       <TrustedBy />
       <TestimonialSection />
       <FinalCta />
+      <CaseStudyModal project={active} onClose={() => setActive(null)} />
     </div>
   )
 }

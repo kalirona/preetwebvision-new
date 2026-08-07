@@ -12,6 +12,7 @@ import { PortfolioPage } from '@/components/site/pages/portfolio-page'
 import { AboutPage } from '@/components/site/pages/about-page'
 import { PricingPage } from '@/components/site/pages/pricing-page'
 import { ContactPage } from '@/components/site/pages/contact-page'
+import { BlogPage } from '@/components/site/pages/blog-page'
 
 export default function Home() {
   const { page } = useNav()
@@ -34,6 +35,7 @@ export default function Home() {
             {page === 'portfolio' && <PortfolioPage />}
             {page === 'about' && <AboutPage />}
             {page === 'pricing' && <PricingPage />}
+            {page === 'blog' && <BlogPage />}
             {page === 'contact' && <ContactPage />}
           </motion.div>
         </AnimatePresence>

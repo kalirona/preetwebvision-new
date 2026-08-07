@@ -45,6 +45,7 @@ import {
   GradientText,
 } from '@/components/site/primitives'
 import { AmbientBackground } from '@/components/site/ambient-background'
+import { ProjectWizard } from '@/components/site/project-wizard'
 import { useNav } from '@/lib/nav-store'
 import { cn } from '@/lib/utils'
 
@@ -911,6 +912,7 @@ export function ContactPage() {
   return (
     <div className="relative">
       <Hero />
+      <ProjectWizard />
       <ContactGrid />
       <ContactFaq />
       <GlobalPresence />

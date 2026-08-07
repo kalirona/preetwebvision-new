@@ -29,6 +29,7 @@ export type PageId =
   | "portfolio"
   | "about"
   | "pricing"
+  | "blog"
   | "contact";
 
 export const NAV_ITEMS: { id: PageId; label: string }[] = [
@@ -37,6 +38,7 @@ export const NAV_ITEMS: { id: PageId; label: string }[] = [
   { id: "portfolio", label: "Work" },
   { id: "about", label: "About" },
   { id: "pricing", label: "Pricing" },
+  { id: "blog", label: "Blog" },
   { id: "contact", label: "Contact" },
 ];
 
@@ -192,6 +194,7 @@ export type Project = {
   metric: { label: string; value: string }[];
   gradient: string;
   emoji: string;
+  image?: string;
 };
 
 export const PROJECTS: Project[] = [
@@ -211,6 +214,7 @@ export const PROJECTS: Project[] = [
     ],
     gradient: "from-rose-500 via-pink-500 to-orange-400",
     emoji: "🛍️",
+    image: "/projects/p1-lumen.png",
   },
   {
     id: "p2",
@@ -228,6 +232,7 @@ export const PROJECTS: Project[] = [
     ],
     gradient: "from-fuchsia-500 via-purple-500 to-rose-500",
     emoji: "🤖",
+    image: "/projects/p2-nova.png",
   },
   {
     id: "p3",
@@ -245,6 +250,7 @@ export const PROJECTS: Project[] = [
     ],
     gradient: "from-amber-400 via-orange-500 to-pink-500",
     emoji: "📊",
+    image: "/projects/p3-atlas.png",
   },
   {
     id: "p4",
@@ -262,6 +268,7 @@ export const PROJECTS: Project[] = [
     ],
     gradient: "from-emerald-400 via-teal-500 to-cyan-500",
     emoji: "🌿",
+    image: "/projects/p4-verdant.png",
   },
   {
     id: "p5",
@@ -279,6 +286,7 @@ export const PROJECTS: Project[] = [
     ],
     gradient: "from-lime-400 via-emerald-500 to-teal-500",
     emoji: "🔍",
+    image: "/projects/p5-pulse.png",
   },
   {
     id: "p6",
@@ -296,6 +304,7 @@ export const PROJECTS: Project[] = [
     ],
     gradient: "from-pink-500 via-rose-500 to-amber-400",
     emoji: "💍",
+    image: "/projects/p6-mira.png",
   },
 ];
 

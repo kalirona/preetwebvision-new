@@ -272,3 +272,66 @@ Task: Assess project status, QA test via agent-browser, then improve styling + a
 - Generate branded images for portfolio project cards (currently gradient + emoji) to add visual realism.
 - Add **team member detail modals** or a **careers** section.
 - Consider a **service comparison table** on the Services or Pricing page.
+
+---
+Task ID: 15 (Cron Review Round 2)
+Agent: main (Z.ai Code)
+Task: Assess project status, QA test via agent-browser, then improve styling + add features per mandatory requirements.
+
+## Current Project Status (assessment)
+- Project stable from Round 1: 6 pages (Home/Services/Portfolio/About/Pricing/Contact) + ROI calculator, auto-rotating testimonials, pricing billing toggle, scroll progress, back-to-top, cookie consent, newsletter API. Lint clean, no runtime errors.
+- agent-browser QA confirmed all features working. Recommended next steps from Round 1: blog/insights page, case-study modals, multi-step inquiry wizard, branded portfolio images.
+
+## Completed Modifications
+
+### Styling polish (globals.css) — 12 new utilities
+- `.mesh-divider` (animated gradient mesh section divider), `.focus-ring` (brand focus-visible ring), `.badge-glow` (glowing badge), `.tilt-card` (3D perspective hover), `.reading-progress` (article reading bar), `.step-connector` (vertical gradient), `.live-dot` (pulsing live indicator), `.text-balance`, `.prose-brand` (full blog article typography: h2/h3/p/ul/blockquote/a with brand bullet gradients and pink link accents).
+
+### New feature 1: Blog/Insights page (7th page)
+- Added `"blog"` to `PageId` + `NAV_ITEMS` (now 7 nav items).
+- Created `src/lib/content-data.ts` with 6 full blog posts (BLOG_POSTS) — each with title, excerpt, category, author, date, reading time, gradient, emoji, and structured content blocks (p/h2/h3/ul/quote). Plus CASE_STUDIES record with challenge/solution/results/testimonial for all 6 projects.
+- Created `src/app/api/blog/route.ts` — POST tracks views (raw SQL, resilient), GET returns view counts. Added `BlogView` Prisma model.
+- Built `src/components/site/pages/blog-page.tsx`:
+  - **Blog grid**: hero with stats (6 articles, 5 categories, 6 min avg), featured post card (gradient + emoji + metadata), animated category filter pills (layoutId spring), 3-col card grid with cover gradient, author avatar, reading time, hover sheen.
+  - **Article view**: reading progress bar (scroll-tracked), hero with category/date/read-time, author card + share button (Web Share API + clipboard fallback), gradient cover, `.prose-brand` body rendering all block types, inline newsletter CTA, "Keep reading" related-posts grid (same-category with fallback).
+- Added "Latest from the blog" preview section to Home page (3 posts, → blog).
+
+### New feature 2: Project case-study modals
+- Built `src/components/site/case-study-modal.tsx` — full-screen modal with: gradient/image cover header, scrollable body (metrics grid, Challenge/Solution/Results sections with icons, services tags, testimonial quote), footer CTA. Esc-to-close, body-scroll-lock, backdrop click, spring animation. Accessible (role=dialog, aria-modal).
+- Wired into Portfolio page: cards now open the modal instead of going to contact. Modal "Start a project" CTA → contact.
+
+### New feature 3: Multi-step project inquiry wizard (Contact page)
+- Built `src/components/site/project-wizard.tsx` — 4-step wizard (Service → Budget → Timeline → Details) + success state:
+  - Visual stepper with done/active/inactive states + gradient connectors.
+  - Step 0: 5 service cards (gradient icon tiles). Step 1: 4 budget chips. Step 2: 4 timeline chips. Step 3: name/email/optional summary.
+  - Per-step validation (can't proceed without selection/valid email). Back/Continue nav. Restart button.
+  - On submit: POSTs to `/api/contact` with wizard context (service, budget, timeline+summary in message). Success state: animated check, personalized "Got it, {name}! 🎉", summary chips, "Start over" / "Back to home" CTAs.
+- Wired into Contact page above the main contact grid.
+
+### New feature 4: Branded portfolio images
+- Generated 6 custom AI images (1152x864) via z-ai image CLI → `public/projects/p1-lumen.png` … `p6-mira.png` (Lumen skincare, Nova AI dashboard, Atlas fintech, Verdant botanical, Pulse SEO, Mira wedding).
+- Added `image?: string` field to `Project` type + wired image paths into all 6 PROJECTS.
+- Updated Portfolio `ProjectCard` + `CaseStudyModal` header to render the real image (with gradient multiply overlay for brand cohesion) instead of plain gradient, with hover zoom on cards.
+
+## Verification Results
+- `bun run lint` → clean (0 errors, 0 warnings).
+- agent-browser QA:
+  - Blog nav item present (7 nav items). Blog page renders with 6 cards + 6 filters. Article view opens with prose content, share button, related posts. Blog view tracking API returns count:1 after reading.
+  - Portfolio: all 6 project images load. Case-study modal opens with challenge/solution/results, closes via X button.
+  - Project wizard: full 4-step flow walked (AI Automation → <$5k → 1–2 months → details filled → submit) → success state "Got it, Wizard! 🎉". Submission POSTed to /api/contact (200).
+  - Home blog preview section renders 3 post cards.
+- VLM visual QA: blog grid "strong dark-mode aesthetic... clear typographic hierarchy"; article "clean layout... effective metadata"; case study modal "high-impact presentation of data... scannable and persuasive... real product image adds authenticity".
+- Dev log: POST /api/blog 200, POST /api/contact 200, GET / 200. No new errors.
+
+## Unresolved Issues / Risks
+- Blog view tracking uses raw SQL (resilient to Prisma singleton staleness, same pattern as newsletter) — works but non-critical if it fails (fail-open).
+- Cookie consent banner appears on first visit to any page (expected) — may overlap content in screenshots until dismissed.
+- The case-study modal content scrolls within the modal; on very short viewports the Solution/Results may be below the fold (by design — scrollable).
+
+## Priority Recommendations for Next Round
+- Add **team member detail modals** on the About page (expand on bios, skills, social links).
+- Add a **service comparison table** on Services or Pricing (feature matrix across plans).
+- Build a **careers/jobs** section or page (the About page already has a "We're hiring" CTA card).
+- Add **search/filter** to the blog (beyond categories — by keyword or author).
+- Add **dark/light theme persistence** indicator in the navbar (currently toggles but no visible state hint beyond the icon).
+- Consider **animated page transition variants** per page type (currently uniform fade/slide).

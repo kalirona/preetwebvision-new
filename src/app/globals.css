@@ -383,6 +383,144 @@
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
   }
+
+  /* Animated gradient mesh divider between sections */
+  .mesh-divider {
+    position: relative;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, color-mix(in oklch, var(--brand-pink) 40%, transparent), transparent);
+  }
+  .mesh-divider::after {
+    content: "";
+    position: absolute;
+    inset: -1px 0;
+    background: linear-gradient(90deg, transparent, color-mix(in oklch, var(--brand-orange) 30%, transparent), color-mix(in oklch, var(--brand-rose) 30%, transparent), transparent);
+    filter: blur(4px);
+    opacity: 0.7;
+  }
+
+  /* Premium focus-visible ring (brand) */
+  .focus-ring:focus-visible {
+    outline: 2px solid var(--brand-pink);
+    outline-offset: 2px;
+    border-radius: calc(var(--radius) - 4px);
+  }
+
+  /* Badge pill variants */
+  .badge-glow {
+    box-shadow: 0 0 0 1px color-mix(in oklch, var(--brand-pink) 30%, transparent),
+      0 4px 18px -4px color-mix(in oklch, var(--brand-pink) 45%, transparent);
+  }
+
+  /* Tilted card hover (subtle 3D) */
+  .tilt-card {
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.4s ease;
+    transform-style: preserve-3d;
+  }
+  .tilt-card:hover {
+    transform: perspective(900px) rotateX(2deg) rotateY(-3deg) translateY(-4px);
+  }
+
+  /* Reading progress (for article view) */
+  .reading-progress {
+    background: linear-gradient(90deg, var(--brand-orange), var(--brand-pink), var(--brand-rose));
+  }
+
+  /* Step connector gradient */
+  .step-connector {
+    background: linear-gradient(180deg, var(--brand-orange), var(--brand-pink) 50%, var(--brand-rose));
+  }
+
+  /* Animated dot pulse for live indicators */
+  .live-dot {
+    position: relative;
+  }
+  .live-dot::before {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border-radius: 999px;
+    background: var(--brand-pink);
+    opacity: 0.5;
+    animation: livePulse 1.8s ease-out infinite;
+  }
+  @keyframes livePulse {
+    0% { transform: scale(0.8); opacity: 0.6; }
+    100% { transform: scale(2.4); opacity: 0; }
+  }
+
+  /* Text balance for headings */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Prose styling for blog articles */
+  .prose-brand {
+    color: var(--foreground);
+  }
+  .prose-brand h2 {
+    font-family: var(--font-display), sans-serif;
+    font-weight: 700;
+    font-size: 1.75rem;
+    line-height: 1.2;
+    margin-top: 2.25rem;
+    margin-bottom: 0.75rem;
+    letter-spacing: -0.01em;
+  }
+  .prose-brand h3 {
+    font-family: var(--font-display), sans-serif;
+    font-weight: 600;
+    font-size: 1.3rem;
+    margin-top: 1.75rem;
+    margin-bottom: 0.5rem;
+  }
+  .prose-brand p {
+    line-height: 1.75;
+    margin-bottom: 1.15rem;
+    color: color-mix(in oklch, var(--foreground) 85%, transparent);
+  }
+  .prose-brand ul {
+    margin: 1rem 0 1.25rem;
+    padding-left: 1.25rem;
+    list-style: none;
+  }
+  .prose-brand ul li {
+    position: relative;
+    padding-left: 1.25rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.7;
+    color: color-mix(in oklch, var(--foreground) 85%, transparent);
+  }
+  .prose-brand ul li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.62em;
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--brand-orange), var(--brand-pink));
+  }
+  .prose-brand strong {
+    color: var(--foreground);
+    font-weight: 600;
+  }
+  .prose-brand blockquote {
+    border-left: 3px solid var(--brand-pink);
+    padding: 0.25rem 0 0.25rem 1.25rem;
+    margin: 1.5rem 0;
+    font-style: italic;
+    color: color-mix(in oklch, var(--foreground) 75%, transparent);
+  }
+  .prose-brand a {
+    color: var(--brand-pink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: color-mix(in oklch, var(--brand-pink) 40%, transparent);
+  }
+  .prose-brand a:hover {
+    text-decoration-color: var(--brand-pink);
+  }
 }
 
 /* Custom scrollbar */

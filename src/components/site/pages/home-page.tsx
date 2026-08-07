@@ -16,6 +16,8 @@ import {
   ChevronRight,
   Pause,
   Calculator,
+  Clock,
+  BookOpen,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -39,6 +41,7 @@ import {
 import { AmbientBackground } from '@/components/site/ambient-background'
 import { RoiCalculator } from '@/components/site/roi-calculator'
 import { useNav } from '@/lib/nav-store'
+import { BLOG_POSTS } from '@/lib/content-data'
 import {
   SERVICES,
   STATS,
@@ -851,6 +854,77 @@ function RoiSection() {
   )
 }
 
+/* ============================== BLOG PREVIEW ============================== */
+function BlogPreview() {
+  const { setPage } = useNav()
+  const posts = BLOG_POSTS.slice(0, 3)
+  return (
+    <section className="relative py-20 sm:py-28">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
+          <SectionHeading
+            align="left"
+            eyebrow="From the blog"
+            title={
+              <>
+                Ideas worth <GradientText>stealing</GradientText>
+              </>
+            }
+            description="Field-tested insights on web, AI, SEO and growth — from the team shipping them daily."
+            className="max-w-xl"
+          />
+          <Reveal delay={0.1}>
+            <Button
+              onClick={() => setPage('blog')}
+              variant="outline"
+              className="rounded-full"
+            >
+              <BookOpen className="size-4" />
+              Read the blog
+            </Button>
+          </Reveal>
+        </div>
+
+        <StaggerGroup className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {posts.map((post) => (
+            <motion.button
+              key={post.id}
+              variants={staggerItem}
+              onClick={() => setPage('blog')}
+              className="group card-sheen relative flex h-full flex-col overflow-hidden rounded-3xl border border-border/60 bg-card text-left transition-all duration-300 hover:-translate-y-1 hover:border-border hover:shadow-xl"
+            >
+              <div className={cn('relative h-36 overflow-hidden bg-gradient-to-br', post.gradient)}>
+                <div className="absolute inset-0 grid-bg opacity-20" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                <span className="absolute left-4 top-4 text-4xl drop-shadow-lg">{post.emoji}</span>
+                <span className="absolute right-3 top-3 rounded-full bg-white/15 px-2.5 py-0.5 text-[11px] font-semibold text-white backdrop-blur">
+                  {post.category}
+                </span>
+              </div>
+              <div className="flex flex-1 flex-col p-5">
+                <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                  <Clock className="size-3" />
+                  {post.readingMinutes} min read
+                </div>
+                <h3 className="mt-2 font-display text-base font-bold leading-snug tracking-tight line-clamp-2">
+                  {post.title}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground line-clamp-2">
+                  {post.excerpt}
+                </p>
+                <span className="mt-auto inline-flex items-center gap-1.5 pt-4 text-sm font-semibold">
+                  Read article
+                  <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" />
+                </span>
+              </div>
+            </motion.button>
+          ))}
+        </StaggerGroup>
+      </div>
+    </section>
+  )
+}
+
 /* ============================== PAGE ============================== */
 export function HomePage() {
   return (
@@ -865,6 +939,7 @@ export function HomePage() {
       <PortfolioPreview />
       <Testimonials />
       <AiDemoCta />
+      <BlogPreview />
       <TechStack />
       <FaqSection />
     </div>
