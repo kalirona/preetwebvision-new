@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ImageLightbox } from '@/components/site/image-lightbox'
 import { useNav } from '@/lib/nav-store'
 import { CASE_STUDIES } from '@/lib/content-data'
-import type { Project } from '@/lib/site-data'
+import { PROJECTS, type Project } from '@/lib/site-data'
 import { cn } from '@/lib/utils'
 
 export function CaseStudyModal({
@@ -23,12 +23,19 @@ export function CaseStudyModal({
   const caseStudy = project ? CASE_STUDIES[project.id] : null
   const [lightboxIndex, setLightboxIndex] = React.useState<number | null>(null)
 
-  // Build gallery images from the project image
+  // Build gallery images from case study gallery (or fall back to project image)
   const galleryImages = React.useMemo(() => {
-    if (!project?.image) return []
-    return [
-      { src: project.image, alt: `${project.title} — cover`, caption: `${project.title} — ${project.client}` },
-    ]
+    if (caseStudy?.gallery && caseStudy.gallery.length > 0) return caseStudy.gallery
+    if (project?.image) {
+      return [{ src: project.image, alt: `${project.title} — cover`, caption: `${project.title} — ${project.client}` }]
+    }
+    return []
+  }, [project, caseStudy])
+
+  // Related projects (same category, excluding current)
+  const relatedProjects = React.useMemo(() => {
+    if (!project) return []
+    return PROJECTS.filter((p) => p.id !== project.id && p.category === project.category).slice(0, 3)
   }, [project])
 
   React.useEffect(() => {
@@ -181,9 +188,75 @@ export function CaseStudyModal({
                   </div>
                 </div>
               )}
-            </div>
 
-            {/* Footer CTA */}
+            {/* Gallery thumbnail strip */}
+            {galleryImages.length > 1 && (
+              <div className="mt-6">
+                <h3 className="flex items-center gap-2 font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">
+                  <span className="grid size-7 place-items-center rounded-lg bg-brand-gradient-soft">
+                    <Maximize2 className="size-3.5" style={{ color: 'var(--brand-pink)' }} />
+                  </span>
+                  Gallery
+                </h3>
+                <div className="thumb-strip mt-3 flex gap-2 overflow-x-auto pb-2">
+                  {galleryImages.map((img, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setLightboxIndex(i)}
+                      aria-label={`View image ${i + 1}: ${img.caption ?? img.alt}`}
+                      className="group relative h-20 w-28 shrink-0 overflow-hidden rounded-xl border border-border/60 bg-muted"
+                    >
+                      <img
+                        src={img.src}
+                        alt={img.alt}
+                        loading="lazy"
+                        className="size-full object-cover transition-transform duration-300 group-hover:scale-110"
+                      />
+                      <span className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/20" />
+                      <span className="absolute bottom-1 right-1 grid size-5 place-items-center rounded-full bg-white/80 opacity-0 backdrop-blur transition-opacity group-hover:opacity-100">
+                        <Maximize2 className="size-2.5 text-black" />
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Related projects */}
+            {relatedProjects.length > 0 && (
+              <div className="mt-6">
+                <h3 className="flex items-center gap-2 font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">
+                  <span className="grid size-7 place-items-center rounded-lg bg-brand-gradient-soft">
+                    <ArrowRight className="size-3.5" style={{ color: 'var(--brand-pink)' }} />
+                  </span>
+                  More {project.category} work
+                </h3>
+                <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                  {relatedProjects.map((rp) => (
+                    <button
+                      key={rp.id}
+                      onClick={() => {
+                        // Navigate to related project via custom event
+                        window.dispatchEvent(new CustomEvent('open-case-study', { detail: rp.id }))
+                      }}
+                      className="group flex items-center gap-2.5 rounded-xl border border-border/60 bg-card p-2.5 text-left transition-all hover:border-border hover:shadow-md"
+                    >
+                      <span className={cn('grid size-9 shrink-0 place-items-center rounded-lg bg-gradient-to-br text-white', rp.gradient)}>
+                        <span className="text-base">{rp.emoji}</span>
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-xs font-bold">{rp.title}</p>
+                        <p className="truncate text-[10px] text-muted-foreground">{rp.client}</p>
+                      </div>
+                      <ArrowRight className="size-3 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Footer CTA */}
             <div className="shrink-0 border-t border-border/60 bg-muted/20 p-5 sm:p-6">
               <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
                 <p className="text-sm text-muted-foreground">

@@ -619,6 +619,21 @@ function FinalCta() {
 /* ============================== PAGE ============================== */
 export function PortfolioPage() {
   const [active, setActive] = React.useState<Project | null>(null)
+
+  // Listen for "open-case-study" events from related-project links in the modal
+  React.useEffect(() => {
+    const onOpen = (e: Event) => {
+      const id = (e as CustomEvent<string>).detail
+      const proj = PROJECTS.find((p) => p.id === id)
+      if (proj) {
+        setActive(null)
+        setTimeout(() => setActive(proj), 50)
+      }
+    }
+    window.addEventListener('open-case-study', onOpen as EventListener)
+    return () => window.removeEventListener('open-case-study', onOpen as EventListener)
+  }, [])
+
   return (
     <div className="relative">
       <Hero />

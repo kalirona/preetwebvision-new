@@ -15,6 +15,9 @@ import {
   Mail,
   Search,
   X,
+  CheckCircle2,
+  Loader2,
+  Send,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -552,28 +555,8 @@ function ArticleView({ post, onBack, onOpen }: { post: BlogPost; onBack: () => v
           })}
         </div>
 
-        {/* Newsletter inline CTA */}
-        <div className="mt-12 overflow-hidden rounded-3xl border border-border/60 bg-muted/20 p-6 sm:p-8">
-          <div className="pointer-events-none absolute -right-12 -top-12 size-40 rounded-full bg-brand-gradient opacity-15 blur-3xl" />
-          <div className="relative flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-            <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-brand-gradient text-white">
-              <Mail className="size-5" />
-            </span>
-            <div className="flex-1">
-              <h3 className="font-display text-lg font-bold">Enjoyed this? Get the next one in your inbox.</h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Weekly insights on web, AI, SEO and growth. No spam, ever.
-              </p>
-            </div>
-            <Button
-              onClick={() => setPage('contact')}
-              className="shrink-0 rounded-full bg-brand-gradient text-white"
-            >
-              Subscribe
-              <ArrowRight className="size-4" />
-            </Button>
-          </div>
-        </div>
+        {/* Newsletter inline signup form */}
+        <BlogNewsletterSignup />
       </article>
 
       {/* Floating reading-progress badge */}
@@ -654,6 +637,89 @@ function ArticleView({ post, onBack, onOpen }: { post: BlogPost; onBack: () => v
           </StaggerGroup>
         </div>
       </section>
+    </div>
+  )
+}
+
+/* ============ INLINE NEWSLETTER SIGNUP (in articles) ============ */
+function BlogNewsletterSignup() {
+  const [email, setEmail] = React.useState('')
+  const [status, setStatus] = React.useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email || status === 'loading') return
+    setStatus('loading')
+    try {
+      const res = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, source: 'blog-article' }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.ok) throw new Error(data.error || 'Failed')
+      setStatus('success')
+      setEmail('')
+      toast.success("You're on the list!", {
+        description: 'Expect growth tips and studio updates in your inbox.',
+      })
+    } catch {
+      setStatus('error')
+      toast.error('Could not subscribe. Please try again.')
+    }
+  }
+
+  return (
+    <div className="relative mt-12 overflow-hidden rounded-3xl border border-border/60 bg-muted/20 p-6 sm:p-8">
+      <div className="pointer-events-none absolute -right-12 -top-12 size-40 rounded-full bg-brand-gradient opacity-15 blur-3xl" />
+      <div className="pointer-events-none absolute inset-0 grid-bg opacity-20 [mask-image:radial-gradient(ellipse_at_right,#000,transparent_70%)]" />
+      <div className="relative">
+        <div className="flex items-start gap-4">
+          <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-brand-gradient text-white shadow-lg">
+            <Mail className="size-5" />
+          </span>
+          <div className="flex-1">
+            <h3 className="font-display text-lg font-bold">
+              Enjoyed this? Get the next one in your <span className="text-gradient-brand">inbox</span>.
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Weekly insights on web, AI, SEO and growth. No spam, ever.
+            </p>
+          </div>
+        </div>
+        {status === 'success' ? (
+          <div className="mt-5 flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm">
+            <CheckCircle2 className="size-5 shrink-0 text-emerald-500" />
+            <span>
+              <span className="font-semibold">You&apos;re subscribed!</span>{' '}
+              <span className="text-muted-foreground">Look out for our next article.</span>
+            </span>
+          </div>
+        ) : (
+          <form onSubmit={submit} className="mt-5 flex flex-col gap-2 sm:flex-row">
+            <Input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              className="h-11 flex-1 rounded-full bg-background/60"
+              disabled={status === 'loading'}
+            />
+            <Button
+              type="submit"
+              disabled={status === 'loading'}
+              className="h-11 shrink-0 rounded-full bg-brand-gradient text-white"
+            >
+              {status === 'loading' ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+              {status === 'loading' ? 'Subscribing...' : 'Subscribe'}
+            </Button>
+          </form>
+        )}
+        <p className="mt-2 text-[11px] text-muted-foreground">
+          Join 2,000+ founders and operators. Unsubscribe anytime.
+        </p>
+      </div>
     </div>
   )
 }
