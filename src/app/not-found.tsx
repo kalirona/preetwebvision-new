@@ -3,10 +3,16 @@
 import { motion } from 'framer-motion'
 import { Home, Search, ArrowRight, Bot } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useNav } from '@/lib/nav-store'
 
 export default function NotFound() {
-  const { setPage } = useNav()
+  const goHome = () => {
+    window.location.href = '/'
+  }
+  const goHomeAndSearch = () => {
+    // Navigate to home route, then open command palette after mount
+    sessionStorage.setItem('pwv-open-command-palette', '1')
+    window.location.href = '/'
+  }
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4">
@@ -55,7 +61,7 @@ export default function NotFound() {
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Button
-            onClick={() => setPage('home')}
+            onClick={goHome}
             className="group relative h-12 overflow-hidden rounded-full bg-brand-gradient px-6 text-base text-white shadow-[0_10px_40px_-8px_rgba(255,45,117,0.6)]"
           >
             <span className="relative z-10 flex items-center gap-2">
@@ -65,11 +71,7 @@ export default function NotFound() {
             <span className="absolute inset-0 animate-shimmer opacity-40" />
           </Button>
           <Button
-            onClick={() => {
-              // Dispatch command palette open
-              window.dispatchEvent(new CustomEvent('open-command-palette'))
-              setPage('home')
-            }}
+            onClick={goHomeAndSearch}
             variant="outline"
             className="h-12 rounded-full px-6 text-base"
           >
@@ -81,15 +83,15 @@ export default function NotFound() {
         {/* Quick links */}
         <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm">
           {[
-            { label: 'Services', id: 'services' as const },
-            { label: 'Work', id: 'portfolio' as const },
-            { label: 'Pricing', id: 'pricing' as const },
-            { label: 'Blog', id: 'blog' as const },
-            { label: 'Contact', id: 'contact' as const },
+            { label: 'Services', hash: '#services' },
+            { label: 'Work', hash: '#portfolio' },
+            { label: 'Pricing', hash: '#pricing' },
+            { label: 'Blog', hash: '#blog' },
+            { label: 'Contact', hash: '#contact' },
           ].map((link) => (
             <button
-              key={link.id}
-              onClick={() => setPage(link.id)}
+              key={link.hash}
+              onClick={() => { window.location.href = `/${link.hash}` }}
               className="group inline-flex items-center gap-1 text-muted-foreground transition-colors hover:text-foreground"
             >
               {link.label}

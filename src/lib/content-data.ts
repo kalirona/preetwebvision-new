@@ -260,8 +260,8 @@ export const CASE_STUDIES: Record<string, CaseStudy> = {
     },
     gallery: [
       { src: "/projects/p1-lumen.png", alt: "Lumen storefront homepage", caption: "Headless storefront homepage" },
-      { src: "/blog/b3.png", alt: "Conversion optimization process", caption: "CRO experiment board" },
-      { src: "/blog/b6.png", alt: "Headless commerce architecture", caption: "Headless commerce architecture" },
+      { src: "/gallery/wireframe-1.png", alt: "Conversion optimization process", caption: "CRO experiment board" },
+      { src: "/gallery/design-system-1.png", alt: "Headless commerce architecture", caption: "Headless commerce architecture" },
     ],
   },
   p2: {
@@ -284,8 +284,8 @@ export const CASE_STUDIES: Record<string, CaseStudy> = {
     },
     gallery: [
       { src: "/projects/p2-nova.png", alt: "Nova AI support dashboard", caption: "AI support dashboard" },
-      { src: "/blog/b1.png", alt: "AI automation architecture", caption: "RAG pipeline architecture" },
-      { src: "/blog/b2.png", alt: "Performance metrics", caption: "Resolution rate analytics" },
+      { src: "/gallery/analytics-1.png", alt: "AI automation architecture", caption: "RAG pipeline architecture" },
+      { src: "/gallery/design-system-1.png", alt: "Performance metrics", caption: "Resolution rate analytics" },
     ],
   },
   p3: {
@@ -308,8 +308,8 @@ export const CASE_STUDIES: Record<string, CaseStudy> = {
     },
     gallery: [
       { src: "/projects/p3-atlas.png", alt: "Atlas analytics dashboard", caption: "Realtime analytics dashboard" },
-      { src: "/blog/b4.png", alt: "Data pipeline visualization", caption: "Event streaming pipeline" },
-      { src: "/blog/b2.png", alt: "Performance metrics", caption: "Core Web Vitals monitoring" },
+      { src: "/gallery/analytics-1.png", alt: "Data pipeline visualization", caption: "Event streaming pipeline" },
+      { src: "/gallery/design-system-1.png", alt: "Performance metrics", caption: "Core Web Vitals monitoring" },
     ],
   },
   p4: {
@@ -332,8 +332,8 @@ export const CASE_STUDIES: Record<string, CaseStudy> = {
     },
     gallery: [
       { src: "/projects/p4-verdant.png", alt: "Verdant brand site", caption: "Immersive brand site" },
-      { src: "/blog/b5.png", alt: "Design system components", caption: "Custom design system" },
-      { src: "/blog/b2.png", alt: "Performance metrics", caption: "96 Lighthouse score" },
+      { src: "/gallery/design-system-1.png", alt: "Design system components", caption: "Custom design system" },
+      { src: "/gallery/analytics-1.png", alt: "Performance metrics", caption: "96 Lighthouse score" },
     ],
   },
   p5: {
@@ -356,8 +356,8 @@ export const CASE_STUDIES: Record<string, CaseStudy> = {
     },
     gallery: [
       { src: "/projects/p5-pulse.png", alt: "Pulse SEO dashboard", caption: "SEO ranking dashboard" },
-      { src: "/blog/b4.png", alt: "Content cluster strategy", caption: "Topic cluster strategy" },
-      { src: "/blog/b1.png", alt: "Growth analytics", caption: "Growth analytics view" },
+      { src: "/gallery/analytics-1.png", alt: "Content cluster strategy", caption: "Topic cluster strategy" },
+      { src: "/gallery/wireframe-1.png", alt: "Growth analytics", caption: "Growth analytics view" },
     ],
   },
   p6: {
@@ -375,8 +375,8 @@ export const CASE_STUDIES: Record<string, CaseStudy> = {
     services: ["Web App", "Payments"],
     gallery: [
       { src: "/projects/p6-mira.png", alt: "Mira wedding marketplace", caption: "Wedding vendor marketplace" },
-      { src: "/blog/b3.png", alt: "Marketplace CRO", caption: "Marketplace conversion flow" },
-      { src: "/blog/b6.png", alt: "Platform architecture", caption: "Two-sided marketplace architecture" },
+      { src: "/gallery/wireframe-1.png", alt: "Marketplace CRO", caption: "Marketplace conversion flow" },
+      { src: "/gallery/design-system-1.png", alt: "Platform architecture", caption: "Two-sided marketplace architecture" },
     ],
   },
 };

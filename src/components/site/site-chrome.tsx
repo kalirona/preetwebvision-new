@@ -4,6 +4,7 @@ import * as React from 'react'
 import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion'
 import { ArrowUp, Cookie, X, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { PrivacyPolicyModal } from '@/components/site/privacy-policy-modal'
 
 /* ============ Scroll Progress Bar (top of viewport) ============ */
 export function ScrollProgress() {
@@ -85,6 +86,7 @@ const CONSENT_KEY = 'pwv-cookie-consent-v1'
 
 export function CookieConsent() {
   const [visible, setVisible] = React.useState(false)
+  const [policyOpen, setPolicyOpen] = React.useState(false)
   React.useEffect(() => {
     try {
       const stored = localStorage.getItem(CONSENT_KEY)
@@ -107,36 +109,41 @@ export function CookieConsent() {
   }
 
   return (
-    <AnimatePresence>
-      {visible && (
-        <motion.div
-          initial={{ opacity: 0, y: 40, scale: 0.96 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 40, scale: 0.96 }}
-          transition={{ type: 'spring', stiffness: 240, damping: 26 }}
-          className="fixed inset-x-3 bottom-3 z-[55] mx-auto max-w-2xl"
-          role="dialog"
-          aria-label="Cookie consent"
-        >
-          <div className="glass-deep noise-overlay overflow-hidden rounded-2xl border border-border/60 p-4 sm:p-5">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <div className="flex flex-1 items-start gap-3">
-                <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-brand-gradient-soft">
-                  <Cookie className="size-5" style={{ color: 'var(--brand-pink)' }} />
-                </span>
-                <div>
-                  <p className="text-sm font-semibold leading-snug">
-                    We use cookies to enhance your experience.
-                  </p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    We use analytics to improve our site. You control your preferences. Read our{' '}
-                    <a href="#" className="link-underline font-medium text-foreground">
-                      Privacy Policy
-                    </a>
-                    .
-                  </p>
+    <>
+      <PrivacyPolicyModal open={policyOpen} onClose={() => setPolicyOpen(false)} />
+      <AnimatePresence>
+        {visible && (
+          <motion.div
+            initial={{ opacity: 0, y: 40, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 40, scale: 0.96 }}
+            transition={{ type: 'spring', stiffness: 240, damping: 26 }}
+            className="fixed inset-x-3 bottom-3 z-[55] mx-auto max-w-2xl"
+            role="dialog"
+            aria-label="Cookie consent"
+          >
+            <div className="glass-deep noise-overlay overflow-hidden rounded-2xl border border-border/60 p-4 sm:p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <div className="flex flex-1 items-start gap-3">
+                  <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-brand-gradient-soft">
+                    <Cookie className="size-5" style={{ color: 'var(--brand-pink)' }} />
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold leading-snug">
+                      We use cookies to enhance your experience.
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      We use analytics to improve our site. You control your preferences. Read our{' '}
+                      <button
+                        onClick={() => setPolicyOpen(true)}
+                        className="link-underline font-medium text-foreground"
+                      >
+                        Privacy Policy
+                      </button>
+                      .
+                    </p>
+                  </div>
                 </div>
-              </div>
               <div className="flex shrink-0 items-center gap-2">
                 <Button
                   size="sm"
@@ -167,5 +174,6 @@ export function CookieConsent() {
         </motion.div>
       )}
     </AnimatePresence>
+    </>
   )
 }

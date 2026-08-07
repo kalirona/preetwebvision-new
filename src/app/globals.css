@@ -1031,6 +1031,90 @@
     background: color-mix(in oklch, var(--brand-pink) 40%, transparent);
     border-radius: 999px;
   }
+
+  /* Premium card hover depth (layered shadow + lift) */
+  .card-hover-depth {
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.35s ease;
+  }
+  .card-hover-depth:hover {
+    transform: translateY(-6px);
+    box-shadow:
+      0 4px 8px -2px rgba(0, 0, 0, 0.08),
+      0 12px 28px -4px rgba(0, 0, 0, 0.12),
+      0 24px 56px -8px color-mix(in oklch, var(--brand-pink) 20%, transparent);
+  }
+
+  /* Animated section entrance (staggered fade-up) */
+  .section-enter {
+    animation: sectionEnter 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  @keyframes sectionEnter {
+    from { opacity: 0; transform: translateY(28px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Gradient mesh CTA band background */
+  .cta-mesh {
+    position: relative;
+  }
+  .cta-mesh::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background:
+      radial-gradient(at 20% 50%, color-mix(in oklch, var(--brand-orange) 15%, transparent) 0px, transparent 50%),
+      radial-gradient(at 80% 50%, color-mix(in oklch, var(--brand-pink) 15%, transparent) 0px, transparent 50%);
+    pointer-events: none;
+  }
+
+  /* Magnetic CTA button (subtle pull toward cursor) */
+  .magnetic-cta {
+    transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+  }
+
+  /* Breadcrumb styling */
+  .breadcrumb {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--muted-foreground);
+  }
+  .breadcrumb a {
+    transition: color 0.2s ease;
+  }
+  .breadcrumb a:hover {
+    color: var(--foreground);
+  }
+
+  /* Privacy policy modal prose */
+  .policy-prose h3 {
+    font-family: var(--font-display), sans-serif;
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .policy-prose p {
+    line-height: 1.7;
+    margin-bottom: 0.75rem;
+    color: color-mix(in oklch, var(--foreground) 85%, transparent);
+    font-size: 0.875rem;
+  }
+  .policy-prose ul {
+    margin: 0.5rem 0 1rem;
+    padding-left: 1.25rem;
+    list-style: disc;
+  }
+  .policy-prose li {
+    margin-bottom: 0.35rem;
+    line-height: 1.65;
+    color: color-mix(in oklch, var(--foreground) 85%, transparent);
+    font-size: 0.875rem;
+  }
 }
 
 /* Reduced motion — respect user preference */

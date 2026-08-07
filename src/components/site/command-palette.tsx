@@ -53,9 +53,15 @@ export function CommandPalette() {
         setOpen((o) => !o)
       }
     }
+    // Listen for custom event (from 404 page "Search the site" button)
+    const onOpen = () => setOpen(true)
     // Capture phase to intercept before the AI assistant's listener
     window.addEventListener('keydown', onKey, true)
-    return () => window.removeEventListener('keydown', onKey, true)
+    window.addEventListener('open-command-palette', onOpen)
+    return () => {
+      window.removeEventListener('keydown', onKey, true)
+      window.removeEventListener('open-command-palette', onOpen)
+    }
   }, [])
 
   // Focus input when opened + reset when closed
@@ -67,6 +73,18 @@ export function CommandPalette() {
       setSelected(0)
     }
   }, [open])
+
+  // Auto-open if redirected from 404 page (via sessionStorage flag)
+  React.useEffect(() => {
+    try {
+      if (sessionStorage.getItem('pwv-open-command-palette') === '1') {
+        sessionStorage.removeItem('pwv-open-command-palette')
+        setTimeout(() => setOpen(true), 600)
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [])
 
   // Build command items
   const pageIcons: Record<PageId, LucideIcon> = {

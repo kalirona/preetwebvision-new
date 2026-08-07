@@ -849,3 +849,64 @@ Task: Assess project status, QA test via agent-browser, then improve styling + a
 - Build **animated SVG illustrations** for service sections.
 - Add a **cookie policy / privacy page** linked from the cookie banner.
 - Consider **image optimization** via Next.js `<Image>` component for automatic format conversion + responsive sizes.
+
+---
+Task ID: 22 (Cron Review Round 9)
+Agent: main (Z.ai Code)
+Task: Assess project status, QA test via agent-browser, then improve styling + add features per mandatory requirements.
+
+## Current Project Status (assessment)
+- Project stable from Round 8: 7 pages with case-study galleries + lightbox, related projects, 404 page, inline blog newsletter, LazyImage component, command palette, social proof, FAQ search, blog with images/reading progress/glossary, portfolio carousel, team modals, careers, comparison table, ROI calculator, project wizard, branded images, per-page transitions, reduced-motion. Lint clean, no runtime errors.
+- Dev server had stopped (connection refused); restarted via `bun run dev`. Recommended next steps from Round 8: LazyImage rollout, dedicated gallery images, wire 404 search button, OG metadata, cookie policy page.
+
+## Completed Modifications
+
+### Styling polish (globals.css) — 8 new utilities
+- `.card-hover-depth` (layered shadow + lift on hover), `.section-enter` (staggered fade-up entrance), `.cta-mesh` (gradient mesh CTA background), `.magnetic-cta` (cursor pull transition), `.breadcrumb` (inline flex with hover), `.policy-prose` (privacy modal typography: h3/p/ul/li).
+
+### New feature 1: 404 "Search the site" button → command palette
+- Wired the 404 page's "Search the site" button to navigate home and auto-open the command palette via sessionStorage flag. The 404 page uses `window.location.href = '/'` (since it's a separate route, not SPA state). Command palette checks `sessionStorage.getItem('pwv-open-command-palette')` on mount and auto-opens after 600ms.
+- Fixed the 404 page to use `window.location.href` instead of `setPage` (which doesn't work across routes). Quick links also use hash navigation.
+- Verified: click "Search the site" on /nonexistent → navigates to / → command palette auto-opens.
+
+### New feature 2: Privacy policy modal linked from cookie banner
+- Built `src/components/site/privacy-policy-modal.tsx` — full privacy policy modal with: gradient header (Shield icon), scrollable body with 5 sections (Cookies we use, Data we collect, How we protect data, Your rights, Contact us) each with branded icons, `.policy-prose` typography, "Withdraw consent" footer button (clears localStorage). Esc/backdrop close, body-scroll-lock.
+- Wired into CookieConsent component: "Privacy Policy" link now opens the modal (was a dead `href="#"` before).
+- Verified: clicking "Privacy Policy" in cookie banner opens the modal.
+
+### New feature 3: Blog article breadcrumb
+- Replaced the plain "All articles" back link with a proper breadcrumb: Home > Blog > {Category}. Each segment is clickable (Home → setPage('home'), Blog → onBack, Category → static). Uses `.breadcrumb` CSS class with ChevronRight separators.
+- Verified: breadcrumb present with "Home > Blog > AI" text.
+
+### New feature 4: Dedicated case-study gallery images
+- Generated 3 dedicated gallery images via z-ai image CLI → `public/gallery/wireframe-1.png`, `design-system-1.png`, `analytics-1.png` (wireframe sketches, design system components, analytics dashboard mockups).
+- Updated all 6 case study galleries to use these dedicated images instead of reusing blog images. Each case study now has: project cover + 2 dedicated process shots (wireframe/design-system/analytics).
+- Verified: gallery thumbnails show p1-lumen, wireframe-1, design-system-1.
+
+### New feature 5: Command palette custom event listener
+- Command palette now listens for `open-command-palette` custom event (in addition to Cmd+K). Enables programmatic opening from anywhere in the app.
+
+## Verification Results
+- `bun run lint` → clean (0 errors, 0 warnings).
+- agent-browser QA:
+  - 404 search: click "Search the site" on /nonexistent → navigates to / → command palette auto-opens (verified paletteOpen:true, url:/).
+  - Privacy modal: clicking "Privacy Policy" in cookie banner opens the modal (verified dialog present).
+  - Blog breadcrumb: "Home > Blog > AI" present in article view.
+  - Gallery images: 3 thumbnails with dedicated images (p1-lumen, wireframe-1, design-system-1).
+- VLM visual QA: case study modal "high-impact hero image... bold red metrics... modern and premium"; 404 page "excellent use of scale... clever detour pun"; privacy modal "clean, readable typography... digestible bullet points... shield icon reinforces security".
+- Dev log: server restarted, no new errors. Home returns 200.
+
+## Unresolved Issues / Risks
+- Dev server stopped mid-round (connection refused) — restarted manually. The `bun run dev` process may have been killed by the cron job or memory pressure. Monitor for recurrence.
+- The 404 page uses `window.location.href` for navigation (full page reload) since it's a separate route — not as smooth as SPA navigation, but necessary.
+- Privacy modal backdrop blur is heavy (VLM noted text behind is visible) — acceptable for glass aesthetic.
+- LazyImage component still not applied to existing images (deferred to future round).
+
+## Priority Recommendations for Next Round
+- Apply `LazyImage` to portfolio cards, blog cards, team avatars for blur-up loading.
+- Add **Open Graph dynamic metadata per blog article** (title/description/image).
+- Build **animated SVG illustrations** for service sections.
+- Add a **"scroll to top" within long case-study modal** button.
+- Consider **Next.js `<Image>` component** for automatic format conversion + responsive sizes.
+- Add **schema.org BreadcrumbList** structured data for blog articles.
+- Build a **cookie preferences management** panel (re-consent, granular toggles).

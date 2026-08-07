@@ -473,13 +473,24 @@ function ArticleView({ post, onBack, onOpen }: { post: BlogPost; onBack: () => v
         <div className={cn('pointer-events-none absolute inset-0 bg-gradient-to-br opacity-10', post.gradient)} />
         <div className="pointer-events-none absolute -top-24 left-1/2 size-96 -translate-x-1/2 rounded-full bg-brand-gradient opacity-15 blur-3xl" />
         <div className="relative mx-auto max-w-3xl px-4 sm:px-6">
-          <button
-            onClick={onBack}
-            className="group inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-0.5" />
-            All articles
-          </button>
+          <nav className="breadcrumb" aria-label="Breadcrumb">
+            <button
+              onClick={() => setPage('home')}
+              className="hover:text-foreground"
+            >
+              Home
+            </button>
+            <ChevronRight className="size-3" />
+            <button
+              onClick={onBack}
+              className="group inline-flex items-center gap-1 font-medium hover:text-foreground"
+            >
+              <ArrowLeft className="size-3.5 transition-transform group-hover:-translate-x-0.5" />
+              Blog
+            </button>
+            <ChevronRight className="size-3" />
+            <span className="truncate text-foreground/70">{post.category}</span>
+          </nav>
           <div className="mt-6 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <span className="rounded-full bg-brand-gradient-soft px-2.5 py-1 font-semibold text-foreground">
               {post.category}
