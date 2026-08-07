@@ -342,3 +342,202 @@ export const CASE_STUDIES: Record<string, CaseStudy> = {
     services: ["Web App", "Payments"],
   },
 };
+
+// Extended team member profiles (for detail modals)
+export type TeamProfile = {
+  id: string;
+  name: string;
+  role: string;
+  initials: string;
+  accent: string;
+  image?: string;
+  tagline: string;
+  bio: string[];
+  skills: { name: string; level: number }[]; // level 0-100
+  stats: { label: string; value: string }[];
+  funFact: string;
+  socials: { label: string; href: string }[];
+};
+
+export const TEAM_PROFILES: TeamProfile[] = [
+  {
+    id: "preet",
+    name: "Preet Kaur",
+    role: "Founder & Creative Director",
+    initials: "PK",
+    accent: "from-orange-500 to-pink-500",
+    image: "/team/preet.png",
+    tagline: "Design that earns its keep",
+    bio: [
+      "Preet founded Preet Web Vision in 2016 with one belief: design and engineering belong together. Twelve years and 180+ projects later, that conviction still drives every decision.",
+      "Before founding the studio, Preet led design at two funded startups and a global agency, shipping products used by millions. She brings brand strategy, UX rigor and a relentless eye for craft to every engagement.",
+      "Today Preet oversees creative direction across all projects, mentors the design team, and partners directly with founder clients on strategy.",
+    ],
+    skills: [
+      { name: "Brand & Visual Design", level: 96 },
+      { name: "UX Strategy", level: 92 },
+      { name: "Design Systems", level: 88 },
+      { name: "Creative Direction", level: 95 },
+    ],
+    stats: [
+      { label: "Years experience", value: "12+" },
+      { label: "Projects shipped", value: "180+" },
+      { label: "Awwwards", value: "4" },
+    ],
+    funFact: "Once redesigned an entire airline booking flow on a 14-hour flight — and it shipped.",
+    socials: [
+      { label: "LinkedIn", href: "#" },
+      { label: "Twitter", href: "#" },
+      { label: "Dribbble", href: "#" },
+    ],
+  },
+  {
+    id: "rohan",
+    name: "Rohan Verma",
+    role: "Head of Engineering",
+    initials: "RV",
+    accent: "from-fuchsia-500 to-rose-500",
+    image: "/team/rohan.png",
+    tagline: "Systems that scale, code that lasts",
+    bio: [
+      "Rohan leads engineering at Preet Web Vision, architecting platforms that serve millions of users without breaking a sweat. His code runs in fintech, ecommerce and SaaS products across the globe.",
+      "A pragmatic perfectionist, Rohan cares deeply about developer experience, clean APIs and performance budgets. He's migrated three teams from monoliths to modern serverless without a single downtime incident.",
+      "When not reviewing PRs, Rohan writes about systems design and mentors early-career engineers through open source.",
+    ],
+    skills: [
+      { name: "Next.js / React", level: 95 },
+      { name: "System Architecture", level: 93 },
+      { name: "DevOps / CI-CD", level: 87 },
+      { name: "Database Design", level: 90 },
+    ],
+    stats: [
+      { label: "Years experience", value: "10+" },
+      { label: "Uptime maintained", value: "99.98%" },
+      { label: "Events / day", value: "2M+" },
+    ],
+    funFact: "Maintains a self-hosted home lab with 8 services — and a strict uptime SLA for his family's Wi-Fi.",
+    socials: [
+      { label: "LinkedIn", href: "#" },
+      { label: "GitHub", href: "#" },
+    ],
+  },
+  {
+    id: "elena",
+    name: "Elena Petrova",
+    role: "Lead AI Engineer",
+    initials: "EP",
+    accent: "from-amber-500 to-orange-500",
+    image: "/team/elena.png",
+    tagline: "AI that pays for itself",
+    bio: [
+      "Elena builds the AI automations that have become Preet Web Vision's signature. From RAG-grounded support agents to workflow orchestration, she ships AI that genuinely moves business metrics.",
+      "With a background in NLP research and 5 years shipping production LLM systems, Elena bridges the gap between research and real-world deployment. She's obsessed with evaluation, guardrails and honest measurement.",
+      "Elena leads the AI practice, designs agent architectures, and writes the internal playbooks the team follows.",
+    ],
+    skills: [
+      { name: "LLM / RAG Systems", level: 94 },
+      { name: "Prompt Engineering", level: 92 },
+      { name: "Python / LangChain", level: 90 },
+      { name: "MLOps", level: 84 },
+    ],
+    stats: [
+      { label: "Years in AI", value: "5+" },
+      { label: "Agents deployed", value: "30+" },
+      { label: "Avg ticket resolve", value: "71%" },
+    ],
+    funFact: "Has a running document of every hallucination she's ever witnessed — 1,200 entries and counting.",
+    socials: [
+      { label: "LinkedIn", href: "#" },
+      { label: "Twitter", href: "#" },
+    ],
+  },
+  {
+    id: "daniel",
+    name: "Daniel Okafor",
+    role: "Head of SEO & Growth",
+    initials: "DO",
+    accent: "from-emerald-500 to-teal-500",
+    image: "/team/daniel.png",
+    tagline: "Traffic that converts, not just visits",
+    bio: [
+      "Daniel runs the growth practice at Preet Web Vision, turning search intent into pipeline. He's ranked 1,000+ keywords on page one across SaaS, ecommerce and local business.",
+      "Daniel's approach blends technical SEO, content strategy and data experimentation. He's allergic to vanity metrics and focused on revenue outcomes — every campaign ties back to pipeline.",
+      "Before joining the studio, Daniel built and sold a content-focused SaaS and led growth at a Series B startup, tripling organic traffic in 18 months.",
+    ],
+    skills: [
+      { name: "Technical SEO", level: 93 },
+      { name: "Content Strategy", level: 90 },
+      { name: "Analytics / GA4", level: 88 },
+      { name: "Conversion Optimization", level: 86 },
+    ],
+    stats: [
+      { label: "Keywords #1", value: "1000+" },
+      { label: "Avg traffic lift", value: "+217%" },
+      { label: "Years in growth", value: "8+" },
+    ],
+    funFact: "Reads Google Search Central documentation for fun. Has the blog on RSS since 2014.",
+    socials: [
+      { label: "LinkedIn", href: "#" },
+      { label: "Twitter", href: "#" },
+    ],
+  },
+];
+
+// Open roles for the careers section
+export type JobRole = {
+  id: string;
+  title: string;
+  team: "Design" | "Engineering" | "AI" | "Growth" | "Operations";
+  location: "Remote" | "Hybrid" | "On-site";
+  type: "Full-time" | "Contract";
+  blurb: string;
+  accent: string;
+};
+
+export const JOB_ROLES: JobRole[] = [
+  {
+    id: "j1",
+    title: "Senior Product Designer",
+    team: "Design",
+    location: "Remote",
+    type: "Full-time",
+    blurb: "Lead end-to-end design on client engagements — from research and wireframes to polished, accessible UI and a living design system.",
+    accent: "from-orange-500 to-pink-500",
+  },
+  {
+    id: "j2",
+    title: "Full-Stack Engineer (Next.js)",
+    team: "Engineering",
+    location: "Remote",
+    type: "Full-time",
+    blurb: "Ship beautiful, fast web apps with Next.js, TypeScript and Prisma. Own features end-to-end and obsess over performance.",
+    accent: "from-fuchsia-500 to-rose-500",
+  },
+  {
+    id: "j3",
+    title: "AI Automation Engineer",
+    team: "AI",
+    location: "Remote",
+    type: "Full-time",
+    blurb: "Design and deploy LLM agents, RAG pipelines and workflow automations that save clients real hours and dollars.",
+    accent: "from-amber-500 to-orange-500",
+  },
+  {
+    id: "j4",
+    title: "SEO & Content Strategist",
+    team: "Growth",
+    location: "Hybrid",
+    type: "Full-time",
+    blurb: "Own technical SEO audits, content engines and link strategy for clients. Turn data into rankings and rankings into revenue.",
+    accent: "from-emerald-500 to-teal-500",
+  },
+  {
+    id: "j5",
+    title: "Project Manager",
+    team: "Operations",
+    location: "Remote",
+    type: "Full-time",
+    blurb: "Keep multi-disciplinary squads shipping on time. Run discovery, sprints and client comms with calm, clear rigor.",
+    accent: "from-rose-500 to-pink-500",
+  },
+];

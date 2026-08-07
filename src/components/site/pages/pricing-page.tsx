@@ -36,6 +36,7 @@ import {
 } from '@/components/site/primitives'
 import { AmbientBackground } from '@/components/site/ambient-background'
 import { RoiCalculator } from '@/components/site/roi-calculator'
+import { ComparisonTable } from '@/components/site/comparison-table'
 import { useNav } from '@/lib/nav-store'
 import {
   PRICING,
@@ -720,6 +721,7 @@ export function PricingPage() {
       <PricingCards />
       <ServiceMapping />
       <AddOns />
+      <ComparisonTable />
       <RoiSection />
       <StatsBand />
       <TestimonialHighlight />

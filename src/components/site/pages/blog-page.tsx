@@ -13,10 +13,13 @@ import {
   BookOpen,
   TrendingUp,
   Mail,
+  Search,
+  X,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Input } from '@/components/ui/input'
 import {
   Reveal,
   SectionHeading,
@@ -33,74 +36,236 @@ import { toast } from 'sonner'
 const CATEGORIES = ['All', 'Web Design', 'AI', 'SEO', 'Ecommerce', 'Growth'] as const
 type Category = (typeof CATEGORIES)[number]
 
+type AuthorOption = { name: string; initials: string; accent: string }
+
+// Unique authors derived from BLOG_POSTS (first occurrence wins for initials/accent).
+const AUTHORS: AuthorOption[] = (() => {
+  const seen = new Set<string>()
+  const out: AuthorOption[] = []
+  for (const p of BLOG_POSTS) {
+    if (seen.has(p.author)) continue
+    seen.add(p.author)
+    out.push({ name: p.author, initials: p.authorInitials, accent: p.authorAccent })
+  }
+  return out
+})()
+
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
+// Lowercased haystack of everything searchable on a post (title + excerpt + content).
+function postSearchText(post: BlogPost): string {
+  const contentText = post.content
+    .map((b) => (b.type === 'ul' ? (b.items ?? []).join(' ') : (b.text ?? '')))
+    .join(' ')
+  return `${post.title} ${post.excerpt} ${contentText}`.toLowerCase()
 }
 
 /* ============ BLOG GRID ============ */
 function BlogGrid({ onOpen }: { onOpen: (post: BlogPost) => void }) {
   const [category, setCategory] = React.useState<Category>('All')
-  const filtered = React.useMemo(
-    () => (category === 'All' ? BLOG_POSTS : BLOG_POSTS.filter((p) => p.category === category)),
-    [category]
-  )
+  const [author, setAuthor] = React.useState<string>('All')
+  const [search, setSearch] = React.useState('')
+
+  const filtered = React.useMemo(() => {
+    const q = search.trim().toLowerCase()
+    return BLOG_POSTS.filter((p) => {
+      if (category !== 'All' && p.category !== category) return false
+      if (author !== 'All' && p.author !== author) return false
+      if (q && !postSearchText(p).includes(q)) return false
+      return true
+    })
+  }, [category, author, search])
+
+  const hasActiveFilters = category !== 'All' || author !== 'All' || search.trim() !== ''
+  // Featured card only shows when nothing is filtered — it's a fixed post, not search-relevant.
+  const showFeatured = !hasActiveFilters
   const featured = BLOG_POSTS.find((p) => p.featured) ?? BLOG_POSTS[0]
-  const rest = filtered.filter((p) => p.id !== featured.id || category !== 'All')
+  const rest = showFeatured ? filtered.filter((p) => p.id !== featured.id) : filtered
+
+  const clearFilters = React.useCallback(() => {
+    setSearch('')
+    setAuthor('All')
+    setCategory('All')
+  }, [])
 
   return (
     <section className="relative py-12 sm:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        {/* Featured post (only on "All") */}
+        {/* Search + filter toolbar */}
+        <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-muted/20 p-4 backdrop-blur sm:p-5">
+          <div className="pointer-events-none absolute -right-16 -top-16 size-44 rounded-full bg-brand-gradient opacity-10 blur-3xl" />
+
+          {/* Search */}
+          <form
+            role="search"
+            onSubmit={(e) => e.preventDefault()}
+            className="relative mx-auto max-w-2xl"
+          >
+            <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search articles…"
+              aria-label="Search articles"
+              className={cn(
+                'h-11 rounded-full border-border/60 bg-background/60 pl-11 pr-10 text-sm',
+                'focus-visible:border-ring focus-visible:ring-ring/50',
+                '[&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none'
+              )}
+            />
+            <AnimatePresence>
+              {search && (
+                <motion.button
+                  type="button"
+                  onClick={() => setSearch('')}
+                  aria-label="Clear search"
+                  initial={{ opacity: 0, scale: 0.6 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.6 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-3 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
+                >
+                  <X className="size-3.5" />
+                </motion.button>
+              )}
+            </AnimatePresence>
+          </form>
+
+          {/* Author chips */}
+          <div className="mt-4 flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+            <span className="shrink-0 pr-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Authors
+            </span>
+            <button
+              onClick={() => setAuthor('All')}
+              aria-pressed={author === 'All'}
+              className={cn(
+                'flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all',
+                author === 'All'
+                  ? 'border-transparent bg-brand-gradient text-white shadow-[0_4px_20px_-6px_rgba(255,45,117,0.6)]'
+                  : 'border-border/60 bg-background/40 text-muted-foreground hover:text-foreground hover:border-border'
+              )}
+            >
+              <span className="grid size-7 place-items-center rounded-full bg-white/15 text-[10px] font-bold">All</span>
+              Everyone
+            </button>
+            {AUTHORS.map((a) => {
+              const active = author === a.name
+              return (
+                <button
+                  key={a.name}
+                  onClick={() => setAuthor(active ? 'All' : a.name)}
+                  aria-pressed={active}
+                  className={cn(
+                    'flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all',
+                    active
+                      ? 'border-transparent bg-brand-gradient-soft text-foreground ring-2 ring-[#ff2d75]/60'
+                      : 'border-border/60 bg-background/40 text-muted-foreground hover:text-foreground hover:border-border'
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'grid size-7 place-items-center rounded-full bg-gradient-to-br text-[10px] font-bold text-white',
+                      a.accent
+                    )}
+                  >
+                    {a.initials}
+                  </span>
+                  {a.name}
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Categories + result count */}
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-1">
+              {CATEGORIES.map((c) => {
+                const active = category === c
+                return (
+                  <button
+                    key={c}
+                    onClick={() => setCategory(c)}
+                    aria-pressed={active}
+                    className={cn(
+                      'relative rounded-full px-4 py-2 text-sm font-semibold transition-colors',
+                      active ? 'text-white' : 'text-muted-foreground hover:text-foreground'
+                    )}
+                  >
+                    {active && (
+                      <motion.span
+                        layoutId="blog-filter-pill"
+                        className="absolute inset-0 rounded-full bg-brand-gradient shadow-[0_4px_20px_-6px_rgba(255,45,117,0.6)]"
+                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                      />
+                    )}
+                    <span className="relative z-10">{c}</span>
+                  </button>
+                )
+              })}
+            </div>
+            <p className="text-xs text-muted-foreground" aria-live="polite">
+              Showing <span className="font-semibold text-foreground">{filtered.length}</span> of{' '}
+              {BLOG_POSTS.length} articles
+            </p>
+          </div>
+        </div>
+
+        {/* Featured post (only when no filters are active) */}
         <AnimatePresence>
-          {category === 'All' && (
+          {showFeatured && (
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -16 }}
               transition={{ duration: 0.4 }}
+              className="mt-8"
             >
               <FeaturedCard post={featured} onOpen={onOpen} />
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Filter bar */}
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-2">
-          {CATEGORIES.map((c) => {
-            const active = category === c
-            return (
-              <button
-                key={c}
-                onClick={() => setCategory(c)}
-                className={cn(
-                  'relative rounded-full px-4 py-2 text-sm font-semibold transition-colors',
-                  active ? 'text-white' : 'text-muted-foreground hover:text-foreground'
-                )}
-              >
-                {active && (
-                  <motion.span
-                    layoutId="blog-filter-pill"
-                    className="absolute inset-0 rounded-full bg-brand-gradient shadow-[0_4px_20px_-6px_rgba(255,45,117,0.6)]"
-                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                  />
-                )}
-                <span className="relative z-10">{c}</span>
-              </button>
-            )
-          })}
-        </div>
-
         {/* Grid */}
         <StaggerGroup className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {rest.map((post) => (
-            <motion.div key={post.id} variants={staggerItem}>
-              <BlogCard post={post} onOpen={onOpen} />
-            </motion.div>
-          ))}
+          <AnimatePresence mode="popLayout">
+            {rest.map((post) => (
+              <motion.div
+                key={post.id}
+                layout
+                variants={staggerItem}
+                exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.2 } }}
+              >
+                <BlogCard post={post} onOpen={onOpen} />
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </StaggerGroup>
 
+        {/* Empty state */}
         {rest.length === 0 && (
-          <p className="mt-12 text-center text-muted-foreground">No articles in this category yet.</p>
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-16 flex flex-col items-center text-center"
+          >
+            <div className="grid size-16 place-items-center rounded-full bg-muted/40 ring-1 ring-border/60">
+              <Search className="size-7 text-muted-foreground" />
+            </div>
+            <h3 className="mt-4 font-display text-lg font-bold">No articles found</h3>
+            <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+              Try a different keyword or clear your filters to see everything.
+            </p>
+            {hasActiveFilters && (
+              <Button variant="outline" className="mt-5 rounded-full" onClick={clearFilters}>
+                <X className="size-4" />
+                Clear filters
+              </Button>
+            )}
+          </motion.div>
         )}
       </div>
     </section>

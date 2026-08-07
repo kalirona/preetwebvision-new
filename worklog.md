@@ -335,3 +335,118 @@ Task: Assess project status, QA test via agent-browser, then improve styling + a
 - Add **search/filter** to the blog (beyond categories — by keyword or author).
 - Add **dark/light theme persistence** indicator in the navbar (currently toggles but no visible state hint beyond the icon).
 - Consider **animated page transition variants** per page type (currently uniform fade/slide).
+
+---
+
+Task ID: 4
+Agent: full-stack-developer
+Task: Add blog search + author filter to the BlogGrid on the blog page (`src/components/site/pages/blog-page.tsx`). Combine keyword search (title/excerpt/content) AND author filter with the existing category filter (AND logic). Hide featured card while searching, show result count, and render a "No results" empty state with a Clear-filters button. Preserve all existing functionality (featured card, category pills with layoutId spring, 3-col grid, article view, reading progress, related posts, CTA).
+
+Work Log
+- Read `worklog.md` (design system, primitives, brand palette) and `src/components/site/pages/blog-page.tsx` (existing BlogGrid/ArticleView/BlogPage structure) and `src/lib/content-data.ts` (BlogPost shape: `author`, `authorInitials`, `authorAccent`, `content: { type, text?, items? }[]`).
+- Confirmed `Input` component exists at `@/components/ui/input`, `.no-scrollbar` utility exists in `globals.css`, and `--brand-pink: #ff2d75` is defined (used via hex arbitrary value since brand-* tokens aren't registered in `@theme inline`).
+- Added two lucide imports (`Search`, `X`) and one UI import (`Input` from `@/components/ui/input`).
+- Introduced a module-level `AUTHORS` array (deduped from `BLOG_POSTS`, first occurrence wins for `initials`/`accent`) and a `postSearchText(post)` helper that lowercases the concatenation of `title + excerpt + (content blocks: `block.text` for prose, `block.items.join(' ')` for `ul`)`.
+- Rewrote `BlogGrid`:
+  - State: `category` (existing), `author` (new, default `'All'`), `search` (new, `''`).
+  - `filtered` via `useMemo` combining category AND author AND search (case-insensitive substring match against `postSearchText`).
+  - `hasActiveFilters` = any of the three is non-default; `showFeatured = !hasActiveFilters` (featured card hidden whenever the user is actively filtering/searching, per spec, since featured is a fixed post not search-relevant).
+  - `rest = showFeatured ? filtered without featured : filtered`.
+  - `clearFilters()` resets all three states.
+  - New toolbar (rounded-3xl glass card with subtle brand orb): (1) `role="search"` form with a rounded-full `Input` (`h-11`, `pl-11` for the `Search` icon, `pr-10` for the clear button, webkit native clear button suppressed, brand-colored focus ring via default `--ring` token which is warm orange in dark mode) and an animated `motion.button` clear-`X` that fades/scales in/out via `AnimatePresence`; (2) author chips row (`overflow-x-auto no-scrollbar`, "Authors" label + "Everyone" All chip + one chip per unique author with `size-7` gradient avatar showing initials; active = brand-gradient for "All", brand-gradient-soft + `ring-2 ring-[#ff2d75]/60` for a specific author; clicking an active author toggles back to All); (3) the original category pills (unchanged `layoutId="blog-filter-pill"` spring) + a right-aligned `aria-live="polite"` result-count line "Showing N of M articles".
+  - Featured card preserved with its exact `AnimatePresence` enter/exit animation; only shown when `showFeatured`.
+  - Grid kept as `StaggerGroup` (preserves initial stagger reveal) but now wraps children in `AnimatePresence mode="popLayout"` with `layout` + `variants={staggerItem}` + `exit={{ opacity: 0, scale: 0.96 }}` so filter changes animate smoothly (items reflow + removed items fade/scale out).
+  - Replaced the old `<p>No articles in this category yet.</p>` with a richer empty state: a `Search` icon in a muted ringed circle, "No articles found" `font-display` heading, helper copy, and a `Clear filters` outline button (only rendered when `hasActiveFilters` is true — guards against the impossible-but-safe "no posts at all" case).
+- ArticleView flow (`onOpen` / `back` / `BlogPage` state machine) untouched — `BlogGrid` still receives and calls `onOpen` exactly as before.
+- Ran `bun run lint` → clean (0 errors). Dev log shows `✓ Compiled` and `GET / 200` after the edit.
+
+Stage Summary
+The blog page now has a premium, integrated search + author-filter toolbar sitting above the featured card. All three filters (search text, author, category) combine with AND logic; the featured card auto-hides during active filtering; the result count updates live; the grid animates smoothly via `AnimatePresence mode="popLayout"` + `layout`; and a branded empty state with a Clear-filters button appears when nothing matches. No other files were touched. The article-view flow, reading-progress bar, related-posts section, and CTAs are fully preserved. Lint clean.
+
+---
+Task ID: 3
+Agent: full-stack-developer
+Task: Add a premium service comparison table feature component (`src/components/site/comparison-table.tsx`) comparing the 3 pricing plans (Launch, Growth, Enterprise) across ~12 feature rows grouped into 3 sections. Client component, named export `ComparisonTable`, designed to be wired into the Pricing page by the integrator.
+
+Work Log:
+- Read `worklog.md` to internalize the established design system (warm brand palette, `font-display` headings, gradient helpers, glass/grid utilities, primitives, nav store).
+- Read `pricing-page.tsx` (reference design language) and `primitives.tsx` (confirmed signatures of `Reveal`, `SectionHeading`, `GradientText`, `StaggerGroup`, `staggerItem`).
+- Verified `globals.css` exposes the required utilities: `glass-strong`, `grid-bg`, `card-sheen`, `lift-glow`, `cmp-row`, `bg-brand-gradient`, `bg-brand-gradient-soft`, `text-gradient-brand`, `text-balance`, `glow-brand`, `gradient-border`.
+- Wrote `src/components/site/comparison-table.tsx` (`'use client'`, `export function ComparisonTable()`) — only this one file was touched.
+- **Inline data model**: typed `Cell` discriminated union (`'check' | 'cross' | 'text'`) so each cell can be a brand-gradient Check (optionally with a label like "Custom"/"SLA"), a muted Minus for "not included", or a bold value string ("5", "12", "Unlimited", "2", "∞", "Basic", "Advanced", "Full retainer", "3", "Custom"). 3 sections / 13 feature rows total (Project scope, AI & Automation, Growth & support) — slightly more than the ~12 asked for fuller coverage.
+- **`CellContent` renderer** (shared by desktop + mobile, with `size` prop): brand-gradient rounded Check tile with soft pink glow + optional bold label; muted Minus with `sr-only` "Not included" for a11y; bold value text otherwise.
+- **`DesktopTable`** (lg+): real semantic `<table>`/`<thead>`/multiple `<tbody>`/`<tr>`/`<th scope>`/`<td>` with proper `scope` attributes (`col`, `row`, `colgroup`). Sticky first column (`sticky left-0 z-10/20` + `bg-card/95 backdrop-blur`) so the feature labels stay visible on horizontal scroll. Growth column is visually highlighted: gradient header cell (`bg-brand-gradient`), white "Most popular" pill badge (Sparkles + `bg-white/15 backdrop-blur`), soft column background (`bg-brand-gradient-soft`) on every Growth `<td>`. Plan headers stack name + big price (gradient text on non-featured, white on featured) + period, vertically aligned via `align-bottom`. Section divider rows use `bg-muted/40` + `text-gradient-brand` uppercase tracking micro-labels. Rows use `cmp-row` hover (brand-pink wash) + `border-b border-border/40`. Wrapped in `rounded-3xl border glass-strong card-sheen` with a soft premium drop-shadow. Entrance via `Reveal`.
+- **`MobileCards`** (<lg): stacked `Card` per plan in a `StaggerGroup` with `staggerItem` reveals. Growth card uses `gradient-border` + `glow-brand` + a top `bg-brand-gradient` accent strip + `bg-brand-gradient` "Most popular" `Badge`. Each card lists ALL 13 features grouped by the 3 sections (gradient uppercase mini-labels) in `divide-y` lists with right-aligned `CellContent` (small size) — fully scannable on phones.
+- **CTA row**: centered (stacks on mobile, row on `sm+`) inside a `Reveal`. "Not sure? <GradientText>Talk to us</GradientText>" with a brand-gradient pill Button (`setPage('contact')`) + ArrowRight, soft pink shadow, hover lift.
+- **Section shell**: `<section className="relative py-20 sm:py-28">` with `<div className="mx-auto max-w-7xl px-4 sm:px-6">`. Decorative backdrop: `grid-bg` with radial mask (`opacity-60`) + two soft radial brand orbs (orange top-left, rose bottom-right) all `-z-10 pointer-events-none aria-hidden`.
+- **SectionHeading**: eyebrow "Compare plans", title `Every feature, <GradientText>side by side</GradientText>`, description "See exactly what's included in each plan." — passed as ReactNode (the primitive accepts `ReactNode`).
+- All headings use `font-display`; warm palette only (orange/pink/rose/amber/emerald) — zero indigo/blue; mobile-first responsive; semantic HTML with `scope` attributes throughout; accessible `sr-only` labels on excluded cells; decorative backdrops marked `aria-hidden`.
+- Imports limited to the allowed set: `Button`/`Card`/`Badge` from shadcn, `Reveal`/`SectionHeading`/`GradientText`/`StaggerGroup`/`staggerItem` from primitives, `useNav` from nav-store, `Check`/`Minus`/`Sparkles`/`ArrowRight` from lucide-react, `motion` from framer-motion, `cn` from `@/lib/utils`.
+- Ran `bun run lint` → **clean (zero errors, zero warnings)**. Dev log shows successful incremental compiles after the file was added; no module-resolution errors for `comparison-table.tsx`.
+- Wrote work record to `/agent-ctx/3-full-stack-developer.md`.
+
+Stage Summary:
+- `ComparisonTable` is production-ready and lint-clean. Only one file written (`src/components/site/comparison-table.tsx`); no other files modified — ready for the integrator to drop `<ComparisonTable />` into the Pricing page.
+- Premium, scannable, fully responsive: real 4-col sticky-header table on desktop with a highlighted Growth column (gradient header + soft column wash + Most popular badge), and stacked glass cards on mobile with the Growth card elevated via gradient border + glow + accent strip.
+- 13 feature rows across 3 sections (Project scope / AI & Automation / Growth & support) with a typed cell model that cleanly handles checks-with-labels (Custom, SLA), excluded items, and value strings (∞, Unlimited, Basic/Advanced/Full retainer, etc.).
+- Matches the existing site quality bar: gradient text, glass cards, soft shadows, hover row wash, grid-bg with radial mask, framer-motion reveals, warm palette only.
+
+---
+Task ID: 16 (Cron Review Round 3)
+Agent: main (Z.ai Code) + 2 full-stack-developer subagents
+Task: Assess project status, QA test via agent-browser, then improve styling + add features per mandatory requirements.
+
+## Current Project Status (assessment)
+- Project stable from Round 2: 7 pages (Home/Services/Portfolio/About/Pricing/Blog/Contact) + blog with article view, case-study modals, project wizard, ROI calculator, branded portfolio images, auto-rotating testimonials, pricing billing toggle, scroll progress, back-to-top, cookie consent, newsletter API. Lint clean, no runtime errors.
+- agent-browser QA confirmed all 7 pages render/navigate. Recommended next steps from Round 2: team detail modals, service comparison table, blog search, careers section, page transition variants.
+
+## Completed Modifications
+
+### Styling polish (globals.css) — 10 new utilities
+- `.aurora-bg` (animated conic-gradient aurora background), `.magnetic` (button micro-interaction base), `.text-aurora` (shifting multi-color gradient text), `.border-aurora` (rotating conic gradient border ring via @property), `.enter-up` (stagger fade-up entrance), `.lift-glow` (hover lift + brand glow), `.cmp-row` (comparison table row hover), `.skill-bar-fill` (gradient skill bar with glow).
+
+### Per-page transition variants (page.tsx)
+- Replaced uniform fade/slide with 7 distinct `Variants` per PageId: Home (y-slide), Services (x-slide right), Portfolio (scale), About (y-slide deep), Pricing (x-slide left), Blog (blur+slide), Contact (scale+y). Dynamic, page-aware transitions via `variants`/`initial`/`animate`/`exit`.
+
+### New feature 1: Team member detail modals (About page)
+- Created `src/lib/content-data.ts` additions: `TEAM_PROFILES` (4 members with extended bios, skills with levels 0-100, stats, fun facts, socials) + `JOB_ROLES` (5 open positions).
+- Built `src/components/site/team-modal.tsx` — full modal with: gradient header + real avatar photo, stats row, multi-paragraph bio, animated skill bars (skill-bar-fill with motion width), fun-fact quote box, social icons, footer CTA. Esc/backdrop close, body-scroll-lock.
+- Wired into About page: team cards are now `<motion.button>` that open the modal with the matching profile. Avatar images render in cards + modal.
+
+### New feature 2: Careers section (About page)
+- Built inline `Careers` component in about-page.tsx: two-column layout (sticky intro + stats on left, filterable roles list on right). Team filter pills (All/Design/Engineering/AI/Growth/Operations) with layoutId spring. Role cards with gradient icon, title, team tag, blurb, location/type, hover lift + arrow. "No roles" empty state. CTA → contact.
+- 5 open roles defined in JOB_ROLES data.
+
+### New feature 3: Service comparison table (Pricing page)
+- Built `src/components/site/comparison-table.tsx` (via subagent): 3 plans (Launch/Growth featured/Enterprise) × 13 feature rows across 3 sections (Project scope, AI & Automation, Growth & support). Desktop = semantic table with sticky first column, Growth column highlighted (gradient header + soft wash + "Most popular" badge). Mobile = stacked cards. CTA → contact.
+- Wired into Pricing page after AddOns, before RoiSection.
+
+### New feature 4: Blog search + author filter (Blog page)
+- Modified `src/components/site/pages/blog-page.tsx` (via subagent): added search input (glass, Search icon, clearable X) + author avatar chips (gradient avatars, active = brand ring). Filters AND-combine with existing category pills. Featured card auto-hides during filtering. "Showing N of M articles" live count. Animated grid reflow with AnimatePresence popLayout. "No articles found" empty state with Clear filters button. Searches title + excerpt + content blocks.
+
+### New feature 5: Team avatar images
+- Generated 4 professional portrait images (864x1152) via z-ai image CLI → `public/team/{preet,rohan,elena,daniel}.png`. Wired into TEAM_PROFILES data + rendered in About page team cards + TeamModal header.
+
+## Verification Results
+- `bun run lint` → clean (0 errors, 0 warnings).
+- agent-browser QA:
+  - About page: 5 team cards (4 members + hiring CTA). Clicking "Preet Kaur" opens modal with skills bars (skill-bar-fill), fun fact, avatar image (preet.png loaded:true). Careers section present with 5 roles; AI filter → 1 role shown.
+  - Pricing page: comparison table present (16 rows, Growth highlighted). Renders on desktop.
+  - Blog page: search "ecommerce" → 1 of 6 articles. Author filter "Daniel" → 1 of 6. Reset → 6 of 6. Author chips (9 = 4 authors + All + nav). Result count live-updates.
+  - Page transitions: Contact → Home navigates with distinct variants (verified H1 changes correctly).
+- VLM visual QA: careers "sleek and modern... high-contrast neon pink"; team modal "attractive gradient header... bold typography for statistics"; (some screenshots missed below-fold content — DOM verification confirmed all features present).
+- Dev log: no new errors. Home returns 200.
+
+## Unresolved Issues / Risks
+- Team modal + comparison table content can be below the fold on shorter viewports (by design — scrollable). VLM screenshots may miss content; DOM verification is authoritative.
+- Cookie consent banner appears on first visit (expected) — may briefly overlap content until dismissed.
+- The careers filter pills and blog search both use `layoutId` springs; ensure no `layoutId` collisions across simultaneously-mounted pages (currently "careers-filter-pill" and "blog-filter-pill" are unique, and the nav "nav-pill" only mounts on the navbar).
+
+## Priority Recommendations for Next Round
+- Add a **dark/light theme toggle with visible state** (currently icon-only; add a label or animated sun/moon).
+- Build a **FAQ search** on the Home/Services/Pricing FAQ accordions.
+- Add **animated number counters** to more stat displays (some use Counter, some don't).
+- Build a **project estimator** that combines the ROI calculator + wizard into a single "estimate my project" flow.
+- Add **social proof notifications** (toast popups showing "Someone just started a project" — subtle, dismissible).
+- Consider **keyboard shortcut** for the AI assistant (e.g. Cmd+K to open chat).
+- Add **OG image per blog post** for better social sharing.

@@ -521,6 +521,112 @@
   .prose-brand a:hover {
     text-decoration-color: var(--brand-pink);
   }
+
+  /* Aurora animated background variant */
+  .aurora-bg {
+    position: relative;
+    overflow: hidden;
+  }
+  .aurora-bg::before {
+    content: "";
+    position: absolute;
+    inset: -50%;
+    background: conic-gradient(from 0deg at 50% 50%,
+      color-mix(in oklch, var(--brand-orange) 22%, transparent),
+      color-mix(in oklch, var(--brand-pink) 22%, transparent),
+      color-mix(in oklch, var(--brand-rose) 18%, transparent),
+      color-mix(in oklch, var(--brand-amber) 18%, transparent),
+      color-mix(in oklch, var(--brand-orange) 22%, transparent));
+    filter: blur(60px);
+    opacity: 0.5;
+    animation: auroraSpin 24s linear infinite;
+    z-index: -1;
+  }
+  @keyframes auroraSpin {
+    from { transform: rotate(0deg) scale(1.1); }
+    to { transform: rotate(360deg) scale(1.1); }
+  }
+
+  /* Magnetic button micro-interaction base */
+  .magnetic {
+    transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+  }
+
+  /* Aurora text (subtle shifting gradient) */
+  .text-aurora {
+    background: linear-gradient(110deg,
+      var(--brand-orange), var(--brand-pink), var(--brand-rose), var(--brand-amber), var(--brand-orange));
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    animation: auroraText 8s ease infinite;
+  }
+  @keyframes auroraText {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  /* Animated border (conic gradient ring that rotates) */
+  .border-aurora {
+    position: relative;
+  }
+  .border-aurora::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: conic-gradient(from var(--angle, 0deg),
+      var(--brand-orange), var(--brand-pink), var(--brand-rose), var(--brand-amber), var(--brand-orange));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: borderSpin 6s linear infinite;
+    pointer-events: none;
+  }
+  @property --angle {
+    syntax: "<angle>";
+    initial-value: 0deg;
+    inherits: false;
+  }
+  @keyframes borderSpin {
+    to { --angle: 360deg; }
+  }
+
+  /* Stagger fade-up entrance */
+  .enter-up {
+    animation: enterUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  @keyframes enterUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Glass card with hover lift + glow */
+  .lift-glow {
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease;
+  }
+  .lift-glow:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 50px -12px color-mix(in oklch, var(--brand-pink) 30%, transparent);
+  }
+
+  /* Comparison table row hover */
+  .cmp-row {
+    transition: background-color 0.2s ease;
+  }
+  .cmp-row:hover {
+    background: color-mix(in oklch, var(--brand-pink) 6%, transparent);
+  }
+
+  /* Skill bar fill */
+  .skill-bar-fill {
+    background: linear-gradient(90deg, var(--brand-orange), var(--brand-pink));
+    box-shadow: 0 0 12px color-mix(in oklch, var(--brand-pink) 50%, transparent);
+  }
 }
 
 /* Custom scrollbar */
