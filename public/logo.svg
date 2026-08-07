@@ -1,0 +1,14 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="pwvGrad" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF6B35"/>
+      <stop offset="0.5" stop-color="#FF2D75"/>
+      <stop offset="1" stop-color="#F72585"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="56" height="56" rx="16" fill="url(#pwvGrad)"/>
+  <path d="M18 20 L26 20 L31 38 L36 20 L44 20 L36 46 L28 46 L22 28 L20 46 L12 46 Z" fill="white" opacity="0.0"/>
+  <path d="M20 18 L28 18 C34 18 38 22 38 27 C38 32 34 36 28 36 L24 36 L22 46 L18 46 L20 18 Z" fill="white"/>
+  <circle cx="44" cy="22" r="4" fill="white"/>
+  <path d="M40 30 L48 30 L46 46 L38 46 Z" fill="white" opacity="0.85"/>
+</svg>

@@ -1,0 +1,796 @@
+     1→'use client'
+     2→
+     3→import * as React from 'react'
+     4→import { motion } from 'framer-motion'
+     5→import {
+     6→  ArrowRight,
+     7→  Star,
+     8→  Sparkles,
+     9→  Quote,
+    10→  Plus,
+    11→  Minus,
+    12→  CheckCircle2,
+    13→  Play,
+    14→  Zap,
+    15→} from 'lucide-react'
+    16→import { Button } from '@/components/ui/button'
+    17→import { Card } from '@/components/ui/card'
+    18→import { Badge } from '@/components/ui/badge'
+    19→import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+    20→import {
+    21→  Accordion,
+    22→  AccordionContent,
+    23→  AccordionItem,
+    24→  AccordionTrigger,
+    25→} from '@/components/ui/accordion'
+    26→import {
+    27→  Reveal,
+    28→  SectionHeading,
+    29→  StaggerGroup,
+    30→  staggerItem,
+    31→  Counter,
+    32→  Marquee,
+    33→  GradientText,
+    34→} from '@/components/site/primitives'
+    35→import { AmbientBackground } from '@/components/site/ambient-background'
+    36→import { useNav } from '@/lib/nav-store'
+    37→import {
+    38→  SERVICES,
+    39→  STATS,
+    40→  PROCESS,
+    41→  PROJECTS,
+    42→  TESTIMONIALS,
+    43→  FAQS,
+    44→  TRUSTED_BY,
+    45→  FEATURES_GRID,
+    46→  AWARDS,
+    47→  TECH_STACK,
+    48→} from '@/lib/site-data'
+    49→import { cn } from '@/lib/utils'
+    50→
+    51→/* ============================== HERO ============================== */
+    52→function Hero() {
+    53→  const { setPage } = useNav()
+    54→  return (
+    55→    <section className="relative overflow-hidden pb-20 pt-10 sm:pt-16">
+    56→      <AmbientBackground variant="strong" />
+    57→      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+    58→        <div className="grid items-center gap-12 lg:grid-cols-[1.15fr_0.85fr]">
+    59→          {/* Left: copy */}
+    60→          <div className="relative">
+    61→            <Reveal>
+    62→              <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-muted/40 px-3.5 py-1.5 text-xs font-medium text-muted-foreground backdrop-blur">
+    63→                <span className="flex size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+    64→                Now booking Q3 projects · 3 slots left
+    65→              </span>
+    66→            </Reveal>
+    67→            <Reveal delay={0.05}>
+    68→              <h1 className="mt-5 font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
+    69→                We build{' '}
+    70→                <span className="text-gradient-brand animate-gradient-pan bg-[length:220%_220%]">
+    71→                  stunning
+    72→                </span>{' '}
+    73→                digital experiences that{' '}
+    74→                <span className="relative whitespace-nowrap">
+    75→                  <span className="text-gradient-warm">grow</span>
+    76→                  <svg
+    77→                    className="absolute -bottom-2 left-0 w-full"
+    78→                    viewBox="0 0 200 12"
+    79→                    fill="none"
+    80→                    aria-hidden
+    81→                  >
+    82→                    <path
+    83→                      d="M2 9C40 3 160 3 198 9"
+    84→                      stroke="url(#under)"
+    85→                      strokeWidth="3"
+    86→                      strokeLinecap="round"
+    87→                    />
+    88→                    <defs>
+    89→                      <linearGradient id="under" x1="0" y1="0" x2="200" y2="0">
+    90→                        <stop stopColor="var(--brand-orange)" />
+    91→                        <stop offset="1" stopColor="var(--brand-rose)" />
+    92→                      </linearGradient>
+    93→                    </defs>
+    94→                  </svg>
+    95→                </span>{' '}
+    96→                brands.
+    97→              </h1>
+    98→            </Reveal>
+    99→            <Reveal delay={0.12}>
+   100→              <p className="mt-6 max-w-xl text-base text-muted-foreground sm:text-lg leading-relaxed">
+   101→                Preet Web Vision is a digital studio crafting{' '}
+   102→                <span className="text-foreground font-medium">websites, AI automations, web apps, SEO</span> and{' '}
+   103→                <span className="text-foreground font-medium">ecommerce</span> experiences — engineered to turn visitors into revenue.
+   104→              </p>
+   105→            </Reveal>
+   106→            <Reveal delay={0.18}>
+   107→              <div className="mt-8 flex flex-wrap items-center gap-3">
+   108→                <Button
+   109→                  onClick={() => setPage('contact')}
+   110→                  className="group relative h-12 overflow-hidden rounded-full bg-brand-gradient px-6 text-base text-white shadow-[0_10px_40px_-8px_rgba(255,45,117,0.6)] hover:shadow-[0_14px_50px_-8px_rgba(255,45,117,0.85)]"
+   111→                >
+   112→                  <span className="relative z-10 flex items-center gap-2">
+   113→                    Start your project
+   114→                    <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+   115→                  </span>
+   116→                  <span className="absolute inset-0 animate-shimmer opacity-40" />
+   117→                </Button>
+   118→                <Button
+   119→                  onClick={() => setPage('portfolio')}
+   120→                  variant="outline"
+   121→                  className="h-12 rounded-full px-6 text-base backdrop-blur"
+   122→                >
+   123→                  <Play className="size-4" />
+   124→                  View our work
+   125→                </Button>
+   126→              </div>
+   127→            </Reveal>
+   128→            <Reveal delay={0.24}>
+   129→              <div className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-muted-foreground">
+   130→                <div className="flex items-center gap-1.5">
+   131→                  <div className="flex">
+   132→                    {[...Array(5)].map((_, i) => (
+   133→                      <Star key={i} className="size-4 fill-amber-400 text-amber-400" />
+   134→                    ))}
+   135→                  </div>
+   136→                  <span className="font-medium text-foreground">4.9/5</span>
+   137→                  <span>· 120+ reviews</span>
+   138→                </div>
+   139→                <div className="flex items-center gap-1.5">
+   140→                  <CheckCircle2 className="size-4 text-emerald-500" />
+   141→                  98% client retention
+   142→                </div>
+   143→                <div className="flex items-center gap-1.5">
+   144→                  <Zap className="size-4" style={{ color: 'var(--brand-orange)' }} />
+   145→                  14x avg. ROI
+   146→                </div>
+   147→              </div>
+   148→            </Reveal>
+   149→          </div>
+   150→
+   151→          {/* Right: visual */}
+   152→          <Reveal delay={0.2} className="relative">
+   153→            <HeroVisual />
+   154→          </Reveal>
+   155→        </div>
+   156→
+   157→        {/* Awards row */}
+   158→        <Reveal delay={0.3}>
+   159→          <div className="mt-16 grid grid-cols-2 gap-3 sm:grid-cols-4">
+   160→            {AWARDS.map((a) => (
+   161→              <div
+   162→                key={a.label}
+   163→                className="flex items-center gap-3 rounded-2xl border border-border/60 bg-muted/20 px-4 py-3 backdrop-blur"
+   164→              >
+   165→                <span className="grid size-10 place-items-center rounded-xl bg-brand-gradient-soft">
+   166→                  <a.icon className="size-5" style={{ color: 'var(--brand-pink)' }} />
+   167→                </span>
+   168→                <div className="min-w-0">
+   169→                  <p className="truncate font-display text-sm font-bold">{a.label}</p>
+   170→                  <p className="truncate text-[11px] text-muted-foreground">{a.sub}</p>
+   171→                </div>
+   172→              </div>
+   173→            ))}
+   174→          </div>
+   175→        </Reveal>
+   176→      </div>
+   177→    </section>
+   178→  )
+   179→}
+   180→
+   181→function HeroVisual() {
+   182→  return (
+   183→    <div className="relative mx-auto aspect-square w-full max-w-md">
+   184→      {/* central orb */}
+   185→      <div className="absolute inset-1/4 rounded-full bg-brand-gradient opacity-30 blur-2xl animate-pulse-glow" />
+   186→      <div className="absolute inset-1/3 rounded-full bg-brand-gradient animate-gradient-pan bg-[length:200%_200%] shadow-[0_0_80px_-10px_rgba(255,45,117,0.7)]" />
+   187→
+   188→      {/* orbit ring */}
+   189→      <div className="absolute inset-0 rounded-full border border-dashed border-border/50 animate-spin-slow" />
+   190→      <div className="absolute inset-[12%] rounded-full border border-border/40 animate-spin-slow [animation-direction:reverse]" />
+   191→
+   192→      {/* floating cards */}
+   193→      <motion.div
+   194→        animate={{ y: [0, -12, 0] }}
+   195→        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+   196→        className="absolute -left-2 top-8 w-44 rounded-2xl glass-strong p-3.5 shadow-xl"
+   197→      >
+   198→        <div className="flex items-center gap-2">
+   199→          <span className="grid size-8 place-items-center rounded-lg bg-emerald-500/15 text-emerald-500">
+   200→            <Zap className="size-4" />
+   201→          </span>
+   202→          <div>
+   203→            <p className="text-[11px] text-muted-foreground">Conversion</p>
+   204→            <p className="font-display text-sm font-bold">+38%</p>
+   205→          </div>
+   206→        </div>
+   207→        <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-muted">
+   208→          <div className="h-full w-3/4 rounded-full bg-brand-gradient" />
+   209→        </div>
+   210→      </motion.div>
+   211→
+   212→      <motion.div
+   213→        animate={{ y: [0, 14, 0] }}
+   214→        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+   215→        className="absolute -right-2 top-1/3 w-44 rounded-2xl glass-strong p-3.5 shadow-xl"
+   216→      >
+   217→        <div className="flex items-center gap-2">
+   218→          <span className="grid size-8 place-items-center rounded-lg bg-fuchsia-500/15 text-fuchsia-500">
+   219→            <Sparkles className="size-4" />
+   220→          </span>
+   221→          <div>
+   222→            <p className="text-[11px] text-muted-foreground">AI tickets resolved</p>
+   223→            <p className="font-display text-sm font-bold">71% auto</p>
+   224→          </div>
+   225→        </div>
+   226→        <div className="mt-2.5 flex items-end gap-1">
+   227→          {[40, 65, 50, 80, 70, 95, 60].map((h, i) => (
+   228→            <div
+   229→              key={i}
+   230→              className="flex-1 rounded-sm bg-brand-gradient opacity-80"
+   231→              style={{ height: `${h * 0.32}px` }}
+   232→            />
+   233→          ))}
+   234→        </div>
+   235→      </motion.div>
+   236→
+   237→      <motion.div
+   238→        animate={{ y: [0, -10, 0] }}
+   239→        transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+   240→        className="absolute -bottom-2 left-6 w-48 rounded-2xl glass-strong p-3.5 shadow-xl"
+   241→      >
+   242→        <p className="text-[11px] text-muted-foreground">Lighthouse</p>
+   243→        <div className="mt-1 flex items-center justify-between">
+   244→          <p className="font-display text-2xl font-bold text-gradient-brand">96</p>
+   245→          <div className="flex gap-1">
+   246→            {['Perf', 'A11y', 'SEO'].map((t) => (
+   247→              <span key={t} className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+   248→                100
+   249→              </span>
+   250→            ))}
+   251→          </div>
+   252→        </div>
+   253→      </motion.div>
+   254→    </div>
+   255→  )
+   256→}
+   257→
+   258→/* ============================== TRUSTED BY ============================== */
+   259→function TrustedBy() {
+   260→  return (
+   261→    <section className="relative py-10">
+   262→      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+   263→        <Reveal>
+   264→          <p className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+   265→            Trusted by 180+ ambitious brands worldwide
+   266→          </p>
+   267→        </Reveal>
+   268→        <div className="mt-6">
+   269→          <Marquee items={TRUSTED_BY} />
+   270→        </div>
+   271→      </div>
+   272→    </section>
+   273→  )
+   274→}
+   275→
+   276→/* ============================== SERVICES OVERVIEW ============================== */
+   277→function ServicesOverview() {
+   278→  const { setPage } = useNav()
+   279→  return (
+   280→    <section className="relative py-20 sm:py-28">
+   281→      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+   282→        <SectionHeading
+   283→          eyebrow="What we do"
+   284→          title={
+   285→            <>
+   286→              Everything your brand needs to <GradientText>win online</GradientText>
+   287→            </>
+   288→          }
+   289→          description="Five core services, one integrated team. Pick one or combine them into a growth engine tailored to your goals."
+   290→        />
+   291→
+   292→        <StaggerGroup className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+   293→          {SERVICES.map((s, i) => (
+   294→            <motion.div key={s.id} variants={staggerItem}>
+   295→              <ServiceCard service={s} index={i} />
+   296→            </motion.div>
+   297→          ))}
+   298→          {/* CTA card */}
+   299→          <motion.button
+   300→            variants={staggerItem}
+   301→            onClick={() => setPage('services')}
+   302→            className="group relative flex h-full min-h-[260px] flex-col justify-between overflow-hidden rounded-3xl border border-dashed border-border/70 bg-muted/20 p-6 text-left transition-colors hover:border-border"
+   303→          >
+   304→            <span className="absolute -right-8 -top-8 size-32 rounded-full bg-brand-gradient opacity-10 blur-2xl transition-opacity group-hover:opacity-25" />
+   305→            <div>
+   306→              <span className="grid size-12 place-items-center rounded-2xl bg-brand-gradient text-white shadow-lg">
+   307→                <ArrowRight className="size-5 transition-transform group-hover:translate-x-0.5" />
+   308→              </span>
+   309→              <h3 className="mt-5 font-display text-xl font-bold">
+   310→                See all services in detail
+   311→              </h3>
+   312→              <p className="mt-2 text-sm text-muted-foreground">
+   313→                Explore deliverables, process and outcomes for each capability.
+   314→              </p>
+   315→            </div>
+   316→            <span className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-foreground">
+   317→              Explore services
+   318→              <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+   319→            </span>
+   320→          </motion.button>
+   321→        </StaggerGroup>
+   322→      </div>
+   323→    </section>
+   324→  )
+   325→}
+   326→
+   327→function ServiceCard({
+   328→  service,
+   329→  index,
+   330→}: {
+   331→  service: (typeof SERVICES)[number]
+   332→  index: number
+   333→}) {
+   334→  const { setPage } = useNav()
+   335→  const Icon = service.icon
+   336→  return (
+   337→    <button
+   338→      onClick={() => setPage('services')}
+   339→      className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-border/60 bg-card p-6 text-left transition-all duration-300 hover:-translate-y-1 hover:border-border hover:shadow-xl"
+   340→    >
+   341→      <span
+   342→        className={cn(
+   343→          'pointer-events-none absolute -right-10 -top-10 size-32 rounded-full bg-gradient-to-br opacity-10 blur-2xl transition-opacity duration-300 group-hover:opacity-30',
+   344→          service.accent
+   345→        )}
+   346→      />
+   347→      <div className="relative flex items-center justify-between">
+   348→        <span
+   349→          className={cn(
+   350→            'grid size-12 place-items-center rounded-2xl bg-gradient-to-br text-white shadow-lg',
+   351→            service.accent
+   352→          )}
+   353→        >
+   354→          <Icon className="size-6" />
+   355→        </span>
+   356→        <span className="font-mono text-xs text-muted-foreground/60">
+   357→          0{index + 1}
+   358→        </span>
+   359→      </div>
+   360→      <h3 className="relative mt-5 font-display text-xl font-bold tracking-tight">
+   361→        {service.title}
+   362→      </h3>
+   363→      <p className="relative mt-1 text-sm font-medium text-muted-foreground">
+   364→        {service.tagline}
+   365→      </p>
+   366→      <p className="relative mt-3 text-sm leading-relaxed text-muted-foreground/90">
+   367→        {service.description}
+   368→      </p>
+   369→      <div className="relative mt-5 flex flex-wrap gap-1.5">
+   370→        {service.features.slice(0, 3).map((f) => (
+   371→          <span
+   372→            key={f}
+   373→            className="rounded-full border border-border/60 bg-muted/40 px-2.5 py-1 text-[11px] text-muted-foreground"
+   374→          >
+   375→            {f}
+   376→          </span>
+   377→        ))}
+   378→      </div>
+   379→      <span className="relative mt-6 inline-flex items-center gap-1.5 text-sm font-semibold">
+   380→        Learn more
+   381→        <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+   382→      </span>
+   383→    </button>
+   384→  )
+   385→}
+   386→
+   387→/* ============================== STATS ============================== */
+   388→function StatsBand() {
+   389→  return (
+   390→    <section className="relative py-10">
+   391→      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+   392→        <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-card p-8 sm:p-10">
+   393→          <div className="pointer-events-none absolute inset-0 grid-bg opacity-40 [mask-image:radial-gradient(ellipse_at_center,#000,transparent_75%)]" />
+   394→          <div className="pointer-events-none absolute -left-20 top-1/2 size-64 -translate-y-1/2 rounded-full bg-brand-gradient opacity-15 blur-3xl" />
+   395→          <div className="relative grid grid-cols-2 gap-6 sm:grid-cols-4">
+   396→            {STATS.map((s, i) => (
+   397→              <Reveal key={s.label} delay={i * 0.08} className="text-center sm:text-left">
+   398→                <p className="font-display text-4xl font-bold tracking-tight sm:text-5xl">
+   399→                  <span className="text-gradient-brand">
+   400→                    <Counter value={s.value} suffix={s.suffix} />
+   401→                  </span>
+   402→                </p>
+   403→                <p className="mt-2 text-sm text-muted-foreground">{s.label}</p>
+   404→              </Reveal>
+   405→            ))}
+   406→          </div>
+   407→        </div>
+   408→      </div>
+   409→    </section>
+   410→  )
+   411→}
+   412→
+   413→/* ============================== FEATURES / WHY US ============================== */
+   414→function WhyUs() {
+   415→  return (
+   416→    <section className="relative py-20 sm:py-28">
+   417→      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+   418→        <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+   419→          <div>
+   420→            <SectionHeading
+   421→              align="left"
+   422→              eyebrow="Why Preet Web Vision"
+   423→              title={
+   424→                <>
+   425→                  Senior craft, <GradientText>AI-native</GradientText> thinking, real outcomes
+   426→                </>
+   427→              }
+   428→              description="We're not a body shop. We're a small, senior team that pairs design obsessiveness with modern engineering and AI — so every project ships beautiful, fast and measurable."
+   429→            />
+   430→            <Reveal delay={0.15}>
+   431→              <div className="mt-8 flex flex-wrap gap-3">
+   432→                <Button className="rounded-full bg-brand-gradient text-white">
+   433→                  <Sparkles className="size-4" />
+   434→                  See our process
+   435→                </Button>
+   436→              </div>
+   437→            </Reveal>
+   438→          </div>
+   439→          <StaggerGroup className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+   440→            {FEATURES_GRID.map((f) => {
+   441→              const Icon = f.icon
+   442→              return (
+   443→                <motion.div
+   444→                  key={f.title}
+   445→                  variants={staggerItem}
+   446→                  className="group flex gap-3 rounded-2xl border border-border/60 bg-card p-4 transition-colors hover:border-border"
+   447→                >
+   448→                  <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-gradient-soft">
+   449→                    <Icon className="size-5" style={{ color: 'var(--brand-pink)' }} />
+   450→                  </span>
+   451→                  <div>
+   452→                    <p className="font-display text-sm font-bold">{f.title}</p>
+   453→                    <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+   454→                      {f.description}
+   455→                    </p>
+   456→                  </div>
+   457→                </motion.div>
+   458→              )
+   459→            })}
+   460→          </StaggerGroup>
+   461→        </div>
+   462→      </div>
+   463→    </section>
+   464→  )
+   465→}
+   466→
+   467→/* ============================== PROCESS ============================== */
+   468→function Process() {
+   469→  return (
+   470→    <section className="relative py-20 sm:py-28">
+   471→      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+   472→        <SectionHeading
+   473→          eyebrow="How we work"
+   474→          title={
+   475→            <>
+   476→              A clear path from <GradientText>idea to impact</GradientText>
+   477→            </>
+   478→          }
+   479→          description="No black boxes. A proven four-step process that keeps you in the loop from kickoff to launch and beyond."
+   480→        />
+   481→        <div className="relative mt-16">
+   482→          {/* connecting line */}
+   483→          <div className="absolute left-0 right-0 top-7 hidden h-px bg-gradient-to-r from-transparent via-border to-transparent lg:block" />
+   484→          <StaggerGroup className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+   485→            {PROCESS.map((p) => {
+   486→              const Icon = p.icon
+   487→              return (
+   488→                <motion.div key={p.step} variants={staggerItem} className="relative">
+   489→                  <div className="relative z-10 mx-auto grid size-14 place-items-center rounded-2xl border border-border/60 bg-card text-foreground shadow-sm lg:mx-0">
+   490→                    <Icon className="size-6" style={{ color: 'var(--brand-pink)' }} />
+   491→                    <span className="absolute -right-2 -top-2 grid size-6 place-items-center rounded-full bg-brand-gradient text-[10px] font-bold text-white">
+   492→                      {p.step}
+   493→                    </span>
+   494→                  </div>
+   495→                  <div className="mt-5 text-center lg:text-left">
+   496→                    <h3 className="font-display text-lg font-bold">{p.title}</h3>
+   497→                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+   498→                      {p.description}
+   499→                    </p>
+   500→                  </div>
+   501→                </motion.div>
+   502→              )
+   503→            })}
+   504→          </StaggerGroup>
+   505→        </div>
+   506→      </div>
+   507→    </section>
+   508→  )
+   509→}
+   510→
+   511→/* ============================== PORTFOLIO PREVIEW ============================== */
+   512→function PortfolioPreview() {
+   513→  const { setPage } = useNav()
+   514→  const featured = PROJECTS.slice(0, 4)
+   515→  return (
+   516→    <section className="relative py-20 sm:py-28">
+   517→      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+   518→        <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
+   519→          <SectionHeading
+   520→            align="left"
+   521→            eyebrow="Selected work"
+   522→            title={
+   523→              <>
+   524→                Results we&apos;re <GradientText>proud of</GradientText>
+   525→              </>
+   526→            }
+   527→            description="A glimpse of recent projects across ecommerce, AI, web apps and brand sites."
+   528→            className="max-w-xl"
+   529→          />
+   530→          <Reveal delay={0.1}>
+   531→            <Button
+   532→              onClick={() => setPage('portfolio')}
+   533→              variant="outline"
+   534→              className="rounded-full"
+   535→            >
+   536→              View all work
+   537→              <ArrowRight className="size-4" />
+   538→            </Button>
+   539→          </Reveal>
+   540→        </div>
+   541→
+   542→        <StaggerGroup className="mt-12 grid gap-5 sm:grid-cols-2">
+   543→          {featured.map((p) => (
+   544→            <motion.button
+   545→              key={p.id}
+   546→              variants={staggerItem}
+   547→              onClick={() => setPage('portfolio')}
+   548→              className="group relative aspect-[16/11] overflow-hidden rounded-3xl border border-border/60 text-left"
+   549→            >
+   550→              <div className={cn('absolute inset-0 bg-gradient-to-br', p.gradient)} />
+   551→              <div className="absolute inset-0 grid-bg opacity-20" />
+   552→              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+   553→              <span className="absolute right-4 top-4 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
+   554→                {p.category}
+   555→              </span>
+   556→              <span className="absolute left-4 top-4 text-4xl drop-shadow-lg">{p.emoji}</span>
+   557→              <div className="absolute inset-x-0 bottom-0 p-5">
+   558→                <p className="text-xs text-white/70">{p.client} · {p.year}</p>
+   559→                <h3 className="mt-1 font-display text-lg font-bold text-white">{p.title}</h3>
+   560→                <p className="mt-1.5 text-sm text-white/80 line-clamp-2">{p.blurb}</p>
+   561→                <div className="mt-3 flex flex-wrap gap-3">
+   562→                  {p.metric.map((m) => (
+   563→                    <div key={m.label} className="rounded-lg bg-white/10 px-2.5 py-1 backdrop-blur">
+   564→                      <p className="text-[10px] uppercase tracking-wide text-white/60">{m.label}</p>
+   565→                      <p className="text-sm font-bold text-white">{m.value}</p>
+   566→                    </div>
+   567→                  ))}
+   568→                </div>
+   569→              </div>
+   570→              <span className="absolute right-4 top-1/2 grid size-11 -translate-y-1/2 translate-x-4 place-items-center rounded-full bg-white text-black opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100">
+   571→                <ArrowRight className="size-5" />
+   572→              </span>
+   573→            </motion.button>
+   574→          ))}
+   575→        </StaggerGroup>
+   576→      </div>
+   577→    </section>
+   578→  )
+   579→}
+   580→
+   581→/* ============================== TESTIMONIALS ============================== */
+   582→function Testimonials() {
+   583→  const [active, setActive] = React.useState(0)
+   584→  const t = TESTIMONIALS[active]
+   585→  return (
+   586→    <section className="relative py-20 sm:py-28">
+   587→      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+   588→        <SectionHeading
+   589→          eyebrow="Client love"
+   590→          title={
+   591→            <>
+   592→              Don&apos;t take our word for it — <GradientText>take theirs</GradientText>
+   593→            </>
+   594→          }
+   595→        />
+   596→        <div className="relative mx-auto mt-14 max-w-3xl">
+   597→          <div className="pointer-events-none absolute -inset-x-10 -top-10 bottom-0 rounded-[3rem] bg-brand-gradient opacity-10 blur-3xl" />
+   598→          <Reveal>
+   599→            <Card className="relative overflow-hidden rounded-3xl border-border/60 bg-card p-8 sm:p-10">
+   600→              <Quote className="absolute right-6 top-6 size-16 text-muted-foreground/10" />
+   601→              <div className="flex gap-1">
+   602→                {[...Array(t.rating)].map((_, i) => (
+   603→                  <Star key={i} className="size-5 fill-amber-400 text-amber-400" />
+   604→                ))}
+   605→              </div>
+   606→              <blockquote className="mt-5 font-display text-xl font-medium leading-relaxed sm:text-2xl">
+   607→                &ldquo;{t.quote}&rdquo;
+   608→              </blockquote>
+   609→              <div className="mt-7 flex items-center gap-3">
+   610→                <Avatar className="size-12 border-2 border-background">
+   611→                  <AvatarFallback className={cn('bg-gradient-to-br text-white', t.accent)}>
+   612→                    {t.initials}
+   613→                  </AvatarFallback>
+   614→                </Avatar>
+   615→                <div>
+   616→                  <p className="font-display font-bold">{t.name}</p>
+   617→                  <p className="text-sm text-muted-foreground">
+   618→                    {t.role}, {t.company}
+   619→                  </p>
+   620→                </div>
+   621→              </div>
+   622→            </Card>
+   623→          </Reveal>
+   624→          <div className="mt-6 flex items-center justify-center gap-2">
+   625→            {TESTIMONIALS.map((_, i) => (
+   626→              <button
+   627→                key={i}
+   628→                onClick={() => setActive(i)}
+   629→                aria-label={`Testimonial ${i + 1}`}
+   630→                className={cn(
+   631→                  'h-2 rounded-full transition-all',
+   632→                  i === active ? 'w-8 bg-brand-gradient' : 'w-2 bg-border hover:bg-muted-foreground/40'
+   633→                )}
+   634→              />
+   635→            ))}
+   636→          </div>
+   637→        </div>
+   638→      </div>
+   639→    </section>
+   640→  )
+   641→}
+   642→
+   643→/* ============================== AI DEMO CTA ============================== */
+   644→function AiDemoCta() {
+   645→  const { setPage } = useNav()
+   646→  return (
+   647→    <section className="relative py-20 sm:py-28">
+   648→      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+   649→        <div className="relative overflow-hidden rounded-[2.5rem] border border-border/60 bg-card p-8 sm:p-12 lg:p-16">
+   650→          <div className="pointer-events-none absolute inset-0 grid-bg opacity-30 [mask-image:radial-gradient(ellipse_at_right,#000,transparent_70%)]" />
+   651→          <div className="pointer-events-none absolute -right-20 -top-20 size-80 rounded-full bg-brand-gradient opacity-20 blur-3xl animate-pulse-glow" />
+   652→          <div className="relative grid gap-10 lg:grid-cols-2 lg:items-center">
+   653→            <div>
+   654→              <Reveal>
+   655→                <Badge className="rounded-full border-border/60 bg-brand-gradient-soft text-foreground">
+   656→                  <Sparkles className="size-3.5" />
+   657→                  AI Automation, live on this site
+   658→                </Badge>
+   659→              </Reveal>
+   660→              <Reveal delay={0.05}>
+   661→                <h2 className="mt-5 font-display text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
+   662→                  This chatbot is built by us. <GradientText>Yours could be next.</GradientText>
+   663→                </h2>
+   664→              </Reveal>
+   665→              <Reveal delay={0.1}>
+   666→                <p className="mt-5 max-w-lg text-muted-foreground">
+   667→                  Tap the glowing assistant in the corner — it&apos;s a real LLM agent trained on our services. We build the same for your business: support, sales, ops and beyond.
+   668→                </p>
+   669→              </Reveal>
+   670→              <Reveal delay={0.15}>
+   671→                <div className="mt-7 flex flex-wrap gap-3">
+   672→                  <Button
+   673→                    onClick={() => setPage('contact')}
+   674→                    className="rounded-full bg-brand-gradient text-white"
+   675→                  >
+   676→                    Build my AI agent
+   677→                    <ArrowRight className="size-4" />
+   678→                  </Button>
+   679→                  <Button
+   680→                    onClick={() => setPage('services')}
+   681→                    variant="outline"
+   682→                    className="rounded-full"
+   683→                  >
+   684→                    Explore AI services
+   685→                  </Button>
+   686→                </div>
+   687→              </Reveal>
+   688→            </div>
+   689→            <Reveal delay={0.2}>
+   690→              <div className="relative mx-auto w-full max-w-sm">
+   691→                <div className="rounded-3xl glass-strong p-5 shadow-2xl">
+   692→                  <div className="flex items-center gap-2 border-b border-border/60 pb-3">
+   693→                    <span className="grid size-9 place-items-center rounded-full bg-brand-gradient text-white">
+   694→                      <Sparkles className="size-4" />
+   695→                    </span>
+   696→                    <div>
+   697→                      <p className="text-sm font-bold">Vision AI</p>
+   698→                      <p className="text-[11px] text-emerald-500">● online</p>
+   699→                    </div>
+   700→                  </div>
+   701→                  <div className="space-y-2.5 py-4">
+   702→                    <div className="ml-auto max-w-[80%] rounded-2xl rounded-br-sm bg-brand-gradient px-3.5 py-2 text-sm text-white">
+   703→                      Can you automate my customer support?
+   704→                    </div>
+   705→                    <div className="max-w-[85%] rounded-2xl rounded-bl-sm bg-muted/70 px-3.5 py-2 text-sm">
+   706→                      Absolutely ✨ We deploy LLM agents with a RAG knowledge base of your docs — most clients see 60–80% of tickets auto-resolved. Want a demo?
+   707→                    </div>
+   708→                    <div className="flex items-center gap-1 rounded-2xl rounded-bl-sm bg-muted/70 px-4 py-3 w-fit">
+   709→                      {[0, 1, 2].map((i) => (
+   710→                        <span key={i} className="size-2 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: `${i * 0.15}s` }} />
+   711→                      ))}
+   712→                    </div>
+   713→                  </div>
+   714→                </div>
+   715→              </div>
+   716→            </Reveal>
+   717→          </div>
+   718→        </div>
+   719→      </div>
+   720→    </section>
+   721→  )
+   722→}
+   723→
+   724→/* ============================== TECH STACK ============================== */
+   725→function TechStack() {
+   726→  return (
+   727→    <section className="relative py-12">
+   728→      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+   729→        <Reveal>
+   730→          <p className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+   731→            Our modern, battle-tested stack
+   732→          </p>
+   733→        </Reveal>
+   734→        <div className="mt-6">
+   735→          <Marquee items={TECH_STACK} reverse />
+   736→        </div>
+   737→      </div>
+   738→    </section>
+   739→  )
+   740→}
+   741→
+   742→/* ============================== FAQ ============================== */
+   743→function FaqSection() {
+   744→  return (
+   745→    <section className="relative py-20 sm:py-28">
+   746→      <div className="mx-auto max-w-3xl px-4 sm:px-6">
+   747→        <SectionHeading
+   748→          eyebrow="Good to know"
+   749→          title={
+   750→            <>
+   751→              Questions, <GradientText>answered</GradientText>
+   752→            </>
+   753→          }
+   754→        />
+   755→        <Reveal delay={0.1} className="mt-12">
+   756→          <Accordion type="single" collapsible className="space-y-3">
+   757→            {FAQS.map((f, i) => (
+   758→              <AccordionItem
+   759→                key={i}
+   760→                value={`item-${i}`}
+   761→                className="overflow-hidden rounded-2xl border border-border/60 bg-card px-5 data-[state=open]:border-border"
+   762→              >
+   763→                <AccordionTrigger className="text-left text-base font-semibold hover:no-underline">
+   764→                  {f.question}
+   765→                </AccordionTrigger>
+   766→                <AccordionContent className="text-sm leading-relaxed text-muted-foreground">
+   767→                  {f.answer}
+   768→                </AccordionContent>
+   769→              </AccordionItem>
+   770→            ))}
+   771→          </Accordion>
+   772→        </Reveal>
+   773→      </div>
+   774→    </section>
+   775→  )
+   776→}
+   777→
+   778→/* ============================== PAGE ============================== */
+   779→export function HomePage() {
+   780→  return (
+   781→    <div className="relative">
+   782→      <Hero />
+   783→      <TrustedBy />
+   784→      <ServicesOverview />
+   785→      <StatsBand />
+   786→      <WhyUs />
+   787→      <Process />
+   788→      <PortfolioPreview />
+   789→      <Testimonials />
+   790→      <AiDemoCta />
+   791→      <TechStack />
+   792→      <FaqSection />
+   793→    </div>
+   794→  )
+   795→}
+   796→
