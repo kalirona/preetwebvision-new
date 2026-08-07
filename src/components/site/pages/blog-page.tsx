@@ -31,6 +31,7 @@ import {
   GradientText,
 } from '@/components/site/primitives'
 import { AmbientBackground } from '@/components/site/ambient-background'
+import { LazyImage } from '@/components/site/lazy-image'
 import { renderWithGlossary } from '@/components/site/glossary'
 import { useNav } from '@/lib/nav-store'
 import { BLOG_POSTS, type BlogPost } from '@/lib/content-data'
@@ -284,10 +285,11 @@ function FeaturedCard({ post, onOpen }: { post: BlogPost; onOpen: (p: BlogPost) 
     >
       {post.image ? (
         <>
-          <img
+          <LazyImage
             src={post.image}
             alt={post.title}
-            className="absolute inset-0 size-full object-cover transition-transform duration-700 group-hover:scale-105"
+            wrapperClassName="absolute inset-0 size-full"
+            className="size-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
           <div className={cn('absolute inset-0 bg-gradient-to-br opacity-30 mix-blend-multiply', post.gradient)} />
         </>
@@ -330,10 +332,11 @@ function BlogCard({ post, onOpen }: { post: BlogPost; onOpen: (p: BlogPost) => v
       <div className="relative h-40 overflow-hidden">
         {post.image ? (
           <>
-            <img
+            <LazyImage
               src={post.image}
               alt={post.title}
-              className="absolute inset-0 size-full object-cover transition-transform duration-700 group-hover:scale-105"
+              wrapperClassName="absolute inset-0 size-full"
+              className="size-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
             <div className={cn('absolute inset-0 bg-gradient-to-br opacity-30 mix-blend-multiply', post.gradient)} />
           </>
@@ -407,9 +410,9 @@ function ArticleView({ post, onBack, onOpen }: { post: BlogPost; onBack: () => v
     return () => window.removeEventListener('scroll', onScroll)
   }, [post.slug])
 
-  // Inject JSON-LD structured data for SEO (schema.org Article)
+  // Inject JSON-LD structured data for SEO (schema.org Article + BreadcrumbList)
   React.useEffect(() => {
-    const jsonLd = {
+    const articleLd = {
       '@context': 'https://schema.org',
       '@type': 'Article',
       headline: post.title,
@@ -430,11 +433,26 @@ function ArticleView({ post, onBack, onOpen }: { post: BlogPost; onBack: () => v
       wordCount: post.content.reduce((acc, b) => acc + (b.text?.split(/\s+/).length ?? 0), 0),
       keywords: post.category,
     }
-    const script = document.createElement('script')
-    script.type = 'application/ld+json'
-    script.text = JSON.stringify(jsonLd)
-    script.dataset.dynamic = 'true'
-    document.head.appendChild(script)
+    const breadcrumbLd = {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://preetwebvision.com/' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://preetwebvision.com/#blog' },
+        { '@type': 'ListItem', position: 3, name: post.category, item: `https://preetwebvision.com/#blog` },
+        { '@type': 'ListItem', position: 4, name: post.title },
+      ],
+    }
+    const script1 = document.createElement('script')
+    script1.type = 'application/ld+json'
+    script1.text = JSON.stringify(articleLd)
+    script1.dataset.dynamic = 'true'
+    document.head.appendChild(script1)
+    const script2 = document.createElement('script')
+    script2.type = 'application/ld+json'
+    script2.text = JSON.stringify(breadcrumbLd)
+    script2.dataset.dynamic = 'true'
+    document.head.appendChild(script2)
     return () => {
       document.head.querySelectorAll('script[data-dynamic="true"]').forEach((s) => s.remove())
     }
@@ -532,10 +550,11 @@ function ArticleView({ post, onBack, onOpen }: { post: BlogPost; onBack: () => v
         <div className="relative h-56 overflow-hidden rounded-3xl sm:h-72">
           {post.image ? (
             <>
-              <img
+              <LazyImage
                 src={post.image}
                 alt={post.title}
-                className="absolute inset-0 size-full object-cover"
+                wrapperClassName="absolute inset-0 size-full"
+                className="size-full object-cover"
               />
               <div className={cn('absolute inset-0 bg-gradient-to-br opacity-30 mix-blend-multiply', post.gradient)} />
             </>

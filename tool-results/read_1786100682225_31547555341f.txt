@@ -1,0 +1,881 @@
+     1→'use client'
+     2→
+     3→import * as React from 'react'
+     4→import { motion, AnimatePresence } from 'framer-motion'
+     5→import {
+     6→  ArrowLeft,
+     7→  ArrowRight,
+     8→  Clock,
+     9→  Calendar,
+    10→  Share2,
+    11→  ChevronRight,
+    12→  Sparkles,
+    13→  BookOpen,
+    14→  TrendingUp,
+    15→  Mail,
+    16→  Search,
+    17→  X,
+    18→  CheckCircle2,
+    19→  Loader2,
+    20→  Send,
+    21→} from 'lucide-react'
+    22→import { Button } from '@/components/ui/button'
+    23→import { Badge } from '@/components/ui/badge'
+    24→import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+    25→import { Input } from '@/components/ui/input'
+    26→import {
+    27→  Reveal,
+    28→  SectionHeading,
+    29→  StaggerGroup,
+    30→  staggerItem,
+    31→  GradientText,
+    32→} from '@/components/site/primitives'
+    33→import { AmbientBackground } from '@/components/site/ambient-background'
+    34→import { renderWithGlossary } from '@/components/site/glossary'
+    35→import { useNav } from '@/lib/nav-store'
+    36→import { BLOG_POSTS, type BlogPost } from '@/lib/content-data'
+    37→import { cn } from '@/lib/utils'
+    38→import { toast } from 'sonner'
+    39→
+    40→const CATEGORIES = ['All', 'Web Design', 'AI', 'SEO', 'Ecommerce', 'Growth'] as const
+    41→type Category = (typeof CATEGORIES)[number]
+    42→
+    43→type AuthorOption = { name: string; initials: string; accent: string }
+    44→
+    45→// Unique authors derived from BLOG_POSTS (first occurrence wins for initials/accent).
+    46→const AUTHORS: AuthorOption[] = (() => {
+    47→  const seen = new Set<string>()
+    48→  const out: AuthorOption[] = []
+    49→  for (const p of BLOG_POSTS) {
+    50→    if (seen.has(p.author)) continue
+    51→    seen.add(p.author)
+    52→    out.push({ name: p.author, initials: p.authorInitials, accent: p.authorAccent })
+    53→  }
+    54→  return out
+    55→})()
+    56→
+    57→function formatDate(iso: string) {
+    58→  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    59→}
+    60→
+    61→// Lowercased haystack of everything searchable on a post (title + excerpt + content).
+    62→function postSearchText(post: BlogPost): string {
+    63→  const contentText = post.content
+    64→    .map((b) => (b.type === 'ul' ? (b.items ?? []).join(' ') : (b.text ?? '')))
+    65→    .join(' ')
+    66→  return `${post.title} ${post.excerpt} ${contentText}`.toLowerCase()
+    67→}
+    68→
+    69→/* ============ BLOG GRID ============ */
+    70→function BlogGrid({ onOpen }: { onOpen: (post: BlogPost) => void }) {
+    71→  const [category, setCategory] = React.useState<Category>('All')
+    72→  const [author, setAuthor] = React.useState<string>('All')
+    73→  const [search, setSearch] = React.useState('')
+    74→
+    75→  const filtered = React.useMemo(() => {
+    76→    const q = search.trim().toLowerCase()
+    77→    return BLOG_POSTS.filter((p) => {
+    78→      if (category !== 'All' && p.category !== category) return false
+    79→      if (author !== 'All' && p.author !== author) return false
+    80→      if (q && !postSearchText(p).includes(q)) return false
+    81→      return true
+    82→    })
+    83→  }, [category, author, search])
+    84→
+    85→  const hasActiveFilters = category !== 'All' || author !== 'All' || search.trim() !== ''
+    86→  // Featured card only shows when nothing is filtered — it's a fixed post, not search-relevant.
+    87→  const showFeatured = !hasActiveFilters
+    88→  const featured = BLOG_POSTS.find((p) => p.featured) ?? BLOG_POSTS[0]
+    89→  const rest = showFeatured ? filtered.filter((p) => p.id !== featured.id) : filtered
+    90→
+    91→  const clearFilters = React.useCallback(() => {
+    92→    setSearch('')
+    93→    setAuthor('All')
+    94→    setCategory('All')
+    95→  }, [])
+    96→
+    97→  return (
+    98→    <section className="relative py-12 sm:py-16">
+    99→      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+   100→        {/* Search + filter toolbar */}
+   101→        <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-muted/20 p-4 backdrop-blur sm:p-5">
+   102→          <div className="pointer-events-none absolute -right-16 -top-16 size-44 rounded-full bg-brand-gradient opacity-10 blur-3xl" />
+   103→
+   104→          {/* Search */}
+   105→          <form
+   106→            role="search"
+   107→            onSubmit={(e) => e.preventDefault()}
+   108→            className="relative mx-auto max-w-2xl"
+   109→          >
+   110→            <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+   111→            <Input
+   112→              type="search"
+   113→              value={search}
+   114→              onChange={(e) => setSearch(e.target.value)}
+   115→              placeholder="Search articles…"
+   116→              aria-label="Search articles"
+   117→              className={cn(
+   118→                'h-11 rounded-full border-border/60 bg-background/60 pl-11 pr-10 text-sm',
+   119→                'focus-visible:border-ring focus-visible:ring-ring/50',
+   120→                '[&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none'
+   121→              )}
+   122→            />
+   123→            <AnimatePresence>
+   124→              {search && (
+   125→                <motion.button
+   126→                  type="button"
+   127→                  onClick={() => setSearch('')}
+   128→                  aria-label="Clear search"
+   129→                  initial={{ opacity: 0, scale: 0.6 }}
+   130→                  animate={{ opacity: 1, scale: 1 }}
+   131→                  exit={{ opacity: 0, scale: 0.6 }}
+   132→                  transition={{ duration: 0.15 }}
+   133→                  className="absolute right-3 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
+   134→                >
+   135→                  <X className="size-3.5" />
+   136→                </motion.button>
+   137→              )}
+   138→            </AnimatePresence>
+   139→          </form>
+   140→
+   141→          {/* Author chips */}
+   142→          <div className="mt-4 flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+   143→            <span className="shrink-0 pr-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+   144→              Authors
+   145→            </span>
+   146→            <button
+   147→              onClick={() => setAuthor('All')}
+   148→              aria-pressed={author === 'All'}
+   149→              className={cn(
+   150→                'flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all',
+   151→                author === 'All'
+   152→                  ? 'border-transparent bg-brand-gradient text-white shadow-[0_4px_20px_-6px_rgba(255,45,117,0.6)]'
+   153→                  : 'border-border/60 bg-background/40 text-muted-foreground hover:text-foreground hover:border-border'
+   154→              )}
+   155→            >
+   156→              <span className="grid size-7 place-items-center rounded-full bg-white/15 text-[10px] font-bold">All</span>
+   157→              Everyone
+   158→            </button>
+   159→            {AUTHORS.map((a) => {
+   160→              const active = author === a.name
+   161→              return (
+   162→                <button
+   163→                  key={a.name}
+   164→                  onClick={() => setAuthor(active ? 'All' : a.name)}
+   165→                  aria-pressed={active}
+   166→                  className={cn(
+   167→                    'flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all',
+   168→                    active
+   169→                      ? 'border-transparent bg-brand-gradient-soft text-foreground ring-2 ring-[#ff2d75]/60'
+   170→                      : 'border-border/60 bg-background/40 text-muted-foreground hover:text-foreground hover:border-border'
+   171→                  )}
+   172→                >
+   173→                  <span
+   174→                    className={cn(
+   175→                      'grid size-7 place-items-center rounded-full bg-gradient-to-br text-[10px] font-bold text-white',
+   176→                      a.accent
+   177→                    )}
+   178→                  >
+   179→                    {a.initials}
+   180→                  </span>
+   181→                  {a.name}
+   182→                </button>
+   183→              )
+   184→            })}
+   185→          </div>
+   186→
+   187→          {/* Categories + result count */}
+   188→          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+   189→            <div className="flex flex-wrap items-center gap-1">
+   190→              {CATEGORIES.map((c) => {
+   191→                const active = category === c
+   192→                return (
+   193→                  <button
+   194→                    key={c}
+   195→                    onClick={() => setCategory(c)}
+   196→                    aria-pressed={active}
+   197→                    className={cn(
+   198→                      'relative rounded-full px-4 py-2 text-sm font-semibold transition-colors',
+   199→                      active ? 'text-white' : 'text-muted-foreground hover:text-foreground'
+   200→                    )}
+   201→                  >
+   202→                    {active && (
+   203→                      <motion.span
+   204→                        layoutId="blog-filter-pill"
+   205→                        className="absolute inset-0 rounded-full bg-brand-gradient shadow-[0_4px_20px_-6px_rgba(255,45,117,0.6)]"
+   206→                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+   207→                      />
+   208→                    )}
+   209→                    <span className="relative z-10">{c}</span>
+   210→                  </button>
+   211→                )
+   212→              })}
+   213→            </div>
+   214→            <p className="text-xs text-muted-foreground" aria-live="polite">
+   215→              Showing <span className="font-semibold text-foreground">{filtered.length}</span> of{' '}
+   216→              {BLOG_POSTS.length} articles
+   217→            </p>
+   218→          </div>
+   219→        </div>
+   220→
+   221→        {/* Featured post (only when no filters are active) */}
+   222→        <AnimatePresence>
+   223→          {showFeatured && (
+   224→            <motion.div
+   225→              initial={{ opacity: 0, y: 16 }}
+   226→              animate={{ opacity: 1, y: 0 }}
+   227→              exit={{ opacity: 0, y: -16 }}
+   228→              transition={{ duration: 0.4 }}
+   229→              className="mt-8"
+   230→            >
+   231→              <FeaturedCard post={featured} onOpen={onOpen} />
+   232→            </motion.div>
+   233→          )}
+   234→        </AnimatePresence>
+   235→
+   236→        {/* Grid */}
+   237→        <StaggerGroup className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+   238→          <AnimatePresence mode="popLayout">
+   239→            {rest.map((post) => (
+   240→              <motion.div
+   241→                key={post.id}
+   242→                layout
+   243→                variants={staggerItem}
+   244→                exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.2 } }}
+   245→              >
+   246→                <BlogCard post={post} onOpen={onOpen} />
+   247→              </motion.div>
+   248→            ))}
+   249→          </AnimatePresence>
+   250→        </StaggerGroup>
+   251→
+   252→        {/* Empty state */}
+   253→        {rest.length === 0 && (
+   254→          <motion.div
+   255→            initial={{ opacity: 0, y: 12 }}
+   256→            animate={{ opacity: 1, y: 0 }}
+   257→            className="mt-16 flex flex-col items-center text-center"
+   258→          >
+   259→            <div className="grid size-16 place-items-center rounded-full bg-muted/40 ring-1 ring-border/60">
+   260→              <Search className="size-7 text-muted-foreground" />
+   261→            </div>
+   262→            <h3 className="mt-4 font-display text-lg font-bold">No articles found</h3>
+   263→            <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+   264→              Try a different keyword or clear your filters to see everything.
+   265→            </p>
+   266→            {hasActiveFilters && (
+   267→              <Button variant="outline" className="mt-5 rounded-full" onClick={clearFilters}>
+   268→                <X className="size-4" />
+   269→                Clear filters
+   270→              </Button>
+   271→            )}
+   272→          </motion.div>
+   273→        )}
+   274→      </div>
+   275→    </section>
+   276→  )
+   277→}
+   278→
+   279→function FeaturedCard({ post, onOpen }: { post: BlogPost; onOpen: (p: BlogPost) => void }) {
+   280→  return (
+   281→    <button
+   282→      onClick={() => onOpen(post)}
+   283→      className="group relative block w-full overflow-hidden rounded-3xl border border-border/60 text-left"
+   284→    >
+   285→      {post.image ? (
+   286→        <>
+   287→          <img
+   288→            src={post.image}
+   289→            alt={post.title}
+   290→            className="absolute inset-0 size-full object-cover transition-transform duration-700 group-hover:scale-105"
+   291→          />
+   292→          <div className={cn('absolute inset-0 bg-gradient-to-br opacity-30 mix-blend-multiply', post.gradient)} />
+   293→        </>
+   294→      ) : (
+   295→        <div className={cn('absolute inset-0 bg-gradient-to-br', post.gradient)} />
+   296→      )}
+   297→      <div className="absolute inset-0 grid-bg opacity-20" />
+   298→      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+   299→      <span className="absolute left-5 top-5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
+   300→        ✨ Featured
+   301→      </span>
+   302→      <span className="absolute right-5 top-5 text-5xl drop-shadow-lg">{post.emoji}</span>
+   303→      <div className="relative grid min-h-[22rem] items-end p-6 sm:p-8 lg:min-h-[26rem]">
+   304→        <div className="max-w-2xl">
+   305→          <div className="flex items-center gap-3 text-xs text-white/80">
+   306→            <span className="rounded-full bg-white/15 px-2.5 py-0.5 backdrop-blur">{post.category}</span>
+   307→            <span className="flex items-center gap-1"><Calendar className="size-3" />{formatDate(post.date)}</span>
+   308→            <span className="flex items-center gap-1"><Clock className="size-3" />{post.readingMinutes} min</span>
+   309→          </div>
+   310→          <h3 className="mt-3 font-display text-2xl font-bold leading-tight text-white sm:text-3xl">
+   311→            {post.title}
+   312→          </h3>
+   313→          <p className="mt-2 max-w-xl text-sm text-white/85 sm:text-base">{post.excerpt}</p>
+   314→          <span className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-sm font-semibold text-black transition-transform group-hover:translate-x-1">
+   315→            Read article
+   316→            <ArrowRight className="size-4" />
+   317→          </span>
+   318→        </div>
+   319→      </div>
+   320→    </button>
+   321→  )
+   322→}
+   323→
+   324→function BlogCard({ post, onOpen }: { post: BlogPost; onOpen: (p: BlogPost) => void }) {
+   325→  return (
+   326→    <button
+   327→      onClick={() => onOpen(post)}
+   328→      className="group card-sheen relative flex h-full flex-col overflow-hidden rounded-3xl border border-border/60 bg-card text-left transition-all duration-300 hover:-translate-y-1 hover:border-border hover:shadow-xl"
+   329→    >
+   330→      <div className="relative h-40 overflow-hidden">
+   331→        {post.image ? (
+   332→          <>
+   333→            <img
+   334→              src={post.image}
+   335→              alt={post.title}
+   336→              className="absolute inset-0 size-full object-cover transition-transform duration-700 group-hover:scale-105"
+   337→            />
+   338→            <div className={cn('absolute inset-0 bg-gradient-to-br opacity-30 mix-blend-multiply', post.gradient)} />
+   339→          </>
+   340→        ) : (
+   341→          <div className={cn('absolute inset-0 bg-gradient-to-br', post.gradient)} />
+   342→        )}
+   343→        <div className="absolute inset-0 grid-bg opacity-20" />
+   344→        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+   345→        <span className="absolute left-4 top-4 text-4xl drop-shadow-lg">{post.emoji}</span>
+   346→        <span className="absolute right-3 top-3 rounded-full bg-white/15 px-2.5 py-0.5 text-[11px] font-semibold text-white backdrop-blur">
+   347→          {post.category}
+   348→        </span>
+   349→      </div>
+   350→      <div className="flex flex-1 flex-col p-5">
+   351→        <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+   352→          <Calendar className="size-3" />
+   353→          {formatDate(post.date)}
+   354→          <span className="mx-1">·</span>
+   355→          <Clock className="size-3" />
+   356→          {post.readingMinutes} min
+   357→        </div>
+   358→        <h3 className="mt-2 font-display text-lg font-bold leading-snug tracking-tight">
+   359→          {post.title}
+   360→        </h3>
+   361→        <p className="mt-2 text-sm leading-relaxed text-muted-foreground line-clamp-3">
+   362→          {post.excerpt}
+   363→        </p>
+   364→        <div className="mt-auto flex items-center justify-between pt-4">
+   365→          <div className="flex items-center gap-2">
+   366→            <Avatar className="size-7 border border-background">
+   367→              <AvatarFallback className={cn('bg-gradient-to-br text-[10px] font-bold text-white', post.authorAccent)}>
+   368→                {post.authorInitials}
+   369→              </AvatarFallback>
+   370→            </Avatar>
+   371→            <span className="text-xs text-muted-foreground">{post.author}</span>
+   372→          </div>
+   373→          <span className="flex items-center gap-1 text-xs font-semibold">
+   374→            Read
+   375→            <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" />
+   376→          </span>
+   377→        </div>
+   378→      </div>
+   379→    </button>
+   380→  )
+   381→}
+   382→
+   383→/* ============ ARTICLE VIEW ============ */
+   384→function ArticleView({ post, onBack, onOpen }: { post: BlogPost; onBack: () => void; onOpen: (p: BlogPost) => void }) {
+   385→  const { setPage } = useNav()
+   386→  const [progress, setProgress] = React.useState(0)
+   387→  const articleRef = React.useRef<HTMLDivElement>(null)
+   388→
+   389→  // Reading progress + view tracking
+   390→  React.useEffect(() => {
+   391→    const onScroll = () => {
+   392→      const el = articleRef.current
+   393→      if (!el) return
+   394→      const rect = el.getBoundingClientRect()
+   395→      const total = el.scrollHeight - window.innerHeight
+   396→      const scrolled = Math.min(Math.max(-rect.top, 0), total)
+   397→      setProgress(total > 0 ? (scrolled / total) * 100 : 0)
+   398→    }
+   399→    window.addEventListener('scroll', onScroll, { passive: true })
+   400→    onScroll()
+   401→    // Track view (best-effort)
+   402→    fetch('/api/blog', {
+   403→      method: 'POST',
+   404→      headers: { 'Content-Type': 'application/json' },
+   405→      body: JSON.stringify({ slug: post.slug }),
+   406→    }).catch(() => {})
+   407→    return () => window.removeEventListener('scroll', onScroll)
+   408→  }, [post.slug])
+   409→
+   410→  // Inject JSON-LD structured data for SEO (schema.org Article)
+   411→  React.useEffect(() => {
+   412→    const jsonLd = {
+   413→      '@context': 'https://schema.org',
+   414→      '@type': 'Article',
+   415→      headline: post.title,
+   416→      description: post.excerpt,
+   417→      datePublished: post.date,
+   418→      dateModified: post.date,
+   419→      author: {
+   420→        '@type': 'Person',
+   421→        name: post.author,
+   422→        jobTitle: post.authorRole,
+   423→      },
+   424→      publisher: {
+   425→        '@type': 'Organization',
+   426→        name: 'Preet Web Vision',
+   427→        url: 'https://preetwebvision.com',
+   428→      },
+   429→      articleSection: post.category,
+   430→      wordCount: post.content.reduce((acc, b) => acc + (b.text?.split(/\s+/).length ?? 0), 0),
+   431→      keywords: post.category,
+   432→    }
+   433→    const script = document.createElement('script')
+   434→    script.type = 'application/ld+json'
+   435→    script.text = JSON.stringify(jsonLd)
+   436→    script.dataset.dynamic = 'true'
+   437→    document.head.appendChild(script)
+   438→    return () => {
+   439→      document.head.querySelectorAll('script[data-dynamic="true"]').forEach((s) => s.remove())
+   440→    }
+   441→  }, [post])
+   442→
+   443→  const related = BLOG_POSTS.filter((p) => p.id !== post.id && p.category === post.category).slice(0, 3)
+   444→  const fallbackRelated = BLOG_POSTS.filter((p) => p.id !== post.id).slice(0, 3)
+   445→  const relatedPosts = related.length >= 2 ? related : fallbackRelated
+   446→
+   447→  const share = async () => {
+   448→    const url = typeof window !== 'undefined' ? window.location.href : ''
+   449→    try {
+   450→      if (navigator.share) {
+   451→        await navigator.share({ title: post.title, url })
+   452→      } else {
+   453→        await navigator.clipboard.writeText(url)
+   454→        toast.success('Link copied to clipboard!')
+   455→      }
+   456→    } catch {
+   457→      /* user cancelled */
+   458→    }
+   459→  }
+   460→
+   461→  return (
+   462→    <div className="relative">
+   463→      {/* Reading progress bar */}
+   464→      <div className="fixed inset-x-0 top-0 z-[55] h-1 bg-transparent">
+   465→        <div
+   466→          className="reading-progress h-full transition-[width] duration-150"
+   467→          style={{ width: `${progress}%` }}
+   468→        />
+   469→      </div>
+   470→
+   471→      {/* Hero */}
+   472→      <section className="relative overflow-hidden pb-10 pt-6">
+   473→        <div className={cn('pointer-events-none absolute inset-0 bg-gradient-to-br opacity-10', post.gradient)} />
+   474→        <div className="pointer-events-none absolute -top-24 left-1/2 size-96 -translate-x-1/2 rounded-full bg-brand-gradient opacity-15 blur-3xl" />
+   475→        <div className="relative mx-auto max-w-3xl px-4 sm:px-6">
+   476→          <nav className="breadcrumb" aria-label="Breadcrumb">
+   477→            <button
+   478→              onClick={() => setPage('home')}
+   479→              className="hover:text-foreground"
+   480→            >
+   481→              Home
+   482→            </button>
+   483→            <ChevronRight className="size-3" />
+   484→            <button
+   485→              onClick={onBack}
+   486→              className="group inline-flex items-center gap-1 font-medium hover:text-foreground"
+   487→            >
+   488→              <ArrowLeft className="size-3.5 transition-transform group-hover:-translate-x-0.5" />
+   489→              Blog
+   490→            </button>
+   491→            <ChevronRight className="size-3" />
+   492→            <span className="truncate text-foreground/70">{post.category}</span>
+   493→          </nav>
+   494→          <div className="mt-6 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+   495→            <span className="rounded-full bg-brand-gradient-soft px-2.5 py-1 font-semibold text-foreground">
+   496→              {post.category}
+   497→            </span>
+   498→            <span className="flex items-center gap-1"><Calendar className="size-3" />{formatDate(post.date)}</span>
+   499→            <span className="flex items-center gap-1"><Clock className="size-3" />{post.readingMinutes} min read</span>
+   500→          </div>
+   501→          <h1 className="mt-4 font-display text-3xl font-bold leading-[1.1] tracking-tight text-balance sm:text-4xl lg:text-5xl">
+   502→            {post.title}
+   503→          </h1>
+   504→          <p className="mt-4 text-lg leading-relaxed text-muted-foreground">{post.excerpt}</p>
+   505→
+   506→          {/* Author + share */}
+   507→          <div className="mt-7 flex items-center justify-between">
+   508→            <div className="flex items-center gap-3">
+   509→              <Avatar className="size-11 border-2 border-background">
+   510→                <AvatarFallback className={cn('bg-gradient-to-br text-white', post.authorAccent)}>
+   511→                  {post.authorInitials}
+   512→                </AvatarFallback>
+   513→              </Avatar>
+   514→              <div>
+   515→                <p className="font-display text-sm font-bold">{post.author}</p>
+   516→                <p className="text-xs text-muted-foreground">{post.authorRole}</p>
+   517→              </div>
+   518→            </div>
+   519→            <button
+   520→              onClick={share}
+   521→              className="flex items-center gap-1.5 rounded-full border border-border/70 bg-muted/30 px-3.5 py-2 text-xs font-semibold transition-colors hover:text-foreground hover:border-border"
+   522→            >
+   523→              <Share2 className="size-3.5" />
+   524→              Share
+   525→            </button>
+   526→          </div>
+   527→        </div>
+   528→      </section>
+   529→
+   530→      {/* Cover */}
+   531→      <div className="mx-auto max-w-4xl px-4 sm:px-6">
+   532→        <div className="relative h-56 overflow-hidden rounded-3xl sm:h-72">
+   533→          {post.image ? (
+   534→            <>
+   535→              <img
+   536→                src={post.image}
+   537→                alt={post.title}
+   538→                className="absolute inset-0 size-full object-cover"
+   539→              />
+   540→              <div className={cn('absolute inset-0 bg-gradient-to-br opacity-30 mix-blend-multiply', post.gradient)} />
+   541→            </>
+   542→          ) : (
+   543→            <div className={cn('absolute inset-0 bg-gradient-to-br', post.gradient)} />
+   544→          )}
+   545→          <div className="absolute inset-0 grid-bg opacity-20" />
+   546→          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+   547→          <span className="absolute left-6 top-6 text-6xl drop-shadow-lg">{post.emoji}</span>
+   548→        </div>
+   549→      </div>
+   550→
+   551→      {/* Body */}
+   552→      <article ref={articleRef} className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
+   553→        <div className="prose-brand">
+   554→          {post.content.map((block, i) => {
+   555→            if (block.type === 'h2') return <h2 key={i}>{renderWithGlossary(block.text || '')}</h2>
+   556→            if (block.type === 'h3') return <h3 key={i}>{renderWithGlossary(block.text || '')}</h3>
+   557→            if (block.type === 'quote')
+   558→              return <blockquote key={i}>{renderWithGlossary(block.text || '')}</blockquote>
+   559→            if (block.type === 'ul')
+   560→              return (
+   561→                <ul key={i}>
+   562→                  {block.items?.map((it, j) => <li key={j}>{renderWithGlossary(it)}</li>)}
+   563→                </ul>
+   564→              )
+   565→            return <p key={i}>{renderWithGlossary(block.text || '')}</p>
+   566→          })}
+   567→        </div>
+   568→
+   569→        {/* Newsletter inline signup form */}
+   570→        <BlogNewsletterSignup />
+   571→      </article>
+   572→
+   573→      {/* Floating reading-progress badge */}
+   574→      <AnimatePresence>
+   575→        {progress > 5 && progress < 95 ? (
+   576→          <motion.div
+   577→            key="reading-badge"
+   578→            initial={{ opacity: 0, y: 12, scale: 0.95 }}
+   579→            animate={{ opacity: 1, y: 0, scale: 1 }}
+   580→            exit={{ opacity: 0, y: 12, scale: 0.95 }}
+   581→            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+   582→            className="fixed bottom-24 right-5 z-40 hidden sm:flex"
+   583→            aria-hidden="true"
+   584→          >
+   585→            <div className="flex items-center gap-2 rounded-full border border-border/60 glass-strong px-3 py-1.5 shadow-xl">
+   586→              <span className="relative grid size-6 place-items-center">
+   587→                <svg viewBox="0 0 36 36" className="size-6 -rotate-90">
+   588→                  <circle
+   589→                    cx="18"
+   590→                    cy="18"
+   591→                    r="15"
+   592→                    fill="none"
+   593→                    strokeWidth="3"
+   594→                    className="text-muted/40"
+   595→                    stroke="currentColor"
+   596→                  />
+   597→                  <circle
+   598→                    cx="18"
+   599→                    cy="18"
+   600→                    r="15"
+   601→                    fill="none"
+   602→                    strokeWidth="3"
+   603→                    strokeLinecap="round"
+   604→                    stroke="url(#readingProgressGrad)"
+   605→                    strokeDasharray={`${2 * Math.PI * 15}`}
+   606→                    strokeDashoffset={`${2 * Math.PI * 15 * (1 - progress / 100)}`}
+   607→                    style={{ transition: 'stroke-dashoffset 0.15s linear' }}
+   608→                  />
+   609→                  <defs>
+   610→                    <linearGradient id="readingProgressGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+   611→                      <stop offset="0%" stopColor="var(--brand-orange)" />
+   612→                      <stop offset="100%" stopColor="var(--brand-rose)" />
+   613→                    </linearGradient>
+   614→                  </defs>
+   615→                </svg>
+   616→                <BookOpen className="size-3 text-foreground" />
+   617→              </span>
+   618→              <span className="text-xs font-bold tabular-nums">
+   619→                {Math.round(progress)}%
+   620→                <span className="ml-1 font-medium text-muted-foreground">read</span>
+   621→              </span>
+   622→            </div>
+   623→          </motion.div>
+   624→        ) : null}
+   625→      </AnimatePresence>
+   626→
+   627→      {/* Related */}
+   628→      <section className="relative border-t border-border/60 py-16">
+   629→        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+   630→          <div className="flex items-end justify-between">
+   631→            <h2 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
+   632→              Keep <GradientText>reading</GradientText>
+   633→            </h2>
+   634→            <button
+   635→              onClick={onBack}
+   636→              className="group inline-flex items-center gap-1.5 text-sm font-semibold"
+   637→            >
+   638→              All articles
+   639→              <ChevronRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+   640→            </button>
+   641→          </div>
+   642→          <StaggerGroup className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+   643→            {relatedPosts.map((p) => (
+   644→              <motion.div key={p.id} variants={staggerItem}>
+   645→                <BlogCard post={p} onOpen={onOpen} />
+   646→              </motion.div>
+   647→            ))}
+   648→          </StaggerGroup>
+   649→        </div>
+   650→      </section>
+   651→    </div>
+   652→  )
+   653→}
+   654→
+   655→/* ============ INLINE NEWSLETTER SIGNUP (in articles) ============ */
+   656→function BlogNewsletterSignup() {
+   657→  const [email, setEmail] = React.useState('')
+   658→  const [status, setStatus] = React.useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+   659→
+   660→  const submit = async (e: React.FormEvent) => {
+   661→    e.preventDefault()
+   662→    if (!email || status === 'loading') return
+   663→    setStatus('loading')
+   664→    try {
+   665→      const res = await fetch('/api/newsletter', {
+   666→        method: 'POST',
+   667→        headers: { 'Content-Type': 'application/json' },
+   668→        body: JSON.stringify({ email, source: 'blog-article' }),
+   669→      })
+   670→      const data = await res.json()
+   671→      if (!res.ok || !data.ok) throw new Error(data.error || 'Failed')
+   672→      setStatus('success')
+   673→      setEmail('')
+   674→      toast.success("You're on the list!", {
+   675→        description: 'Expect growth tips and studio updates in your inbox.',
+   676→      })
+   677→    } catch {
+   678→      setStatus('error')
+   679→      toast.error('Could not subscribe. Please try again.')
+   680→    }
+   681→  }
+   682→
+   683→  return (
+   684→    <div className="relative mt-12 overflow-hidden rounded-3xl border border-border/60 bg-muted/20 p-6 sm:p-8">
+   685→      <div className="pointer-events-none absolute -right-12 -top-12 size-40 rounded-full bg-brand-gradient opacity-15 blur-3xl" />
+   686→      <div className="pointer-events-none absolute inset-0 grid-bg opacity-20 [mask-image:radial-gradient(ellipse_at_right,#000,transparent_70%)]" />
+   687→      <div className="relative">
+   688→        <div className="flex items-start gap-4">
+   689→          <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-brand-gradient text-white shadow-lg">
+   690→            <Mail className="size-5" />
+   691→          </span>
+   692→          <div className="flex-1">
+   693→            <h3 className="font-display text-lg font-bold">
+   694→              Enjoyed this? Get the next one in your <span className="text-gradient-brand">inbox</span>.
+   695→            </h3>
+   696→            <p className="mt-1 text-sm text-muted-foreground">
+   697→              Weekly insights on web, AI, SEO and growth. No spam, ever.
+   698→            </p>
+   699→          </div>
+   700→        </div>
+   701→        {status === 'success' ? (
+   702→          <div className="mt-5 flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm">
+   703→            <CheckCircle2 className="size-5 shrink-0 text-emerald-500" />
+   704→            <span>
+   705→              <span className="font-semibold">You&apos;re subscribed!</span>{' '}
+   706→              <span className="text-muted-foreground">Look out for our next article.</span>
+   707→            </span>
+   708→          </div>
+   709→        ) : (
+   710→          <form onSubmit={submit} className="mt-5 flex flex-col gap-2 sm:flex-row">
+   711→            <Input
+   712→              type="email"
+   713→              required
+   714→              value={email}
+   715→              onChange={(e) => setEmail(e.target.value)}
+   716→              placeholder="you@example.com"
+   717→              className="h-11 flex-1 rounded-full bg-background/60"
+   718→              disabled={status === 'loading'}
+   719→            />
+   720→            <Button
+   721→              type="submit"
+   722→              disabled={status === 'loading'}
+   723→              className="h-11 shrink-0 rounded-full bg-brand-gradient text-white"
+   724→            >
+   725→              {status === 'loading' ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+   726→              {status === 'loading' ? 'Subscribing...' : 'Subscribe'}
+   727→            </Button>
+   728→          </form>
+   729→        )}
+   730→        <p className="mt-2 text-[11px] text-muted-foreground">
+   731→          Join 2,000+ founders and operators. Unsubscribe anytime.
+   732→        </p>
+   733→      </div>
+   734→    </div>
+   735→  )
+   736→}
+   737→
+   738→/* ============ PAGE ============ */
+   739→export function BlogPage() {
+   740→  const [activePost, setActivePost] = React.useState<BlogPost | null>(null)
+   741→
+   742→  const open = React.useCallback((post: BlogPost) => {
+   743→    setActivePost(post)
+   744→    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
+   745→  }, [])
+   746→
+   747→  const back = React.useCallback(() => {
+   748→    setActivePost(null)
+   749→    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
+   750→  }, [])
+   751→
+   752→  // Listen for command palette "open blog post" events
+   753→  React.useEffect(() => {
+   754→    const onOpenPost = (e: Event) => {
+   755→      const slug = (e as CustomEvent<string>).detail
+   756→      const post = BLOG_POSTS.find((p) => p.slug === slug)
+   757→      if (post) open(post)
+   758→    }
+   759→    window.addEventListener('open-blog-post', onOpenPost as EventListener)
+   760→    return () => window.removeEventListener('open-blog-post', onOpenPost as EventListener)
+   761→  }, [open])
+   762→
+   763→  return (
+   764→    <div className="relative">
+   765→      <AnimatePresence mode="wait">
+   766→        {activePost ? (
+   767→          <motion.div
+   768→            key={activePost.id}
+   769→            initial={{ opacity: 0 }}
+   770→            animate={{ opacity: 1 }}
+   771→            exit={{ opacity: 0 }}
+   772→            transition={{ duration: 0.3 }}
+   773→          >
+   774→            <ArticleView post={activePost} onBack={back} onOpen={open} />
+   775→          </motion.div>
+   776→        ) : (
+   777→          <motion.div
+   778→            key="grid"
+   779→            initial={{ opacity: 0 }}
+   780→            animate={{ opacity: 1 }}
+   781→            exit={{ opacity: 0 }}
+   782→            transition={{ duration: 0.3 }}
+   783→          >
+   784→            <BlogHero />
+   785→            <BlogGrid onOpen={open} />
+   786→            <BlogCta />
+   787→          </motion.div>
+   788→        )}
+   789→      </AnimatePresence>
+   790→    </div>
+   791→  )
+   792→}
+   793→
+   794→function BlogHero() {
+   795→  const stats = [
+   796→    { label: 'Articles', value: BLOG_POSTS.length, suffix: '' },
+   797→    { label: 'Categories', value: 5, suffix: '' },
+   798→    { label: 'Avg read', value: 6, suffix: ' min' },
+   799→  ]
+   800→  return (
+   801→    <section className="relative overflow-hidden pb-8 pt-10 sm:pt-16">
+   802→      <AmbientBackground variant="strong" />
+   803→      <div className="relative mx-auto max-w-3xl px-4 sm:px-6 text-center">
+   804→        <Reveal>
+   805→          <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-muted/40 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+   806→            <BookOpen className="size-3.5" style={{ color: 'var(--brand-pink)' }} />
+   807→            Insights
+   808→          </span>
+   809→        </Reveal>
+   810→        <Reveal delay={0.05}>
+   811→          <h1 className="mt-5 font-display text-4xl font-bold leading-[1.05] tracking-tight text-balance sm:text-6xl">
+   812→            Ideas that <GradientText className="text-glow-brand">compound</GradientText> your growth
+   813→          </h1>
+   814→        </Reveal>
+   815→        <Reveal delay={0.1}>
+   816→          <p className="mx-auto mt-5 max-w-xl text-base text-muted-foreground sm:text-lg">
+   817→            Field-tested playlists on web design, AI automations, SEO and ecommerce — from the team shipping them daily.
+   818→          </p>
+   819→        </Reveal>
+   820→        <Reveal delay={0.15}>
+   821→          <div className="mx-auto mt-8 flex max-w-md items-center justify-center gap-6">
+   822→            {stats.map((s) => (
+   823→              <div key={s.label} className="text-center">
+   824→                <p className="font-display text-2xl font-bold text-gradient-brand">
+   825→                  {s.value}
+   826→                  {s.suffix}
+   827→                </p>
+   828→                <p className="text-xs text-muted-foreground">{s.label}</p>
+   829→              </div>
+   830→            ))}
+   831→          </div>
+   832→        </Reveal>
+   833→      </div>
+   834→    </section>
+   835→  )
+   836→}
+   837→
+   838→function BlogCta() {
+   839→  const { setPage } = useNav()
+   840→  return (
+   841→    <section className="relative py-20 sm:py-24">
+   842→      <div className="mx-auto max-w-5xl px-4 sm:px-6">
+   843→        <div className="relative overflow-hidden rounded-[2rem] border border-border/60 bg-card p-8 sm:p-12">
+   844→          <div className="pointer-events-none absolute -right-16 -top-16 size-64 rounded-full bg-brand-gradient opacity-20 blur-3xl animate-pulse-glow" />
+   845→          <div className="pointer-events-none absolute inset-0 grid-bg opacity-25 [mask-image:radial-gradient(ellipse_at_right,#000,transparent_70%)]" />
+   846→          <div className="relative grid items-center gap-6 sm:grid-cols-[1.4fr_1fr]">
+   847→            <div>
+   848→              <Badge className="rounded-full border-border/60 bg-brand-gradient-soft text-foreground">
+   849→                <TrendingUp className="size-3.5" />
+   850→                Put it into practice
+   851→              </Badge>
+   852→              <h2 className="mt-4 font-display text-2xl font-bold tracking-tight sm:text-3xl">
+   853→                Reading is good. <GradientText>Shipping is better.</GradientText>
+   854→              </h2>
+   855→              <p className="mt-3 max-w-md text-muted-foreground">
+   856→                Turn these insights into outcomes. Tell us about your project and we&apos;ll bring the team.
+   857→              </p>
+   858→            </div>
+   859→            <div className="flex flex-wrap gap-3 sm:justify-end">
+   860→              <Button
+   861→                onClick={() => setPage('contact')}
+   862→                className="rounded-full bg-brand-gradient text-white shadow-[0_8px_30px_-8px_rgba(255,45,117,0.6)]"
+   863→              >
+   864→                <Sparkles className="size-4" />
+   865→                Start a project
+   866→              </Button>
+   867→              <Button
+   868→                onClick={() => setPage('services')}
+   869→                variant="outline"
+   870→                className="rounded-full"
+   871→              >
+   872→                Explore services
+   873→              </Button>
+   874→            </div>
+   875→          </div>
+   876→        </div>
+   877→      </div>
+   878→    </section>
+   879→  )
+   880→}
+   881→

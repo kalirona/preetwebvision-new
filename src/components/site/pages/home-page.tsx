@@ -36,6 +36,7 @@ import { AmbientBackground } from '@/components/site/ambient-background'
 import { RoiCalculator } from '@/components/site/roi-calculator'
 import { FaqWithSearch } from '@/components/site/faq-with-search'
 import { LiveStatsWidget } from '@/components/site/live-stats'
+import { SvgDivider } from '@/components/site/svg-divider'
 import { useNav } from '@/lib/nav-store'
 import { BLOG_POSTS } from '@/lib/content-data'
 import {
@@ -914,15 +915,20 @@ export function HomePage() {
     <div className="relative">
       <Hero />
       <TrustedBy />
+      <SvgDivider />
       <ServicesOverview />
+      <SvgDivider />
       <StatsBand />
       <RoiSection />
+      <SvgDivider />
       <WhyUs />
       <Process />
+      <SvgDivider />
       <PortfolioPreview />
       <Testimonials />
       <AiDemoCta />
       <LiveStatsWidget />
+      <SvgDivider />
       <BlogPreview />
       <TechStack />
       <FaqSection />

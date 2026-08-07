@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, ArrowRight, Quote, Target, Lightbulb, TrendingUp, CheckCircle2, Maximize2 } from 'lucide-react'
+import { X, ArrowRight, ArrowUp, Quote, Target, Lightbulb, TrendingUp, CheckCircle2, Maximize2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -22,6 +22,17 @@ export function CaseStudyModal({
   const { setPage } = useNav()
   const caseStudy = project ? CASE_STUDIES[project.id] : null
   const [lightboxIndex, setLightboxIndex] = React.useState<number | null>(null)
+  const [showScrollTop, setShowScrollTop] = React.useState(false)
+  const scrollBodyRef = React.useRef<HTMLDivElement>(null)
+
+  // Show scroll-to-top button when scrolled down within modal
+  React.useEffect(() => {
+    const el = scrollBodyRef.current
+    if (!el) return
+    const onScroll = () => setShowScrollTop(el.scrollTop > 300)
+    el.addEventListener('scroll', onScroll, { passive: true })
+    return () => el.removeEventListener('scroll', onScroll)
+  }, [project])
 
   // Build gallery images from case study gallery (or fall back to project image)
   const galleryImages = React.useMemo(() => {
@@ -120,7 +131,7 @@ export function CaseStudyModal({
             </div>
 
             {/* Scrollable body */}
-            <div className="flex-1 overflow-y-auto p-6 sm:p-8">
+            <div ref={scrollBodyRef} className="flex-1 overflow-y-auto p-6 sm:p-8">
               {/* Metrics row */}
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {caseStudy.results.map((r) => (
@@ -254,6 +265,24 @@ export function CaseStudyModal({
                 </div>
               </div>
             )}
+
+              {/* Scroll to top (within modal) */}
+              <AnimatePresence>
+                {showScrollTop && (
+                  <motion.button
+                    initial={{ opacity: 0, scale: 0.6 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.6 }}
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => scrollBodyRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+                    className="modal-scroll-top mt-4 grid size-10 place-items-center rounded-full bg-brand-gradient text-white shadow-lg"
+                    aria-label="Scroll to top"
+                  >
+                    <ArrowUp className="size-4" />
+                  </motion.button>
+                )}
+              </AnimatePresence>
           </div>
 
           {/* Footer CTA */}

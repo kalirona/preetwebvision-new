@@ -1,11 +1,12 @@
 'use client'
 
 import * as React from 'react'
-import { Mail, MapPin, Phone, ArrowUpRight, Instagram, Linkedin, Twitter, Github, Send, Loader2, Check } from 'lucide-react'
+import { Mail, MapPin, Phone, ArrowUpRight, Instagram, Linkedin, Twitter, Github, Send, Loader2, Check, Cookie } from 'lucide-react'
 import { useNav } from '@/lib/nav-store'
 import { NAV_ITEMS, SERVICES } from '@/lib/site-data'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { CookiePreferencesModal } from '@/components/site/cookie-preferences'
 import { toast } from 'sonner'
 
 export function Footer() {
@@ -14,6 +15,7 @@ export function Footer() {
   const [subscribing, setSubscribing] = React.useState(false)
   const [subscribed, setSubscribed] = React.useState(false)
   const [subCount, setSubCount] = React.useState<number | null>(null)
+  const [cookiePrefsOpen, setCookiePrefsOpen] = React.useState(false)
 
   React.useEffect(() => {
     fetch('/api/newsletter')
@@ -221,6 +223,13 @@ export function Footer() {
           <div className="flex items-center gap-4">
             <a href="#" className="hover:text-foreground">Privacy</a>
             <a href="#" className="hover:text-foreground">Terms</a>
+            <button
+              onClick={() => setCookiePrefsOpen(true)}
+              className="flex items-center gap-1 transition-colors hover:text-foreground"
+            >
+              <Cookie className="size-3" />
+              Cookie preferences
+            </button>
             <span className="flex items-center gap-1.5">
               <span className="size-1.5 animate-pulse rounded-full bg-emerald-500" />
               All systems operational
@@ -228,6 +237,7 @@ export function Footer() {
           </div>
         </div>
       </div>
+      <CookiePreferencesModal open={cookiePrefsOpen} onClose={() => setCookiePrefsOpen(false)} />
     </footer>
   )
 }

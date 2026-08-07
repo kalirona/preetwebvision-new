@@ -32,6 +32,7 @@ import {
 } from '@/components/site/primitives'
 import { AmbientBackground } from '@/components/site/ambient-background'
 import { CaseStudyModal } from '@/components/site/case-study-modal'
+import { LazyImage } from '@/components/site/lazy-image'
 import { useNav } from '@/lib/nav-store'
 import {
   PROJECTS,
@@ -175,10 +176,11 @@ function ProjectCard({ project, onOpen }: { project: Project; onOpen: (p: Projec
       {/* Gradient backdrop (or image) */}
       {project.image ? (
         <>
-          <img
+          <LazyImage
             src={project.image}
             alt={`${project.title} — ${project.client}`}
-            className="absolute inset-0 size-full object-cover transition-transform duration-700 group-hover:scale-105"
+            wrapperClassName="absolute inset-0 size-full"
+            className="size-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
           <div className={cn('absolute inset-0 bg-gradient-to-br opacity-30 mix-blend-multiply', project.gradient)} />
         </>
