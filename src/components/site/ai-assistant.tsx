@@ -38,6 +38,21 @@ export function AiAssistant() {
     if (open) setSeen(true)
   }, [open])
 
+  // Cmd+K / Ctrl+K to toggle the assistant
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        setOpen((o) => !o)
+      }
+      if (e.key === 'Escape' && open) {
+        setOpen(false)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open])
+
   const send = async (text: string) => {
     const content = text.trim()
     if (!content || loading) return
@@ -70,14 +85,33 @@ export function AiAssistant() {
 
   return (
     <>
+      {/* Keyboard hint — shows next to launcher on desktop when closed */}
+      <AnimatePresence>
+        {!open && (
+          <motion.div
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 10 }}
+            transition={{ delay: 2 }}
+            className="fixed bottom-8 right-20 z-40 hidden items-center gap-1.5 lg:flex"
+          >
+            <span className="rounded-full border border-border/60 bg-muted/50 px-2.5 py-1 text-[11px] font-medium text-muted-foreground backdrop-blur">
+              Press
+            </span>
+            <span className="kbd">⌘</span>
+            <span className="kbd">K</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Floating launcher */}
       <motion.button
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 1, type: 'spring', stiffness: 260, damping: 20 }}
         onClick={() => setOpen((o) => !o)}
-        className="fixed bottom-5 right-5 z-50 grid size-14 place-items-center rounded-full bg-brand-gradient text-white shadow-[0_12px_40px_-6px_rgba(255,45,117,0.7)] hover:shadow-[0_16px_50px_-6px_rgba(255,45,117,0.9)] transition-shadow"
-        aria-label="Open AI assistant"
+        className="fixed bottom-5 right-5 z-50 grid size-14 place-items-center rounded-full bg-brand-gradient text-white shadow-[0_12px_40px_-6px_rgba(255,45,117,0.7)] hover:shadow-[0_16px_50px_-6px_rgba(255,45,117,0.9)] transition-shadow press"
+        aria-label="Open AI assistant (Cmd+K)"
       >
         <span className="absolute inset-0 rounded-full bg-brand-gradient opacity-60 blur-md animate-pulse-glow -z-10" />
         <AnimatePresence mode="wait">

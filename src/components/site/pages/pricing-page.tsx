@@ -21,12 +21,6 @@ import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion'
-import {
   Reveal,
   SectionHeading,
   StaggerGroup,
@@ -34,6 +28,7 @@ import {
   Counter,
   GradientText,
 } from '@/components/site/primitives'
+import { FaqWithSearch } from '@/components/site/faq-with-search'
 import { AmbientBackground } from '@/components/site/ambient-background'
 import { RoiCalculator } from '@/components/site/roi-calculator'
 import { ComparisonTable } from '@/components/site/comparison-table'
@@ -632,22 +627,7 @@ function FaqSection() {
           description="Everything you need to know about how we price, scope and deliver projects."
         />
         <Reveal delay={0.1} className="mt-12">
-          <Accordion type="single" collapsible className="space-y-3">
-            {pricingFaqs.map((f, i) => (
-              <AccordionItem
-                key={i}
-                value={`item-${i}`}
-                className="overflow-hidden rounded-2xl border border-border/60 bg-card px-5 data-[state=open]:border-border"
-              >
-                <AccordionTrigger className="text-left text-base font-semibold hover:no-underline">
-                  {f.question}
-                </AccordionTrigger>
-                <AccordionContent className="text-sm leading-relaxed text-muted-foreground">
-                  {f.answer}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+          <FaqWithSearch faqs={pricingFaqs} />
         </Reveal>
       </div>
     </section>

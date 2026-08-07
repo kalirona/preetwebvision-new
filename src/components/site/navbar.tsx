@@ -37,17 +37,27 @@ function ThemeToggle() {
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = React.useState(false)
   React.useEffect(() => setMounted(true), [])
+  const isDark = mounted && theme === 'dark'
   return (
     <button
-      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-      className="relative grid size-9 place-items-center rounded-full border border-border/70 bg-muted/30 text-foreground transition-colors hover:bg-muted/60"
-      aria-label="Toggle theme"
+      onClick={() => setTheme(isDark ? 'light' : 'dark')}
+      className="group relative grid size-9 place-items-center overflow-hidden rounded-full border border-border/70 bg-muted/30 text-foreground transition-colors hover:bg-muted/60"
+      aria-label={`Switch to ${isDark ? 'light' : 'dark'} theme`}
+      title={`Switch to ${isDark ? 'light' : 'dark'} theme`}
     >
-      {mounted && theme === 'dark' ? (
-        <Sun className="size-4" />
-      ) : (
-        <Moon className="size-4" />
-      )}
+      <motion.span
+        key={isDark ? 'sun' : 'moon'}
+        initial={{ rotate: -90, opacity: 0, scale: 0.5 }}
+        animate={{ rotate: 0, opacity: 1, scale: 1 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 18 }}
+        className="grid place-items-center"
+      >
+        {isDark ? (
+          <Sun className="size-4 group-hover:rotate-45 transition-transform duration-300" style={{ color: 'var(--brand-amber)' }} />
+        ) : (
+          <Moon className="size-4 group-hover:-rotate-12 transition-transform duration-300" style={{ color: 'var(--brand-pink)' }} />
+        )}
+      </motion.span>
     </button>
   )
 }
@@ -81,7 +91,7 @@ export function Navbar() {
           className={cn(
             'flex items-center justify-between gap-4 rounded-2xl px-3 sm:px-4 py-2.5 transition-all duration-300',
             scrolled
-              ? 'glass-strong shadow-[0_8px_40px_-12px_rgba(0,0,0,0.25)]'
+              ? 'nav-scrolled'
               : 'border border-transparent'
           )}
         >

@@ -14,12 +14,6 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion'
-import {
   Reveal,
   SectionHeading,
   GradientText,
@@ -28,6 +22,7 @@ import {
   Counter,
   Marquee,
 } from '@/components/site/primitives'
+import { FaqWithSearch } from '@/components/site/faq-with-search'
 import { AmbientBackground } from '@/components/site/ambient-background'
 import { useNav } from '@/lib/nav-store'
 import {
@@ -388,7 +383,9 @@ function WebDesignVisual() {
         className="absolute -top-3 -right-3 rounded-xl glass-strong px-3 py-2 shadow-xl"
       >
         <p className="text-[9px] text-muted-foreground">Lighthouse</p>
-        <p className="font-display text-lg font-bold text-gradient-brand">96</p>
+        <p className="font-display text-lg font-bold text-gradient-brand">
+          <Counter value={96} />
+        </p>
       </motion.div>
     </div>
   )
@@ -439,7 +436,9 @@ function AiVisual() {
           Auto-resolved
         </p>
         <div className="mt-0.5 flex items-end justify-between">
-          <p className="font-display text-xl font-bold text-gradient-brand">71%</p>
+          <p className="font-display text-xl font-bold text-gradient-brand">
+            <Counter value={71} suffix="%" />
+          </p>
           <TrendingUp className="size-4 text-emerald-500" />
         </div>
       </motion.div>
@@ -519,7 +518,9 @@ function WebAppVisual({ service }: { service: Service }) {
         className="absolute -top-3 -right-3 rounded-xl glass-strong px-3 py-2 shadow-xl"
       >
         <p className="text-[9px] text-muted-foreground">API calls</p>
-        <p className="font-display text-sm font-bold text-gradient-brand">2M+</p>
+        <p className="font-display text-sm font-bold text-gradient-brand">
+          <Counter value={2} suffix="M+" />
+        </p>
       </motion.div>
     </div>
   )
@@ -582,7 +583,9 @@ function SeoVisual({ service }: { service: Service }) {
         <p className="text-[9px] uppercase tracking-wider text-muted-foreground">
           Keywords #1
         </p>
-        <p className="font-display text-lg font-bold text-gradient-brand">140</p>
+        <p className="font-display text-lg font-bold text-gradient-brand">
+          <Counter value={140} />
+        </p>
       </motion.div>
 
       <motion.div
@@ -781,22 +784,7 @@ function FaqSection() {
           description="Everything you need to know about how we scope, price and deliver our services. Still curious? Just ask."
         />
         <Reveal delay={0.1} className="mt-12">
-          <Accordion type="single" collapsible className="space-y-3">
-            {FAQS.map((f, i) => (
-              <AccordionItem
-                key={i}
-                value={`item-${i}`}
-                className="overflow-hidden rounded-2xl border border-border/60 bg-card px-5 data-[state=open]:border-border"
-              >
-                <AccordionTrigger className="text-left text-base font-semibold hover:no-underline">
-                  {f.question}
-                </AccordionTrigger>
-                <AccordionContent className="text-sm leading-relaxed text-muted-foreground">
-                  {f.answer}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+          <FaqWithSearch faqs={FAQS} />
         </Reveal>
       </div>
     </section>

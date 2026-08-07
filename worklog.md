@@ -450,3 +450,110 @@ Task: Assess project status, QA test via agent-browser, then improve styling + a
 - Add **social proof notifications** (toast popups showing "Someone just started a project" — subtle, dismissible).
 - Consider **keyboard shortcut** for the AI assistant (e.g. Cmd+K to open chat).
 - Add **OG image per blog post** for better social sharing.
+
+---
+
+## Task ID: 3-4
+## Agent: full-stack-developer
+
+### Task
+Enhance two existing client pages of the Preet Web Vision site — the **Pricing page** (`src/components/site/pages/pricing-page.tsx`) and the **Services page** (`src/components/site/pages/services-page.tsx`):
+
+1. **Task 1 — FAQ search:** Replace each page's hand-rolled `<Accordion>` FAQ block (rendering `FAQS` from `@/lib/site-data`) with the new reusable `<FaqWithSearch>` component (`@/components/site/faq-with-search`). Keep the surrounding `SectionHeading` + `<section>` wrapper; only swap the accordion. Remove the now-unused shadcn Accordion imports. Keep the `FAQS` import.
+2. **Task 2 — Animated counters:** Wrap static numeric stat displays with the `<Counter>` component from `@/components/site/primitives` so numbers count up on scroll into view. Skip non-numeric / decimal / prefixed values, prices, and anything already wrapped.
+
+### Constraints
+- Only modify the two named files. No new files. No other files touched.
+- Brand palette is WARM (orange/pink/rose/amber/emerald). No indigo/blue. Both files already comply.
+- Both files remain `'use client'`.
+
+### Work Log
+
+**Pricing page (`pricing-page.tsx`)**
+- Reviewed file (753 lines). The only FAQ block lives in `FaqSection()` (lines ~618–655) and uses `pricingFaqs = [FAQS[5], FAQS[0], FAQS[2], FAQS[1], FAQS[4]]`. `Accordion*` was imported from `@/components/ui/accordion` and used **only** in that FAQ block (verified via grep — no other usage).
+- Imports: removed `Accordion, AccordionContent, AccordionItem, AccordionTrigger` from `@/components/ui/accordion`; added `import { FaqWithSearch } from '@/components/site/faq-with-search'`. Kept `Counter` import (already present) and `FAQS` import (still used by `pricingFaqs`).
+- FAQ section: replaced the entire `<Accordion>…</Accordion>` block with `<FaqWithSearch faqs={pricingFaqs} />`, preserving the wrapping `<Reveal delay={0.1} className="mt-12">`, `<section>`, and `SectionHeading`.
+- Task 2 (counters): audited the whole file. The only numeric stat display is the `StatsBand` (renders `STATS`), which **already** wraps each value in `<Counter value={s.value} suffix={s.suffix} />` (line ~549). Per the rules ("don't double-wrap"), no change. All other numeric strings are prices in `PricingCard` (`$0`, `$1.9k`, `Custom`), add-on prices (`from $1.8k`, `from $1.2k/mo`, `from $2.5k/mo`, `Custom`) or service-mapping pricing hints (`Starts at $2.4k`, `From $1.2k/mo`, etc.) — all excluded by the "prices in pricing cards" / "non-numeric" rules.
+
+**Services page (`services-page.tsx`)**
+- Reviewed file (876 lines). `FaqSection()` (lines ~769–804) renders all `FAQS` in an `<Accordion>`. `Accordion*` was imported from `@/components/ui/accordion` and used **only** in that FAQ block (verified via grep). `TRUST_STATS` in the hero already used `<Counter>` (line ~109) — left untouched.
+- Imports: removed `Accordion, AccordionContent, AccordionItem, AccordionTrigger` from `@/components/ui/accordion`; added `import { FaqWithSearch } from '@/components/site/faq-with-search'`. Kept `Counter` (now used in more places) and `FAQS` imports.
+- FAQ section: replaced the entire `<Accordion>…</Accordion>` block with `<FaqWithSearch faqs={FAQS} />`, preserving the wrapping `<Reveal>`, `<section>`, and `SectionHeading`.
+- Task 2 (counters): audited all the service "visual mock" floating stat cards. Converted the 4 clear numeric stat displays to `<Counter>` (kept surrounding `font-display`/`text-gradient-brand` classes intact, just swapped the number text for an inline `<Counter>`):
+  - `WebDesignVisual` → Lighthouse badge: `96` → `<Counter value={96} />`
+  - `AiVisual` → Auto-resolved card: `71%` → `<Counter value={71} suffix="%" />`
+  - `WebAppVisual` → API calls card: `2M+` → `<Counter value={2} suffix="M+" />` (explicitly called out in the task rules)
+  - `SeoVisual` → Keywords #1 card: `140` → `<Counter value={140} />`
+- Skipped (per the DO-NOT-CONVERT rules): `99.98%` (precise decimal), `1.2%` (decimal), `12k` / `$48k` / `3.2k` / `18k` (have `k` or `$`), `+3.4x` / `+3.1x` (decimal multipliers), `-89%` / `+38%` / `+62%` / `+217%` / `+18%` (have `+`/`-` prefix — `Counter` only supports a suffix), `$38` / `$48` (prices), and the keyword ranking positions `#{k.pos}` (inline ranking chips, not stat displays).
+
+### Verification
+- `cd /home/z/my-project && bun run lint 2>&1 | tail -20` → **clean** (0 errors, 0 warnings). No unused-import warnings, confirming the Accordion removal was safe on both files.
+- `tail` of `dev.log` shows successful `✓ Compiled in …` entries and `GET / 200` after the edits — no runtime errors introduced. (Pre-existing "Fast Refresh had to perform a full reload" warnings appeared before my edits and are unrelated.)
+- Both files remain `'use client'`; no other routes/components/files were modified.
+
+### Stage Summary
+- **Pricing page:** FAQ accordion swapped for `<FaqWithSearch faqs={pricingFaqs} />`; Accordion imports removed; `Counter` already present on the only stat band (no double-wrap). Net: cleaner imports + searchable pricing FAQ.
+- **Services page:** FAQ accordion swapped for `<FaqWithSearch faqs={FAQS} />`; Accordion imports removed; added 4 new `<Counter>` instances to the floating stat cards across the Web Design / AI / Web App / SEO visual mocks (Lighthouse 96, Auto-resolved 71%, API calls 2M+, Keywords #1 140). Net: searchable services FAQ + animated stat cards that count up on scroll.
+- Both pages now share a consistent FAQ search UX and richer animated number micro-interactions, matching the recommendations noted in the previous worklog round ("Build a FAQ search…", "Add animated number counters to more stat displays").
+
+---
+Task ID: 17 (Cron Review Round 4)
+Agent: main (Z.ai Code) + 1 full-stack-developer subagent
+Task: Assess project status, QA test via agent-browser, then improve styling + add features per mandatory requirements.
+
+## Current Project Status (assessment)
+- Project stable from Round 3: 7 pages with team modals, careers, comparison table, blog search, page transition variants, branded images, ROI calculator, project wizard, case-study modals. Lint clean, no runtime errors.
+- agent-browser QA confirmed all 7 pages render/navigate. Recommended next steps from Round 3: theme toggle visible state, FAQ search, animated counters, social proof notifications, Cmd+K shortcut, per-post OG images.
+
+## Completed Modifications
+
+### Styling polish (globals.css) — 11 new utilities
+- `.kbd` (keyboard hint chip, mono font, border-bottom-2), `.press` (button active scale 0.96), `.section-num` (editorial mono label), `.trail-link` (gradient underline that grows on hover), `.nav-scrolled` (glass nav scrolled state with blur+shadow), `.notif-card` (glass notification card), `.ring-active` (animated gradient ring), `.text-shimmer` (skeleton-like shimmer text).
+
+### New feature 1: Cmd+K keyboard shortcut for AI assistant
+- Added global keydown listener in `ai-assistant.tsx`: Cmd+K / Ctrl+K toggles the assistant, Esc closes it.
+- Added a kbd hint badge ("Press ⌘ K") that appears next to the floating launcher button on desktop (lg+) when the chat is closed, with staggered entrance animation.
+- Updated launcher aria-label to "Open AI assistant (Cmd+K)" and added `.press` class for active feedback.
+
+### New feature 2: Social proof notifications
+- Built `src/components/site/social-proof.tsx` — subtle toast popups (bottom-left, desktop only) showing randomized recent activity: 10 sample notifications (names, actions, locations, times, emojis). Appears after 6s, auto-hides after 5s, rotates every 12-22s. Dismissible (X button → localStorage `pwv-social-proof-dismissed` persists dismissal). Glass card with gradient avatar, "Verified by Preet Web Vision" footer. Respects previous dismissal.
+- Wired into page shell.
+
+### New feature 3: FAQ search (reusable component)
+- Built `src/components/site/faq-with-search.tsx` — reusable component with: search input (glass, Search icon, clearable X), real-time filtering by question + answer text, **highlighted matching text** (`<mark>` with brand-gradient-soft bg), animated accordion (preserves shadcn Accordion), "N matches for 'query'" count, "No questions found" empty state with Clear search CTA, AnimatePresence transitions.
+- Wired into Home page FaqSection (replaced inline Accordion).
+- Subagent wired into Pricing + Services FAQ sections (removed unused Accordion imports).
+
+### New feature 4: Theme toggle with animated state
+- Upgraded navbar ThemeToggle: animated sun/moon icon swap (Framer Motion spring rotate+scale), brand-colored icons (amber sun, pink moon), hover rotation (sun spins 45°, moon tilts -12°), dynamic aria-label + title ("Switch to light/dark theme"), overflow-hidden for clean rotation.
+
+### New feature 5: Nav scrolled state polish
+- Replaced `glass-strong shadow-...` with the new `.nav-scrolled` utility class for a refined glass nav when scrolled (blur 20px, saturate 180%, subtle border + shadow).
+
+### New feature 6: Animated counters on Services page
+- Subagent added `<Counter>` to 4 static stat displays in the Services page service visual mocks: Lighthouse 96, AI auto-resolved 71%, API calls 2M+, Keywords #1 140. (Pricing page StatsBand already used Counter — left untouched.)
+
+## Verification Results
+- `bun run lint` → clean (0 errors, 0 warnings).
+- agent-browser QA:
+  - Cmd+K: dispatched keydown → AI assistant panel opens. Esc → closes. Kbd hint badge present on desktop.
+  - Social proof: notification appeared after 6s ("Yuki joined the ROI calculator · Tokyo, JP · 11m ago · Verified by Preet Web Vision"). Dismissible.
+  - FAQ search: "pricing" → 1 match (highlighted), "AI" → filtered with highlights, clear → all 6 items. Present on Home + Pricing + Services pages.
+  - Theme toggle: dark → light (label updates to "Switch to dark theme", html class changes to "light"), toggled back to dark.
+  - Nav scrolled state: `.nav-scrolled` class applies on scroll.
+- VLM visual QA: social proof "clean, modern design... semi-transparent dark background"; FAQ search "prominent and intuitive... real-time filtering... highlighting matching text... excellent"; Cmd+K hint "excellent UX touch for power users".
+- Dev log: no new errors. Home returns 200.
+
+## Unresolved Issues / Risks
+- Social proof notifications are desktop-only (hidden on mobile via `hidden sm:block`) — intentional to avoid clutter on small screens.
+- Cookie consent banner (first-visit) can briefly overlap social proof toast — both are dismissible and the cookie banner appears first (1.4s) before social proof (6s), so timing minimizes overlap.
+- FAQ search highlight splits on word boundaries; partial-word matches (e.g. "AI" inside "maintain") get highlighted — minor, acceptable for search UX.
+
+## Priority Recommendations for Next Round
+- Add **per-post OG images** for blog articles (generate branded cover images per post for social sharing).
+- Build a **command palette** (Cmd+K currently opens chat; could expand to a full command palette with navigation + search).
+- Add **testimonials carousel** on the Portfolio page (currently only Home has the carousel).
+- Build a **glossary/tooltip** system for technical terms in blog articles.
+- Add **reading time progress** to blog article view (currently has scroll progress bar, could add "X% read" indicator).
+- Consider **light mode color refinement** — some warm gradients may need tuning for light theme contrast.
+- Add **micro-interactions to buttons** globally (the `.press` class exists but isn't applied everywhere).

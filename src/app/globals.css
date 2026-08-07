@@ -627,6 +627,98 @@
     background: linear-gradient(90deg, var(--brand-orange), var(--brand-pink));
     box-shadow: 0 0 12px color-mix(in oklch, var(--brand-pink) 50%, transparent);
   }
+
+  /* Keyboard hint chip (kbd-style) */
+  .kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.4rem;
+    height: 1.4rem;
+    padding: 0 0.4rem;
+    border-radius: 0.4rem;
+    border: 1px solid color-mix(in oklch, var(--foreground) 18%, transparent);
+    border-bottom-width: 2px;
+    background: color-mix(in oklch, var(--card) 80%, transparent);
+    font-family: var(--font-mono), monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--muted-foreground);
+    line-height: 1;
+  }
+
+  /* Button press feedback */
+  .press {
+    transition: transform 0.1s ease;
+  }
+  .press:active {
+    transform: scale(0.96);
+  }
+
+  /* Section number label (editorial) */
+  .section-num {
+    font-family: var(--font-mono), monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: color-mix(in oklch, var(--brand-pink) 80%, transparent);
+  }
+
+  /* Link hover trail (gradient underline that grows) */
+  .trail-link {
+    position: relative;
+    background-image: linear-gradient(90deg, var(--brand-orange), var(--brand-pink));
+    background-size: 0% 1.5px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition: background-size 0.3s ease;
+    padding-bottom: 1px;
+  }
+  .trail-link:hover {
+    background-size: 100% 1.5px;
+  }
+
+  /* Glass nav scrolled state */
+  .nav-scrolled {
+    background: color-mix(in oklch, var(--card) 75%, transparent);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid color-mix(in oklch, var(--foreground) 8%, transparent);
+    box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Notification card slide-in */
+  .notif-card {
+    background: color-mix(in oklch, var(--card) 88%, transparent);
+    backdrop-filter: blur(20px) saturate(170%);
+    -webkit-backdrop-filter: blur(20px) saturate(170%);
+    border: 1px solid color-mix(in oklch, var(--foreground) 10%, transparent);
+    box-shadow: 0 12px 40px -8px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 0 color-mix(in oklch, var(--foreground) 6%, transparent);
+  }
+
+  /* Animated gradient ring for active states */
+  .ring-active {
+    box-shadow: 0 0 0 2px color-mix(in oklch, var(--brand-pink) 60%, transparent),
+      0 0 16px color-mix(in oklch, var(--brand-pink) 40%, transparent);
+  }
+
+  /* Text shimmer (skeleton-like) */
+  .text-shimmer {
+    background: linear-gradient(90deg,
+      color-mix(in oklch, var(--foreground) 40%, transparent) 0%,
+      color-mix(in oklch, var(--foreground) 90%, transparent) 50%,
+      color-mix(in oklch, var(--foreground) 40%, transparent) 100%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: textShimmer 2s linear infinite;
+  }
+  @keyframes textShimmer {
+    from { background-position: 200% 0; }
+    to { background-position: -200% 0; }
+  }
 }
 
 /* Custom scrollbar */
