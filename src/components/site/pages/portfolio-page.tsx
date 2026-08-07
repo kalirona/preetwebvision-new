@@ -13,6 +13,9 @@ import {
   PenTool,
   Code2,
   Rocket,
+  ChevronLeft,
+  ChevronRight,
+  Pause,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -413,10 +416,22 @@ function TrustedBy() {
   )
 }
 
-/* ============================== TESTIMONIALS ============================== */
+/* ============================== TESTIMONIALS (auto-rotating carousel) ============================== */
 function TestimonialSection() {
-  const featured = TESTIMONIALS[0]
-  const rest = TESTIMONIALS.slice(1, 4)
+  const [active, setActive] = React.useState(0)
+  const [paused, setPaused] = React.useState(false)
+  const t = TESTIMONIALS[active]
+
+  const go = React.useCallback(
+    (dir: 1 | -1) => setActive((a) => (a + dir + TESTIMONIALS.length) % TESTIMONIALS.length),
+    []
+  )
+
+  React.useEffect(() => {
+    if (paused) return
+    const id = setInterval(() => setActive((a) => (a + 1) % TESTIMONIALS.length), 5500)
+    return () => clearInterval(id)
+  }, [paused])
 
   return (
     <section className="relative py-16 sm:py-24">
@@ -428,79 +443,89 @@ function TestimonialSection() {
               Outcomes our clients <GradientText>talk about</GradientText>
             </>
           }
-          description="Real words from real partners — across ecommerce, SaaS, finance and beyond."
+          description="Real words from real partners — across ecommerce, SaaS, finance and beyond. Hover to pause."
         />
 
-        <div className="mt-14 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
-          {/* Featured large quote card */}
+        <div
+          className="relative mx-auto mt-14 max-w-3xl"
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+        >
+          {/* Ambient glow */}
+          <div className="pointer-events-none absolute -inset-x-10 -top-10 bottom-0 rounded-[3rem] bg-brand-gradient opacity-10 blur-3xl" />
+
           <Reveal>
-            <Card className="relative h-full overflow-hidden rounded-3xl border-border/60 bg-card p-8 sm:p-10">
-              <div className="pointer-events-none absolute -inset-x-10 -top-10 bottom-0 rounded-[3rem] bg-brand-gradient opacity-10 blur-3xl" />
+            <Card className="relative overflow-hidden rounded-3xl border-border/60 bg-card p-8 sm:p-10">
               <Quote className="absolute right-6 top-6 size-16 text-muted-foreground/10" />
               <div className="pointer-events-none absolute left-0 top-0 h-full w-1.5 bg-brand-gradient" />
-              <div className="relative">
-                <div className="flex gap-1">
-                  {[...Array(featured.rating)].map((_, i) => (
-                    <Star key={i} className="size-5 fill-amber-400 text-amber-400" />
-                  ))}
-                </div>
-                <blockquote className="mt-5 font-display text-xl font-medium leading-relaxed sm:text-2xl">
-                  &ldquo;{featured.quote}&rdquo;
-                </blockquote>
-                <div className="mt-7 flex items-center gap-3">
-                  <Avatar className="size-12 border-2 border-background">
-                    <AvatarFallback
-                      className={cn('bg-gradient-to-br text-white', featured.accent)}
-                    >
-                      {featured.initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-display font-bold">{featured.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {featured.role}, {featured.company}
-                    </p>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={active}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -16 }}
+                  transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <div className="flex gap-1">
+                    {[...Array(t.rating)].map((_, i) => (
+                      <Star key={i} className="size-5 fill-amber-400 text-amber-400" />
+                    ))}
                   </div>
-                </div>
-              </div>
-            </Card>
-          </Reveal>
-
-          {/* Smaller cards grid */}
-          <StaggerGroup className="grid gap-4">
-            {rest.map((t) => (
-              <motion.div key={t.name} variants={staggerItem}>
-                <Card className="group h-full rounded-2xl border-border/60 bg-card p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-border hover:shadow-lg">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex gap-0.5">
-                      {[...Array(t.rating)].map((_, i) => (
-                        <Star key={i} className="size-3.5 fill-amber-400 text-amber-400" />
-                      ))}
-                    </div>
-                    <Quote className="size-5 shrink-0 text-muted-foreground/20 transition-colors group-hover:text-muted-foreground/40" />
-                  </div>
-                  <p className="mt-3 text-sm leading-relaxed text-foreground/90 line-clamp-3">
+                  <blockquote className="mt-5 font-display text-xl font-medium leading-relaxed sm:text-2xl">
                     &ldquo;{t.quote}&rdquo;
-                  </p>
-                  <div className="mt-4 flex items-center gap-2.5">
-                    <Avatar className="size-8 border border-background">
-                      <AvatarFallback
-                        className={cn('bg-gradient-to-br text-xs font-bold text-white', t.accent)}
-                      >
+                  </blockquote>
+                  <div className="mt-7 flex items-center gap-3">
+                    <Avatar className="size-12 border-2 border-background">
+                      <AvatarFallback className={cn('bg-gradient-to-br text-white', t.accent)}>
                         {t.initials}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="leading-tight">
-                      <p className="text-sm font-semibold">{t.name}</p>
-                      <p className="text-xs text-muted-foreground">
+                    <div>
+                      <p className="font-display font-bold">{t.name}</p>
+                      <p className="text-sm text-muted-foreground">
                         {t.role}, {t.company}
                       </p>
                     </div>
                   </div>
-                </Card>
-              </motion.div>
-            ))}
-          </StaggerGroup>
+                </motion.div>
+              </AnimatePresence>
+            </Card>
+          </Reveal>
+
+          {/* Controls */}
+          <div className="mt-6 flex items-center justify-center gap-4">
+            <button
+              onClick={() => go(-1)}
+              aria-label="Previous testimonial"
+              className="grid size-9 place-items-center rounded-full border border-border/70 bg-muted/30 text-muted-foreground transition-colors hover:text-foreground hover:border-border"
+            >
+              <ChevronLeft className="size-4" />
+            </button>
+            <div className="flex items-center gap-2">
+              {TESTIMONIALS.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActive(i)}
+                  aria-label={`Testimonial ${i + 1}`}
+                  className={cn(
+                    'h-2 rounded-full transition-all',
+                    i === active ? 'w-8 bg-brand-gradient' : 'w-2 bg-border hover:bg-muted-foreground/40'
+                  )}
+                />
+              ))}
+            </div>
+            <button
+              onClick={() => go(1)}
+              aria-label="Next testimonial"
+              className="grid size-9 place-items-center rounded-full border border-border/70 bg-muted/30 text-muted-foreground transition-colors hover:text-foreground hover:border-border"
+            >
+              <ChevronRight className="size-4" />
+            </button>
+            <span className="ml-1 flex items-center gap-1 text-[11px] text-muted-foreground">
+              {paused ? <Pause className="size-3" /> : null}
+              {paused ? 'Paused' : 'Auto'}
+            </span>
+          </div>
         </div>
       </div>
     </section>

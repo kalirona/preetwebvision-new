@@ -278,7 +278,18 @@ function FeaturedCard({ post, onOpen }: { post: BlogPost; onOpen: (p: BlogPost) 
       onClick={() => onOpen(post)}
       className="group relative block w-full overflow-hidden rounded-3xl border border-border/60 text-left"
     >
-      <div className={cn('absolute inset-0 bg-gradient-to-br', post.gradient)} />
+      {post.image ? (
+        <>
+          <img
+            src={post.image}
+            alt={post.title}
+            className="absolute inset-0 size-full object-cover transition-transform duration-700 group-hover:scale-105"
+          />
+          <div className={cn('absolute inset-0 bg-gradient-to-br opacity-30 mix-blend-multiply', post.gradient)} />
+        </>
+      ) : (
+        <div className={cn('absolute inset-0 bg-gradient-to-br', post.gradient)} />
+      )}
       <div className="absolute inset-0 grid-bg opacity-20" />
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
       <span className="absolute left-5 top-5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
@@ -312,7 +323,19 @@ function BlogCard({ post, onOpen }: { post: BlogPost; onOpen: (p: BlogPost) => v
       onClick={() => onOpen(post)}
       className="group card-sheen relative flex h-full flex-col overflow-hidden rounded-3xl border border-border/60 bg-card text-left transition-all duration-300 hover:-translate-y-1 hover:border-border hover:shadow-xl"
     >
-      <div className={cn('relative h-40 overflow-hidden bg-gradient-to-br', post.gradient)}>
+      <div className="relative h-40 overflow-hidden">
+        {post.image ? (
+          <>
+            <img
+              src={post.image}
+              alt={post.title}
+              className="absolute inset-0 size-full object-cover transition-transform duration-700 group-hover:scale-105"
+            />
+            <div className={cn('absolute inset-0 bg-gradient-to-br opacity-30 mix-blend-multiply', post.gradient)} />
+          </>
+        ) : (
+          <div className={cn('absolute inset-0 bg-gradient-to-br', post.gradient)} />
+        )}
         <div className="absolute inset-0 grid-bg opacity-20" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
         <span className="absolute left-4 top-4 text-4xl drop-shadow-lg">{post.emoji}</span>
@@ -458,7 +481,19 @@ function ArticleView({ post, onBack, onOpen }: { post: BlogPost; onBack: () => v
 
       {/* Cover */}
       <div className="mx-auto max-w-4xl px-4 sm:px-6">
-        <div className={cn('relative h-56 overflow-hidden rounded-3xl bg-gradient-to-br sm:h-72', post.gradient)}>
+        <div className="relative h-56 overflow-hidden rounded-3xl sm:h-72">
+          {post.image ? (
+            <>
+              <img
+                src={post.image}
+                alt={post.title}
+                className="absolute inset-0 size-full object-cover"
+              />
+              <div className={cn('absolute inset-0 bg-gradient-to-br opacity-30 mix-blend-multiply', post.gradient)} />
+            </>
+          ) : (
+            <div className={cn('absolute inset-0 bg-gradient-to-br', post.gradient)} />
+          )}
           <div className="absolute inset-0 grid-bg opacity-20" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
           <span className="absolute left-6 top-6 text-6xl drop-shadow-lg">{post.emoji}</span>
@@ -507,6 +542,60 @@ function ArticleView({ post, onBack, onOpen }: { post: BlogPost; onBack: () => v
         </div>
       </article>
 
+      {/* Floating reading-progress badge */}
+      <AnimatePresence>
+        {progress > 5 && progress < 95 ? (
+          <motion.div
+            key="reading-badge"
+            initial={{ opacity: 0, y: 12, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 12, scale: 0.95 }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            className="fixed bottom-24 right-5 z-40 hidden sm:flex"
+            aria-hidden="true"
+          >
+            <div className="flex items-center gap-2 rounded-full border border-border/60 glass-strong px-3 py-1.5 shadow-xl">
+              <span className="relative grid size-6 place-items-center">
+                <svg viewBox="0 0 36 36" className="size-6 -rotate-90">
+                  <circle
+                    cx="18"
+                    cy="18"
+                    r="15"
+                    fill="none"
+                    strokeWidth="3"
+                    className="text-muted/40"
+                    stroke="currentColor"
+                  />
+                  <circle
+                    cx="18"
+                    cy="18"
+                    r="15"
+                    fill="none"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    stroke="url(#readingProgressGrad)"
+                    strokeDasharray={`${2 * Math.PI * 15}`}
+                    strokeDashoffset={`${2 * Math.PI * 15 * (1 - progress / 100)}`}
+                    style={{ transition: 'stroke-dashoffset 0.15s linear' }}
+                  />
+                  <defs>
+                    <linearGradient id="readingProgressGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="var(--brand-orange)" />
+                      <stop offset="100%" stopColor="var(--brand-rose)" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <BookOpen className="size-3 text-foreground" />
+              </span>
+              <span className="text-xs font-bold tabular-nums">
+                {Math.round(progress)}%
+                <span className="ml-1 font-medium text-muted-foreground">read</span>
+              </span>
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+
       {/* Related */}
       <section className="relative border-t border-border/60 py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
@@ -548,6 +637,17 @@ export function BlogPage() {
     setActivePost(null)
     if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
   }, [])
+
+  // Listen for command palette "open blog post" events
+  React.useEffect(() => {
+    const onOpenPost = (e: Event) => {
+      const slug = (e as CustomEvent<string>).detail
+      const post = BLOG_POSTS.find((p) => p.slug === slug)
+      if (post) open(post)
+    }
+    window.addEventListener('open-blog-post', onOpenPost as EventListener)
+    return () => window.removeEventListener('open-blog-post', onOpenPost as EventListener)
+  }, [open])
 
   return (
     <div className="relative">

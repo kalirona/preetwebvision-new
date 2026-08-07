@@ -38,19 +38,20 @@ export function AiAssistant() {
     if (open) setSeen(true)
   }, [open])
 
-  // Cmd+K / Ctrl+K to toggle the assistant
+  // Listen for custom event from Command Palette + Esc to close
   React.useEffect(() => {
+    const onOpen = () => setOpen(true)
     const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault()
-        setOpen((o) => !o)
-      }
       if (e.key === 'Escape' && open) {
         setOpen(false)
       }
     }
+    window.addEventListener('open-ai-assistant', onOpen)
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('open-ai-assistant', onOpen)
+      window.removeEventListener('keydown', onKey)
+    }
   }, [open])
 
   const send = async (text: string) => {

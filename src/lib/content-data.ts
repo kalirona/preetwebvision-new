@@ -14,6 +14,7 @@ export type BlogPost = {
   readingMinutes: number;
   gradient: string;
   emoji: string;
+  image?: string;
   featured?: boolean;
   // Content as lightweight JSX-friendly blocks (rendered by the article view)
   content: { type: "p" | "h2" | "h3" | "ul" | "quote"; text?: string; items?: string[] }[];
@@ -35,6 +36,7 @@ export const BLOG_POSTS: BlogPost[] = [
     readingMinutes: 7,
     gradient: "from-fuchsia-500 via-purple-500 to-rose-500",
     emoji: "🤖",
+    image: "/blog/b1.png",
     featured: true,
     content: [
       { type: "p", text: "Everyone's talking about AI. Most of what ships is noise. The automations that actually move revenue aren't the flashiest — they're the ones that remove friction from a real, repeated business process." },
@@ -70,6 +72,7 @@ export const BLOG_POSTS: BlogPost[] = [
     readingMinutes: 6,
     gradient: "from-orange-500 via-pink-500 to-rose-500",
     emoji: "⚡",
+    image: "/blog/b2.png",
     content: [
       { type: "p", text: "Core Web Vitals aren't a vanity metric. They're a direct ranking signal and a direct driver of bounce rate. A 100ms improvement in LCP can lift conversion 1%. Here's how we hit 95+ on every site we ship." },
       { type: "h2", text: "LCP (Largest Contentful Paint) — target < 2.0s" },
@@ -106,6 +109,7 @@ export const BLOG_POSTS: BlogPost[] = [
     readingMinutes: 5,
     gradient: "from-rose-500 via-pink-500 to-orange-400",
     emoji: "🛍️",
+    image: "/blog/b3.png",
     content: [
       { type: "p", text: "You don't always need a full rebuild to move the needle. These seven changes have lifted conversion by 15–40% across the stores we've audited this year." },
       { type: "h2", text: "1. Simplify your checkout to a single page" },
@@ -139,6 +143,7 @@ export const BLOG_POSTS: BlogPost[] = [
     readingMinutes: 8,
     gradient: "from-lime-400 via-emerald-500 to-teal-500",
     emoji: "🔍",
+    image: "/blog/b4.png",
     content: [
       { type: "p", text: "SEO in 2025 rewards depth, not volume. Google's helpful content system penalizes generic AI content and rewards genuine expertise. Here's the engine we built that scaled a client from 12k to 380k monthly visits in 9 months." },
       { type: "h2", text: "Topic clusters, not isolated keywords" },
@@ -171,6 +176,7 @@ export const BLOG_POSTS: BlogPost[] = [
     readingMinutes: 6,
     gradient: "from-emerald-400 via-teal-500 to-cyan-500",
     emoji: "🎨",
+    image: "/blog/b5.png",
     content: [
       { type: "p", text: "Foundembrace the design system. It feels like overhead when you're shipping fast, but it's the single highest-leverage investment a product team can make. Here's why." },
       { type: "h2", text: "Speed compounds" },
@@ -203,6 +209,7 @@ export const BLOG_POSTS: BlogPost[] = [
     readingMinutes: 7,
     gradient: "from-pink-500 via-rose-500 to-amber-400",
     emoji: "🧩",
+    image: "/blog/b6.png",
     content: [
       { type: "p", text: "Headless commerce — decoupling your storefront from your commerce backend — is powerful. It's also over-prescribed. Let's separate the signal from the hype." },
       { type: "h2", text: "When headless wins" },

@@ -6,6 +6,7 @@ import { Footer } from '@/components/site/footer'
 import { AiAssistant } from '@/components/site/ai-assistant'
 import { ScrollProgress, BackToTop, CookieConsent } from '@/components/site/site-chrome'
 import { SocialProofNotifications } from '@/components/site/social-proof'
+import { CommandPalette } from '@/components/site/command-palette'
 import { useNav } from '@/lib/nav-store'
 import type { PageId } from '@/lib/site-data'
 import { HomePage } from '@/components/site/pages/home-page'
@@ -88,6 +89,7 @@ export default function Home() {
       <BackToTop />
       <CookieConsent />
       <SocialProofNotifications />
+      <CommandPalette />
     </div>
   )
 }

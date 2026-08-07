@@ -557,3 +557,104 @@ Task: Assess project status, QA test via agent-browser, then improve styling + a
 - Add **reading time progress** to blog article view (currently has scroll progress bar, could add "X% read" indicator).
 - Consider **light mode color refinement** — some warm gradients may need tuning for light theme contrast.
 - Add **micro-interactions to buttons** globally (the `.press` class exists but isn't applied everywhere).
+
+---
+
+## Task ID: 3-5
+**Agent:** full-stack-developer
+**Files modified (only these two):**
+1. `src/components/site/pages/portfolio-page.tsx`
+2. `src/components/site/pages/blog-page.tsx`
+
+### Task
+Enhance existing pages — add an auto-rotating testimonials carousel to the Portfolio page, use real `post.image` assets on Blog cards + article cover, and add a floating animated reading-progress % badge to the Blog article view.
+
+### Work Log
+
+**Portfolio page** — Added `ChevronLeft`, `ChevronRight`, `Pause` to the lucide imports. Replaced the static `TestimonialSection` (featured quote + 3 small cards) with an auto-rotating carousel mirroring the Home page `Testimonials` pattern: `useState(0)` active index + `useState(false)` paused flag; `useCallback go(dir)` for circular prev/next; `useEffect` `setInterval(..., 5500)` that early-returns when paused (so pause/restart re-runs the effect); `onMouseEnter`/`onMouseLeave` on the outer wrapper toggles pause; `AnimatePresence mode="wait"` crossfades the keyed `motion.div` (initial `y:16`, animate `y:0`, exit `y:-16`, 0.4s `[0.22,1,0.36,1]` ease). Card design preserved 1:1 — ambient `bg-brand-gradient opacity-10 blur-3xl` glow, `Quote` icon top-right, left-edge gradient spine, amber star row, `font-display` blockquote, gradient avatar + name + role/company. Below the card: prev arrow (size-9 round), dot pills (`w-8 bg-brand-gradient` active vs `w-2 bg-border` inactive), next arrow, and a `Pause` icon + "Paused"/"Auto" status label. `PortfolioPage` composition unchanged.
+
+**Blog page — real images on cards/cover:** No new imports needed. Applied the conditional image-or-gradient block (copied from the portfolio `ProjectCard` pattern) in three places: `FeaturedCard` (replaced the first gradient backdrop div), `BlogCard` (replaced the `h-40` gradient container with a plain `relative h-40 overflow-hidden` container whose first children are the image-or-gradient block, then the existing grid overlay + dark gradient + emoji + category pill), and `ArticleView` cover (replaced the `h-56 sm:h-72` gradient container with a plain container + image-or-gradient block). All image elements use `absolute inset-0 size-full object-cover` with `group-hover:scale-105` (where a group hover context exists), plus the `bg-gradient-to-br opacity-30 mix-blend-multiply` gradient overlay for brand cohesion. Emoji and gradient remain as fallback when `post.image` is undefined.
+
+**Blog page — floating reading-progress badge:** Added an `AnimatePresence`-wrapped badge in `ArticleView` between the article body and the Related section. Renders only when `5 < progress < 95`. Position `fixed bottom-24 right-5 z-40 hidden sm:flex` (above the bottom-5 AI assistant, hidden on mobile). Glass-strong rounded-full pill with: a 24px SVG circular progress ring (rotated -90°, muted background circle + brand-orange→brand-rose linear-gradient progress circle whose `strokeDashoffset = 2π·15·(1−progress/100)` animates via a 150ms linear CSS transition), with a `BookOpen` icon centered over the ring; and `Math.round(progress)%` + a muted "read" label. Framer Motion: `initial={{opacity:0, y:12, scale:0.95}}`, `animate={{opacity:1, y:0, scale:1}}`, `exit={{opacity:0, y:12, scale:0.95}}`, 0.25s ease `[0.22,1,0.36,1]`. `aria-hidden="true"` since the top reading-progress bar already conveys the same info to assistive tech.
+
+### Quality
+- `bun run lint` → clean (0 errors, 0 warnings) after fixing one initial JSX syntax error (missing `}` closing the `strokeDashoffset` JSX expression).
+- Dev log shows `✓ Compiled` and `GET / 200` after changes; no module-resolution or runtime errors.
+- Warm palette only (orange/pink/rose/amber/emerald); zero indigo/blue introduced.
+- All existing functionality preserved (filter pills, search, modal, related posts, CTAs, navigation).
+- Agent context record written to `/home/z/my-project/agent-ctx/3-5-full-stack-developer.md`.
+
+### Stage Summary
+Both pages enhanced in place — Portfolio now ships an auto-rotating testimonials carousel matching the Home page's interaction polish, and the Blog page renders real images on every card + the article cover (with graceful fallbacks) plus a subtle, animated circular reading-progress badge. Two files touched, lint-clean, ready for production.
+
+---
+Task ID: 18 (Cron Review Round 5)
+Agent: main (Z.ai Code) + 1 full-stack-developer subagent
+Task: Assess project status, QA test via agent-browser, then improve styling + add features per mandatory requirements.
+
+## Current Project Status (assessment)
+- Project stable from Round 4: 7 pages with command palette (Cmd+K), social proof notifications, FAQ search, animated theme toggle, nav scrolled state, animated counters, per-page transitions, team modals, careers, comparison table, blog search, ROI calculator, project wizard, case-study modals, branded images. Lint clean, no runtime errors.
+- agent-browser QA confirmed all 7 pages render/navigate. Recommended next steps from Round 4: per-post OG images, command palette (Cmd+K expanded), testimonials carousel on Portfolio, reading progress %, light mode refinement, global micro-interactions.
+
+## Completed Modifications
+
+### Styling polish (globals.css) — 8 new utilities + light mode refinement
+- **Light mode refinement**: Warmer, more cohesive palette — background/card/muted shifted to warm 65° hue (from neutral 60°), foreground darker for contrast (0.18 vs 0.16), muted-foreground darker (0.45 vs 0.5) for better readability, borders slightly darker (0.9 vs 0.91) for definition, primary slightly deeper (0.58 vs 0.62). All sidebar vars aligned.
+- **New utilities**: `.gradient-rule` (hairline gradient divider), `.num-badge` (editorial mono section counter), `.featured-border` (gradient border glow), `.glow-entrance` (one-shot entrance glow animation), `.cmdk-overlay` / `.cmdk-panel` / `.cmdk-item` (command palette styles with brand-pink selected state).
+
+### New feature 1: Full Command Palette (Cmd+K)
+- Built `src/components/site/command-palette.tsx` — a complete command palette that intercepts Cmd+K in **capture phase** (before the AI assistant). Features:
+  - **Search input** with Search icon, ESC hint kbd.
+  - **Grouped results**: Navigate (7 pages), Read (6 blog posts), Actions (Open AI Assistant, Toggle Theme).
+  - **Keyboard navigation**: ↑/↓ to move, Enter to select, Esc to close. Selected item highlighted with brand-pink + CornerDownLeft icon.
+  - **Fuzzy keyword search**: each item has keywords (e.g. "ai chat bot assistant vision help") for flexible matching.
+  - **Blog post actions**: dispatch `open-blog-post` custom event → BlogPage listens and opens the article.
+  - **AI assistant action**: dispatch `open-ai-assistant` custom event → AiAssistant listens and opens.
+  - **Footer**: keyboard hints (↑↓ navigate, ↵ select) + live status badge.
+- Updated `ai-assistant.tsx`: removed Cmd+K handler (now handled by command palette in capture phase), listens for `open-ai-assistant` custom event instead.
+- Updated `blog-page.tsx`: listens for `open-blog-post` custom event to open articles from the palette.
+- Wired into page shell.
+
+### New feature 2: Per-post OG images for blog
+- Generated 6 branded abstract images (1152x864) via z-ai image CLI → `public/blog/b1.png` … `b6.png` (AI automation, Core Web Vitals, ecommerce CRO, SEO engine, design systems, headless commerce).
+- Added `image?: string` field to `BlogPost` type + wired paths into all 6 BLOG_POSTS.
+- Subagent updated blog-page.tsx: `FeaturedCard`, `BlogCard`, and `ArticleView` cover now render real images with gradient multiply overlay + hover zoom (same pattern as portfolio ProjectCard). Emoji + gradient remain as fallback.
+
+### New feature 3: Portfolio testimonials carousel
+- Subagent replaced the static `TestimonialSection` in portfolio-page.tsx with an auto-rotating carousel: 5.5s rotation, pause-on-hover, prev/next arrow controls, dot indicators, AnimatePresence crossfade, "Auto/Paused" status. Uses `TESTIMONIALS` data. Verified: quote changes from "Stunning design..." to "Preet Web Vision rebuilt our store..." after 6s.
+
+### New feature 4: Blog reading progress badge
+- Subagent added a floating glass-strong badge (`fixed bottom-24 right-5`) to the ArticleView: SVG circular progress ring (brand gradient) + BookOpen icon + "X% read" text. Shows only when 5% < progress < 95%. Framer Motion fade/scale in/out. Verified: shows "85% read" when scrolled deep into article.
+
+### New feature 5: Global button micro-interactions
+- Added `active:scale-[0.97]` to the shadcn `Button` component's base `cva` string — cascades to ALL buttons across the entire site. Every button now has a tactile press-down feedback.
+
+### New feature 6: Light mode color refinement
+- Refined `:root` light mode variables for warmer, more cohesive tones with better contrast (detailed above). Verified via VLM: "highly polished, sophisticated warm palette."
+
+## Verification Results
+- `bun run lint` → clean (0 errors, 0 warnings).
+- agent-browser QA:
+  - Command palette: Cmd+K opens (capture-phase intercept), search "pricing" → 1 filtered result, Enter → navigates to Pricing page. Search "AI Assistant" → 1 result, Enter → opens AI assistant via custom event. Grouped results (Navigate/Read/Actions).
+  - Blog images: all 6 blog images load on grid + article view (b1.png … b6.png verified).
+  - Reading progress: scrolled deep into article → "85% read" badge appears (fixed bottom-24 right-5).
+  - Portfolio carousel: 5 dots + 2 arrows present, auto-rotates (quote changed after 6s).
+  - Theme toggle: dark → light (VLM confirmed "highly polished, sophisticated warm palette"), toggled back to dark.
+  - Global button press: `active:scale-[0.97]` applied via cva base string.
+- VLM visual QA: light mode "highly polished... sophisticated warm palette... modern and inviting"; command palette "excellent modal design... clear search input, distinct iconography... glassmorphism... effectively focuses attention"; search filtering "works seamlessly, intelligently grouping results into Navigate and Read categories".
+- Dev log: no new errors. Home returns 200.
+
+## Unresolved Issues / Risks
+- Command palette and AI assistant both use Cmd+K — resolved via capture-phase interception (palette wins) + custom event dispatch (palette → AI assistant). No conflict.
+- The reading progress badge is desktop-only (`hidden sm:flex`) — intentional to avoid mobile clutter.
+- Blog OG images are abstract illustrations (no text) — suitable for social sharing but not branded with the post title. A future enhancement could generate text-overlay OG images.
+- Cookie banner (first-visit) can briefly overlap with the command palette overlay — both are dismissible.
+
+## Priority Recommendations for Next Round
+- Add **keyboard shortcut hints** to nav items (e.g. "G H" for go home) for power users.
+- Build a **glossary/tooltip** system for technical terms in blog articles.
+- Add **animated SVG illustrations** to service sections (currently use mock UI cards).
+- Build a **project gallery lightbox** for portfolio case-study images.
+- Add **dark/light theme auto-detection** based on system preference (currently defaults to dark).
+- Consider **reducing motion** support (`prefers-reduced-motion`) for accessibility.
+- Add **schema.org structured data** for blog articles (JSON-LD) for SEO.
