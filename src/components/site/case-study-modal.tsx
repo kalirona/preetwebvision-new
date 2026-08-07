@@ -2,10 +2,11 @@
 
 import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, ArrowRight, Quote, Target, Lightbulb, TrendingUp, CheckCircle2 } from 'lucide-react'
+import { X, ArrowRight, Quote, Target, Lightbulb, TrendingUp, CheckCircle2, Maximize2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { ImageLightbox } from '@/components/site/image-lightbox'
 import { useNav } from '@/lib/nav-store'
 import { CASE_STUDIES } from '@/lib/content-data'
 import type { Project } from '@/lib/site-data'
@@ -20,6 +21,15 @@ export function CaseStudyModal({
 }) {
   const { setPage } = useNav()
   const caseStudy = project ? CASE_STUDIES[project.id] : null
+  const [lightboxIndex, setLightboxIndex] = React.useState<number | null>(null)
+
+  // Build gallery images from the project image
+  const galleryImages = React.useMemo(() => {
+    if (!project?.image) return []
+    return [
+      { src: project.image, alt: `${project.title} — cover`, caption: `${project.title} — ${project.client}` },
+    ]
+  }, [project])
 
   React.useEffect(() => {
     if (project) {
@@ -63,10 +73,17 @@ export function CaseStudyModal({
             {/* Header / cover */}
             <div className="relative shrink-0 overflow-hidden">
               {project.image ? (
-                <>
-                  <img src={project.image} alt={project.title} className="absolute inset-0 size-full object-cover" />
+                <button
+                  onClick={() => setLightboxIndex(0)}
+                  aria-label="View image full screen"
+                  className="group absolute inset-0"
+                >
+                  <img src={project.image} alt={project.title} className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />
                   <div className={cn('absolute inset-0 bg-gradient-to-br opacity-40 mix-blend-multiply', project.gradient)} />
-                </>
+                  <span className="absolute right-4 top-14 grid size-8 place-items-center rounded-full bg-white/15 text-white opacity-0 backdrop-blur transition-opacity group-hover:opacity-100">
+                    <Maximize2 className="size-3.5" />
+                  </span>
+                </button>
               ) : (
                 <div className={cn('absolute inset-0 bg-gradient-to-br', project.gradient)} />
               )}
@@ -192,6 +209,13 @@ export function CaseStudyModal({
           </motion.div>
         </motion.div>
       )}
+      {/* Image lightbox */}
+      <ImageLightbox
+        images={galleryImages}
+        index={lightboxIndex}
+        onClose={() => setLightboxIndex(null)}
+        onIndexChange={setLightboxIndex}
+      />
     </AnimatePresence>
   )
 }

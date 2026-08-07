@@ -723,3 +723,65 @@ Task: Assess project status, QA test via agent-browser, then improve styling + a
 - Add **Open Graph meta tags per blog article** (dynamic OG images with post title overlay).
 - Consider **a "back to top" progress indicator** showing scroll percentage.
 - Add **cursor-following ambient glow** on hero section (JS-driven CSS var --mx/--my).
+
+---
+Task ID: 20 (Cron Review Round 7)
+Agent: main (Z.ai Code)
+Task: Assess project status, QA test via agent-browser, then improve styling + add features per mandatory requirements.
+
+## Current Project Status (assessment)
+- Project stable from Round 6: 7 pages with glossary tooltips, keyboard shortcuts overlay, JSON-LD structured data, live stats widget, command palette, social proof, FAQ search, blog with images/reading progress, portfolio carousel, team modals, careers, comparison table, ROI calculator, project wizard, case-study modals, branded images, per-page transitions, reduced-motion support. Lint clean, no runtime errors.
+- agent-browser QA confirmed all 7 pages render/navigate. Recommended next steps from Round 6: Radix Popover glossary, project gallery lightbox, animated SVG illustrations, sitemap.xml + robots.txt, cursor-following ambient glow, scroll percentage indicator.
+
+## Completed Modifications
+
+### Styling polish (globals.css) — 6 new utilities
+- `.cursor-glow` (radial gradient following --mx/--my CSS vars, fades in on hover), `.mesh-bg` (4-point gradient mesh ambient background), `.sec-num-badge` (animated editorial section counter), `.cta-glass` (glassmorphic CTA band with blur+saturate+shadow), `.lightbox-backdrop` (near-opaque blurred backdrop for image viewer).
+
+### New feature 1: Cursor-following ambient glow on hero
+- Built `src/hooks/use-cursor-glow.ts` — tracks mouse position relative to an element, sets `--mx`/`--my` CSS custom properties (in percentages). Respects `prefers-reduced-motion` (doesn't attach listener).
+- Applied to Hero section in home-page.tsx via `useCursorGlow` ref + `.cursor-glow` class. A radial pink glow follows the cursor across the hero. Verified: `::before` pseudo-element present.
+
+### New feature 2: Project gallery lightbox
+- Built `src/components/site/image-lightbox.tsx` — full-screen image viewer with: near-opaque blurred backdrop, zoom toggle (1x → 1.5x scale), prev/next arrow navigation, keyboard shortcuts (Esc/arrows), image counter (N/M), caption display, AnimatePresence transitions, body-scroll-lock.
+- Integrated into CaseStudyModal: the cover image is now a clickable button (with Maximize2 icon on hover) that opens the lightbox. Gallery images built from project image + caption.
+
+### New feature 3: Sitemap.xml + robots.txt (SEO)
+- Created `src/app/sitemap.ts` — generates sitemap.xml with 7 logical pages (Home, #services, #portfolio, #about, #pricing, #blog, #contact) with priorities and change frequencies.
+- Created `src/app/robots.ts` — generates robots.txt allowing all crawlers + sitemap reference.
+- Removed conflicting `public/robots.txt` (was a static file conflicting with the route).
+- Verified: `curl /sitemap.xml` returns valid XML urlset, `curl /robots.txt` returns correct directives.
+
+### New feature 4: Radix Popover glossary tooltips
+- Upgraded `src/components/site/glossary.tsx` from absolute-positioned spans to Radix Popover (via existing shadcn `@/components/ui/popover`). Smart edge positioning — tooltips no longer overflow the viewport. Opens on click (accessible), `side="top" align="center"`.
+- Verified: clicking "RAG" opens a Popover with `data-radix-popper-content-wrapper` (smart positioning).
+
+### New feature 5: Scroll percentage indicator on back-to-top button
+- Upgraded `BackToTop` in site-chrome.tsx — now renders an SVG circular progress ring (brand gradient) around the arrow icon that fills based on scroll percentage. Dynamic `strokeDashoffset` updates as you scroll. Button size increased to size-12 for the ring.
+- Verified: dashOffset=74.04 at ~35% scroll (circumference=113.1, so 74.04 = ~35% remaining = ~65% filled).
+
+## Verification Results
+- `bun run lint` → clean (0 errors, 0 warnings).
+- agent-browser QA:
+  - Cursor glow: `.cursor-glow` class on hero section, `::before` pseudo present.
+  - Lightbox: clicking case-study cover image opens full-screen lightbox with the project image (p1-lumen.png), has image counter + zoom + close controls.
+  - Sitemap/robots: `curl /sitemap.xml` → valid XML urlset with 7 URLs; `curl /robots.txt` → correct directives + sitemap ref.
+  - Glossary Radix Popover: clicking "RAG" opens `data-radix-popper-content-wrapper` popover with definition.
+  - Back-to-top progress ring: SVG circle with dynamic strokeDashoffset (74.04 at ~35% scroll).
+- VLM visual QA: hero glow "high-contrast dark mode... vibrant pink-to-red gradient glow... strong sense of depth"; lightbox "polished... soft rounded rectangular frame... subtle drop shadow... makes the portfolio image pop".
+- Dev log: no new errors. Home returns 200.
+
+## Unresolved Issues / Risks
+- Lightbox gallery currently has 1 image per project (the cover). Could be expanded with multiple process/gallery images per case study in the future.
+- Cursor glow is desktop-only (mouse events) — mobile uses touch, so no glow (acceptable, mobile has its own interactions).
+- The sitemap uses hash URLs (#services etc.) since the site is a single-route SPA — search engines may not index hash fragments deeply. A future enhancement could use real routes or the History API.
+- Radix Popover requires a click to open (not hover) — this is more accessible but slightly less discoverable than hover tooltips. Acceptable tradeoff.
+
+## Priority Recommendations for Next Round
+- Add **multiple gallery images per case study** (process shots, wireframes, final designs) for a richer lightbox experience.
+- Build **animated SVG illustrations** for service sections (custom branded illustrations instead of mock UI cards).
+- Add **Open Graph meta tags per blog article** (dynamic OG images with post title overlay).
+- Build a **newsletter signup within blog articles** (inline form after the article body, beyond the current CTA).
+- Add **a "related projects" section** at the bottom of case-study modals.
+- Consider **lazy-loading images** with blur-up placeholders for performance.
+- Add **a 404 page** with brand styling and navigation back to home.

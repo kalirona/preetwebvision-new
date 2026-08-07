@@ -51,12 +51,14 @@ import {
   TECH_STACK,
 } from '@/lib/site-data'
 import { cn } from '@/lib/utils'
+import { useCursorGlow } from '@/hooks/use-cursor-glow'
 
 /* ============================== HERO ============================== */
 function Hero() {
   const { setPage } = useNav()
+  const heroRef = useCursorGlow<HTMLElement>()
   return (
-    <section className="relative overflow-hidden pb-20 pt-10 sm:pt-16">
+    <section ref={heroRef} className="cursor-glow relative overflow-hidden pb-20 pt-10 sm:pt-16">
       <AmbientBackground variant="strong" />
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="grid items-center gap-12 lg:grid-cols-[1.15fr_0.85fr]">

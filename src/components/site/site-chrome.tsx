@@ -25,11 +25,20 @@ export function ScrollProgress() {
 /* ============ Back to top button ============ */
 export function BackToTop() {
   const [show, setShow] = React.useState(false)
+  const [progress, setProgress] = React.useState(0)
   React.useEffect(() => {
-    const onScroll = () => setShow(window.scrollY > 600)
+    const onScroll = () => {
+      const scrolled = window.scrollY
+      const max = document.documentElement.scrollHeight - window.innerHeight
+      setShow(scrolled > 600)
+      setProgress(max > 0 ? Math.min((scrolled / max) * 100, 100) : 0)
+    }
     window.addEventListener('scroll', onScroll, { passive: true })
+    onScroll()
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+  const circumference = 2 * Math.PI * 18
+  const dashOffset = circumference - (progress / 100) * circumference
   return (
     <AnimatePresence>
       {show && (
@@ -40,10 +49,31 @@ export function BackToTop() {
           whileHover={{ y: -3 }}
           whileTap={{ scale: 0.92 }}
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-24 left-5 z-40 grid size-11 place-items-center rounded-full glass-strong text-foreground shadow-lg transition-colors hover:text-[var(--brand-pink)]"
+          className="fixed bottom-24 left-5 z-40 grid size-12 place-items-center rounded-full glass-strong text-foreground shadow-lg transition-colors hover:text-[var(--brand-pink)]"
           aria-label="Back to top"
         >
-          <ArrowUp className="size-5" />
+          <svg className="absolute inset-0 size-full -rotate-90" viewBox="0 0 40 40">
+            <circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" strokeWidth="2" className="text-muted/30" />
+            <circle
+              cx="20"
+              cy="20"
+              r="18"
+              fill="none"
+              stroke="url(#bt-progress)"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeDasharray={circumference}
+              strokeDashoffset={dashOffset}
+              className="transition-[stroke-dashoffset] duration-150"
+            />
+            <defs>
+              <linearGradient id="bt-progress" x1="0" y1="0" x2="40" y2="40">
+                <stop stopColor="var(--brand-orange)" />
+                <stop offset="1" stopColor="var(--brand-pink)" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <ArrowUp className="relative size-4" />
         </motion.button>
       )}
     </AnimatePresence>
