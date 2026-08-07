@@ -7,6 +7,7 @@ import { AiAssistant } from '@/components/site/ai-assistant'
 import { ScrollProgress, BackToTop, CookieConsent } from '@/components/site/site-chrome'
 import { SocialProofNotifications } from '@/components/site/social-proof'
 import { CommandPalette } from '@/components/site/command-palette'
+import { KeyboardShortcuts } from '@/components/site/keyboard-shortcuts'
 import { useNav } from '@/lib/nav-store'
 import type { PageId } from '@/lib/site-data'
 import { HomePage } from '@/components/site/pages/home-page'
@@ -90,6 +91,7 @@ export default function Home() {
       <CookieConsent />
       <SocialProofNotifications />
       <CommandPalette />
+      <KeyboardShortcuts />
     </div>
   )
 }

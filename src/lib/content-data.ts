@@ -548,3 +548,26 @@ export const JOB_ROLES: JobRole[] = [
     accent: "from-rose-500 to-pink-500",
   },
 ];
+
+// Glossary of technical terms (for tooltips in blog articles)
+export type GlossaryTerm = {
+  term: string;
+  definition: string;
+};
+
+export const GLOSSARY: GlossaryTerm[] = [
+  { term: "RAG", definition: "Retrieval-Augmented Generation — grounding an LLM's response in retrieved context (docs, past tickets) to reduce hallucinations and improve accuracy." },
+  { term: "LLM", definition: "Large Language Model — an AI model trained on vast text data that generates human-like language (e.g. GPT, Claude, Gemini)." },
+  { term: "LCP", definition: "Largest Contentful Paint — a Core Web Vital measuring how long the largest visible element takes to render. Target: under 2.0s." },
+  { term: "INP", definition: "Interaction to Next Paint — a Core Web Vital measuring responsiveness to user input. Target: under 200ms." },
+  { term: "CLS", definition: "Cumulative Layout Shift — a Core Web Vital measuring visual stability. Target: under 0.1." },
+  { term: "Core Web Vitals", definition: "Google's set of real-world performance metrics (LCP, INP, CLS) that directly influence search rankings and user experience." },
+  { term: "CRO", definition: "Conversion Rate Optimization — the practice of increasing the percentage of visitors who take a desired action (purchase, sign-up, etc.)." },
+  { term: "Headless commerce", definition: "An architecture where the storefront frontend is decoupled from the commerce backend, connected via APIs. Enables custom UX and omnichannel selling." },
+  { term: "Schema markup", definition: "Structured data (JSON-LD) added to web pages that helps search engines understand content, enabling rich results like star ratings and FAQs." },
+  { term: "Topic cluster", definition: "An SEO strategy grouping a pillar page with supporting articles around a single topic, all internally linked to signal topical authority." },
+  { term: "Design system", definition: "A shared library of design tokens, components, and guidelines that ensures consistency and speeds up product development across teams." },
+  { term: "GMV", definition: "Gross Merchandise Value — the total value of products sold through a marketplace or store, before fees and commissions." },
+  { term: "Awwwards", definition: "An international award recognizing the best web design, development, and creativity — a prestigious industry benchmark." },
+  { term: "DTC", definition: "Direct-to-Consumer — a retail model where brands sell directly to end customers, bypassing intermediaries." },
+];

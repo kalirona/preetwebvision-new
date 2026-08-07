@@ -792,6 +792,107 @@
   .cmdk-item[data-selected="true"] .cmdk-item-icon {
     color: var(--brand-pink);
   }
+
+  /* Animated SVG divider wave */
+  .wave-divider {
+    position: relative;
+    height: 2px;
+    overflow: visible;
+  }
+  .wave-divider svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .wave-divider .wave-path {
+    stroke: url(#wave-grad);
+    stroke-width: 2;
+    fill: none;
+    stroke-dasharray: 8 6;
+    animation: waveDash 12s linear infinite;
+  }
+  @keyframes waveDash {
+    to { stroke-dashoffset: -140; }
+  }
+
+  /* Card depth layers (subtle inner shadow for realism) */
+  .card-depth {
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.04),
+      0 4px 12px -2px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 0 color-mix(in oklch, var(--foreground) 4%, transparent);
+  }
+  .dark .card-depth {
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.2),
+      0 8px 24px -4px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 0 color-mix(in oklch, var(--foreground) 6%, transparent);
+  }
+
+  /* Gradient text shadow (for depth on gradient headings) */
+  .text-shadow-brand {
+    filter: drop-shadow(0 2px 12px color-mix(in oklch, var(--brand-pink) 25%, transparent));
+  }
+
+  /* Ambient glow on card hover */
+  .glow-hover {
+    position: relative;
+  }
+  .glow-hover::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%),
+      color-mix(in oklch, var(--brand-pink) 12%, transparent),
+      transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  .glow-hover:hover::after {
+    opacity: 1;
+  }
+
+  /* Tooltip styles for glossary */
+  .glossary-term {
+    position: relative;
+    cursor: help;
+    border-bottom: 1px dashed color-mix(in oklch, var(--brand-pink) 50%, transparent);
+    color: var(--brand-pink);
+    font-weight: 500;
+  }
+  .glossary-term:hover {
+    border-bottom-style: solid;
+  }
+
+  /* Shortcut hint chip */
+  .shortcut-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: color-mix(in oklch, var(--foreground) 8%, transparent);
+    border: 1px solid color-mix(in oklch, var(--foreground) 12%, transparent);
+    font-family: var(--font-mono), monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--muted-foreground);
+    line-height: 1.4;
+  }
+}
+
+/* Reduced motion — respect user preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Custom scrollbar */

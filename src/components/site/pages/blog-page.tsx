@@ -28,6 +28,7 @@ import {
   GradientText,
 } from '@/components/site/primitives'
 import { AmbientBackground } from '@/components/site/ambient-background'
+import { renderWithGlossary } from '@/components/site/glossary'
 import { useNav } from '@/lib/nav-store'
 import { BLOG_POSTS, type BlogPost } from '@/lib/content-data'
 import { cn } from '@/lib/utils'
@@ -403,6 +404,39 @@ function ArticleView({ post, onBack, onOpen }: { post: BlogPost; onBack: () => v
     return () => window.removeEventListener('scroll', onScroll)
   }, [post.slug])
 
+  // Inject JSON-LD structured data for SEO (schema.org Article)
+  React.useEffect(() => {
+    const jsonLd = {
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      headline: post.title,
+      description: post.excerpt,
+      datePublished: post.date,
+      dateModified: post.date,
+      author: {
+        '@type': 'Person',
+        name: post.author,
+        jobTitle: post.authorRole,
+      },
+      publisher: {
+        '@type': 'Organization',
+        name: 'Preet Web Vision',
+        url: 'https://preetwebvision.com',
+      },
+      articleSection: post.category,
+      wordCount: post.content.reduce((acc, b) => acc + (b.text?.split(/\s+/).length ?? 0), 0),
+      keywords: post.category,
+    }
+    const script = document.createElement('script')
+    script.type = 'application/ld+json'
+    script.text = JSON.stringify(jsonLd)
+    script.dataset.dynamic = 'true'
+    document.head.appendChild(script)
+    return () => {
+      document.head.querySelectorAll('script[data-dynamic="true"]').forEach((s) => s.remove())
+    }
+  }, [post])
+
   const related = BLOG_POSTS.filter((p) => p.id !== post.id && p.category === post.category).slice(0, 3)
   const fallbackRelated = BLOG_POSTS.filter((p) => p.id !== post.id).slice(0, 3)
   const relatedPosts = related.length >= 2 ? related : fallbackRelated
@@ -504,17 +538,17 @@ function ArticleView({ post, onBack, onOpen }: { post: BlogPost; onBack: () => v
       <article ref={articleRef} className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
         <div className="prose-brand">
           {post.content.map((block, i) => {
-            if (block.type === 'h2') return <h2 key={i}>{block.text}</h2>
-            if (block.type === 'h3') return <h3 key={i}>{block.text}</h3>
+            if (block.type === 'h2') return <h2 key={i}>{renderWithGlossary(block.text || '')}</h2>
+            if (block.type === 'h3') return <h3 key={i}>{renderWithGlossary(block.text || '')}</h3>
             if (block.type === 'quote')
-              return <blockquote key={i}>{block.text}</blockquote>
+              return <blockquote key={i}>{renderWithGlossary(block.text || '')}</blockquote>
             if (block.type === 'ul')
               return (
                 <ul key={i}>
-                  {block.items?.map((it, j) => <li key={j}>{it}</li>)}
+                  {block.items?.map((it, j) => <li key={j}>{renderWithGlossary(it)}</li>)}
                 </ul>
               )
-            return <p key={i}>{block.text}</p>
+            return <p key={i}>{renderWithGlossary(block.text || '')}</p>
           })}
         </div>
 

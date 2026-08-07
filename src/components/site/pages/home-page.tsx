@@ -35,6 +35,7 @@ import {
 import { AmbientBackground } from '@/components/site/ambient-background'
 import { RoiCalculator } from '@/components/site/roi-calculator'
 import { FaqWithSearch } from '@/components/site/faq-with-search'
+import { LiveStatsWidget } from '@/components/site/live-stats'
 import { useNav } from '@/lib/nav-store'
 import { BLOG_POSTS } from '@/lib/content-data'
 import {
@@ -919,6 +920,7 @@ export function HomePage() {
       <PortfolioPreview />
       <Testimonials />
       <AiDemoCta />
+      <LiveStatsWidget />
       <BlogPreview />
       <TechStack />
       <FaqSection />
