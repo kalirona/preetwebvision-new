@@ -40,27 +40,50 @@ export async function POST(req: NextRequest) {
     const recent = messages.slice(-10)
     const lastUserMessage = [...recent].reverse().find((m) => m.role === 'user')
 
-    const zai = await ZAI.create()
-    const completion = await zai.chat.completions.create({
-      messages: [
-        { role: 'assistant', content: SYSTEM_PROMPT },
-        ...recent.map((m) => ({ role: m.role, content: m.content })),
-      ],
-      thinking: { type: 'disabled' },
-    })
+    // Check if this conversation is in "human" mode (admin took over)
+    const sessionId = req.headers.get('x-chat-session') || `s-${Date.now()}`
+    let isHumanMode = false
+    try {
+      const { db } = await import('@/lib/db')
+      const modeRows = (await db.$queryRaw`
+        SELECT mode FROM ChatConversation WHERE sessionId = ${sessionId}
+      `) as Array<{ mode: string }>
+      if (modeRows.length > 0 && modeRows[0].mode === 'human') {
+        isHumanMode = true
+      }
+    } catch {
+      /* ignore */
+    }
 
-    const reply = completion.choices[0]?.message?.content?.trim()
+    let reply: string
 
-    if (!reply) {
-      return NextResponse.json(
-        { ok: false, error: 'I could not generate a response. Please try again.' },
-        { status: 502 }
-      )
+    if (isHumanMode) {
+      // Human mode — don't generate AI reply, tell user an agent will respond
+      reply = "👋 Thanks for your message! A team member has taken over this chat and will respond to you shortly. For urgent matters, please email hello@preetwebvision.com."
+    } else {
+      // AI mode — generate reply via LLM
+      const zai = await ZAI.create()
+      const completion = await zai.chat.completions.create({
+        messages: [
+          { role: 'assistant', content: SYSTEM_PROMPT },
+          ...recent.map((m) => ({ role: m.role, content: m.content })),
+        ],
+        thinking: { type: 'disabled' },
+      })
+
+      reply = completion.choices[0]?.message?.content?.trim() || ''
+
+      if (!reply) {
+        return NextResponse.json(
+          { ok: false, error: 'I could not generate a response. Please try again.' },
+          { status: 502 }
+        )
+      }
     }
 
     // Persist conversation to DB (best-effort, non-blocking) using raw SQL
     // for resilience against Prisma client delegate staleness in dev
-    const sessionId = req.headers.get('x-chat-session') || `s-${Date.now()}`
+    // (sessionId already declared above for mode check)
     if (process.env.NODE_ENV !== 'test' && lastUserMessage) {
       try {
         const { db } = await import('@/lib/db')

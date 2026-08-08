@@ -27,6 +27,10 @@ import { AmbientBackground } from '@/components/site/ambient-background'
 import { SvgDivider } from '@/components/site/svg-divider'
 import { SERVICES, FAQS } from '@/lib/site-data'
 import { FaqWithSearch } from '@/components/site/faq-with-search'
+import { Navbar } from '@/components/site/navbar'
+import { Footer } from '@/components/site/footer'
+import { AiAssistant } from '@/components/site/ai-assistant'
+import { ScrollProgress, BackToTop } from '@/components/site/site-chrome'
 import { cn } from '@/lib/utils'
 
 const PROCESS_STEPS = [
@@ -49,8 +53,11 @@ export function ServiceDetailPage({ slug }: { slug: string }) {
   const displayFaqs = serviceFaqs.length >= 2 ? serviceFaqs : FAQS.slice(0, 4)
 
   return (
-    <div className="relative min-h-screen pt-24">
-      {/* Hero */}
+    <div className="relative flex min-h-screen flex-col">
+      <ScrollProgress />
+      <Navbar />
+      <main className="relative flex-1 pt-24">
+        {/* Hero */}
       <section className="relative overflow-hidden pb-16 pt-8">
         <AmbientBackground variant="strong" />
         <div className="relative mx-auto max-w-5xl px-4 sm:px-6">
@@ -302,6 +309,10 @@ export function ServiceDetailPage({ slug }: { slug: string }) {
           </div>
         </div>
       </section>
+      </main>
+      <Footer />
+      <AiAssistant />
+      <BackToTop />
     </div>
   )
 }

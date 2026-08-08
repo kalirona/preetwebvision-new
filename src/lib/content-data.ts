@@ -259,7 +259,7 @@ export const CASE_STUDIES: Record<string, CaseStudy> = {
       role: "Founder, Lumen Beauty",
     },
     gallery: [
-      { src: "/projects/p1-lumen.png", alt: "Lumen storefront homepage", caption: "Headless storefront homepage" },
+      { src: "/projects/p1-lumen-v2.png", alt: "Lumen storefront homepage", caption: "Headless storefront homepage" },
       { src: "/gallery/wireframe-1.png", alt: "Conversion optimization process", caption: "CRO experiment board" },
       { src: "/gallery/design-system-1.png", alt: "Headless commerce architecture", caption: "Headless commerce architecture" },
     ],
@@ -283,7 +283,7 @@ export const CASE_STUDIES: Record<string, CaseStudy> = {
       role: "VP Product, Nova SaaS",
     },
     gallery: [
-      { src: "/projects/p2-nova.png", alt: "Nova AI support dashboard", caption: "AI support dashboard" },
+      { src: "/projects/p2-nova-v2.png", alt: "Nova AI support dashboard", caption: "AI support dashboard" },
       { src: "/gallery/analytics-1.png", alt: "AI automation architecture", caption: "RAG pipeline architecture" },
       { src: "/gallery/design-system-1.png", alt: "Performance metrics", caption: "Resolution rate analytics" },
     ],
@@ -307,7 +307,7 @@ export const CASE_STUDIES: Record<string, CaseStudy> = {
       role: "COO, Atlas Finance",
     },
     gallery: [
-      { src: "/projects/p3-atlas.png", alt: "Atlas analytics dashboard", caption: "Realtime analytics dashboard" },
+      { src: "/projects/p3-atlas-v2.png", alt: "Atlas analytics dashboard", caption: "Realtime analytics dashboard" },
       { src: "/gallery/analytics-1.png", alt: "Data pipeline visualization", caption: "Event streaming pipeline" },
       { src: "/gallery/design-system-1.png", alt: "Performance metrics", caption: "Core Web Vitals monitoring" },
     ],

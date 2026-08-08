@@ -338,12 +338,19 @@ function ServiceCard({
   service: (typeof SERVICES)[number]
   index: number
 }) {
-  const { setPage } = useNav()
   const Icon = service.icon
+  const ctaText: Record<string, string> = {
+    'web-design': 'Explore web design',
+    'ai-automation': 'Discover AI solutions',
+    'web-apps': 'See app capabilities',
+    'seo': 'Boost your rankings',
+    'ecommerce': 'Grow your store',
+  }
+  const cta = ctaText[service.id] || 'Learn more'
   return (
-    <button
-      onClick={() => setPage('services')}
-      className="group card-sheen relative flex h-full flex-col overflow-hidden rounded-3xl border border-border/60 bg-card p-6 text-left transition-all duration-300 hover:-translate-y-1 hover:border-border hover:shadow-xl"
+    <a
+      href={`/services/${service.slug}`}
+      className="group card-sheen relative flex h-full flex-col overflow-hidden rounded-3xl border border-border/60 bg-card p-6 text-left transition-all duration-300 hover:-translate-y-1 hover:border-border hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
     >
       <span
         className={cn(
@@ -384,10 +391,10 @@ function ServiceCard({
         ))}
       </div>
       <span className="relative mt-auto inline-flex items-center gap-1.5 pt-6 text-sm font-semibold">
-        Learn more
+        {cta}
         <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
       </span>
-    </button>
+    </a>
   )
 }
 

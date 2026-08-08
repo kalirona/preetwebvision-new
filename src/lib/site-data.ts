@@ -214,7 +214,7 @@ export const PROJECTS: Project[] = [
     ],
     gradient: "from-rose-500 via-pink-500 to-orange-400",
     emoji: "🛍️",
-    image: "/projects/p1-lumen.png",
+    image: "/projects/p1-lumen-v2.png",
   },
   {
     id: "p2",
@@ -232,7 +232,7 @@ export const PROJECTS: Project[] = [
     ],
     gradient: "from-fuchsia-500 via-purple-500 to-rose-500",
     emoji: "🤖",
-    image: "/projects/p2-nova.png",
+    image: "/projects/p2-nova-v2.png",
   },
   {
     id: "p3",
@@ -250,7 +250,7 @@ export const PROJECTS: Project[] = [
     ],
     gradient: "from-amber-400 via-orange-500 to-pink-500",
     emoji: "📊",
-    image: "/projects/p3-atlas.png",
+    image: "/projects/p3-atlas-v2.png",
   },
   {
     id: "p4",

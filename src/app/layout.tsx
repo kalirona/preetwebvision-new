@@ -23,7 +23,10 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://preetwebvision.com"),
-  title: "Preet Web Vision — Web Design, AI Automations & Digital Growth",
+  title: {
+    default: "Preet Web Vision — Web Design, AI Automations & Digital Growth",
+    template: "%s — Preet Web Vision",
+  },
   description:
     "Preet Web Vision is a modern digital marketing agency crafting stunning websites, AI automations, web apps, SEO and ecommerce experiences that grow ambitious brands.",
   keywords: [
@@ -35,8 +38,15 @@ export const metadata: Metadata = {
     "web app development",
     "SEO",
     "ecommerce",
+    "digital agency India",
+    "web design company",
+    "AI chatbot development",
+    "Shopify development",
+    "Next.js agency",
   ],
   authors: [{ name: "Preet Web Vision" }],
+  creator: "Preet Web Vision",
+  publisher: "Preet Web Vision",
   icons: {
     icon: "/logo.svg",
   },
@@ -46,7 +56,9 @@ export const metadata: Metadata = {
       "Stunning websites, AI automations, web apps, SEO and ecommerce experiences for ambitious brands.",
     siteName: "Preet Web Vision",
     type: "website",
-    images: [{ url: "/og-image.png", width: 1344, height: 768, alt: "Preet Web Vision" }],
+    locale: "en_US",
+    url: "https://preetwebvision.com",
+    images: [{ url: "/og-image.png", width: 1344, height: 768, alt: "Preet Web Vision — Digital Marketing Agency" }],
   },
   twitter: {
     card: "summary_large_image",
@@ -54,6 +66,20 @@ export const metadata: Metadata = {
     description: "Web Design, AI Automations & Digital Growth",
     images: ["/og-image.png"],
   },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  alternates: {
+    canonical: "https://preetwebvision.com",
+  },
+  category: "technology",
 };
 
 export default function RootLayout({
