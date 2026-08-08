@@ -1001,3 +1001,65 @@ Task: Assess project status, QA test via agent-browser, then improve styling + a
 - Consider **Next.js `<Image>` component** for automatic format conversion + responsive sizes.
 - Add **schema.org FAQPage** structured data for the FAQ sections.
 - Build a **"recently viewed"** section showing projects/articles the user has browsed.
+
+---
+Task ID: 24 (User Request: Service Pages + Chat Inbox + Mega Menu)
+Agent: main (Z.ai Code)
+Task: Build separate service pages for SEO, chat message management/inbox, and a mega menu.
+
+## Current Project Status (assessment)
+- User requested: (1) separate service pages for SEO, (2) chat message management to view/reply to clients, (3) mega menu with all services. Project was stable from Round 10.
+
+## Completed Modifications
+
+### New feature 1: Mega Menu in navbar
+- Built `MegaMenu` component in navbar.tsx — hover-based dropdown showing all 5 services with gradient icon tiles, titles, taglines, and numbered indices. Each service links to its real route (`/services/{slug}`). Footer with "Not sure which service?" CTA. Animated entrance (Framer Motion). ChevronDown indicator rotates on open.
+- Mobile menu updated: Services item now shows expandable sub-list of all 5 services with icons, each linking to its real route.
+
+### New feature 2: Service detail pages (real routes for SEO)
+- Created `/services/[slug]` dynamic route (Next.js App Router) with:
+  - `generateStaticParams()` for all 5 services (SSG-ready)
+  - `generateMetadata()` producing unique per-service SEO: title, description, keywords, OpenGraph, Twitter Card
+  - Service schema.org JSON-LD (`@type: Service` with provider, areaServed, serviceType, offers)
+- Built `ServiceDetailPage` client component: hero with breadcrumb (Home › Services › {Title}), gradient icon, tagline, description, CTAs; features grid (6 items with check icons); deliverables list (4 numbered items); 4-step process timeline; FAQ with search (FaqWithSearch); related services grid (3 cards linking to other service pages); CTA band.
+- Fixed Server→Client component serialization error: pass `slug` string (not the Service object with its icon function) to the client component, which looks up the service from SERVICES array.
+
+### New feature 3: Chat persistence + Inbox page
+- Added `ChatConversation` (id, sessionId, email, name, status, timestamps) and `ChatMessage` (id, conversationId, role, content, createdAt) models to Prisma. Ran `db:push`.
+- Updated `/api/chat` route: now persists each user message + AI reply to the DB using raw SQL (find-or-create conversation by sessionId, then insert messages). Returns `sessionId` in response so the client can send it on subsequent messages.
+- Updated AI assistant widget: stores `sessionId` in state, sends it as `x-chat-session` header on subsequent messages.
+- Created `/api/chat/conversations` API: GET (list conversations with last message preview + count), PATCH (update status: new/replied/archived).
+- Created `/api/chat/reply` API: GET (messages for a conversation), POST (manual reply from inbox — saves as assistant message, marks conversation "replied").
+- Built `/admin/inbox` page — full chat management interface: conversation list (with search + status filters + stats), message thread view (user/assistant bubbles with avatars), reply box (type + send), mark replied/archive buttons. Auto-refreshes every 30s.
+
+### New feature 4: Footer service links → real routes
+- Updated footer service links from SPA state navigation to real `<a href="/services/{slug}">` links for SEO crawlability.
+
+## Verification Results
+- `bun run lint` → clean (0 errors, 0 warnings).
+- Route tests: `/` (200), `/services/website-design-development` (200), `/services/ai-automations` (200), `/admin/inbox` (200).
+- agent-browser QA:
+  - Mega menu: 5 service links present with correct hrefs.
+  - Service detail page: H1 "AI Automations", breadcrumb "Home › Services › AI Automations", Service JSON-LD, 20 feature/deliverable cards.
+  - Chat persistence: sent message via AI assistant → conversation saved to DB (3 conversations with messages).
+  - Inbox: shows 3 conversations (3 new), clicking opens message thread (2 messages), reply input works (sent reply → message count 2→3, reply visible).
+- DB verification: `ChatConversation` table has 3 rows, `ChatMessage` table has messages.
+
+## How the Chat System Works (for the user)
+1. **Visitors chat** with the AI assistant on your website (bottom-right button or Cmd+K).
+2. **Every conversation is saved** to the database automatically — user messages and AI replies.
+3. **You view conversations** at `/admin/inbox` — see who chatted, their messages, and their email (if provided).
+4. **You can reply** directly from the inbox — your reply is saved to the conversation and marked as "replied".
+5. **To email the client**, use the email address shown in the conversation header (if they provided one).
+
+## SEO Optimization Recommendations
+1. ✅ **Separate service pages** — each service now has its own URL with unique meta tags.
+2. ✅ **Schema.org structured data** — Service schema on service pages, Article + BreadcrumbList on blog.
+3. ✅ **Sitemap.xml + robots.txt** — already implemented in Round 7.
+4. **Next steps for SEO**:
+   - Add internal linking between service pages and related blog articles
+   - Generate dynamic OG images per service/blog with title overlay
+   - Add `canonical` URLs to prevent duplicate content
+   - Submit sitemap to Google Search Console
+   - Add `hreflang` tags if targeting multiple languages
+   - Build a `/blog/[slug]` route for individual blog articles (currently SPA-based)

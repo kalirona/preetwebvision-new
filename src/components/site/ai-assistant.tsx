@@ -26,6 +26,7 @@ export function AiAssistant() {
   ])
   const [input, setInput] = React.useState('')
   const [loading, setLoading] = React.useState(false)
+  const [sessionId, setSessionId] = React.useState<string | null>(null)
   const scrollRef = React.useRef<HTMLDivElement>(null)
   const { setPage } = useNav()
   const [seen, setSeen] = React.useState(false)
@@ -64,11 +65,15 @@ export function AiAssistant() {
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(sessionId ? { 'x-chat-session': sessionId } : {}),
+        },
         body: JSON.stringify({ messages: next }),
       })
       const data = await res.json()
       if (!res.ok || !data.ok) throw new Error(data.error || 'Request failed')
+      if (data.sessionId && !sessionId) setSessionId(data.sessionId)
       setMessages((m) => [...m, { role: 'assistant', content: data.reply }])
     } catch (e) {
       setMessages((m) => [

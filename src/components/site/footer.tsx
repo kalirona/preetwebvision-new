@@ -181,12 +181,12 @@ export function Footer() {
             <ul className="mt-4 space-y-2.5">
               {SERVICES.map((s) => (
                 <li key={s.id}>
-                  <button
-                    onClick={() => setPage('services')}
+                  <a
+                    href={`/services/${s.slug}`}
                     className="text-left text-sm text-muted-foreground transition-colors hover:text-foreground"
                   >
                     {s.title}
-                  </button>
+                  </a>
                 </li>
               ))}
             </ul>

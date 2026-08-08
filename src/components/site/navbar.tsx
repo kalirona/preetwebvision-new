@@ -2,12 +2,12 @@
 
 import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, Sparkles, Sun, Moon, ArrowRight } from 'lucide-react'
+import { Menu, X, Sparkles, Sun, Moon, ArrowRight, ChevronDown } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetClose } from '@/components/ui/sheet'
 import { useNav } from '@/lib/nav-store'
-import { NAV_ITEMS } from '@/lib/site-data'
+import { NAV_ITEMS, SERVICES } from '@/lib/site-data'
 import { cn } from '@/lib/utils'
 
 function BrandMark({ onClick }: { onClick?: () => void }) {
@@ -62,6 +62,109 @@ function ThemeToggle() {
   )
 }
 
+/* ============ Mega Menu ============ */
+function MegaMenu({ active }: { active: boolean }) {
+  const [open, setOpen] = React.useState(false)
+  const timeoutRef = React.useRef<ReturnType<typeof setTimeout>>()
+  const { setPage } = useNav()
+
+  const onEnter = () => {
+    clearTimeout(timeoutRef.current)
+    setOpen(true)
+  }
+  const onLeave = () => {
+    timeoutRef.current = setTimeout(() => setOpen(false), 200)
+  }
+
+  return (
+    <div className="relative" onMouseEnter={onEnter} onMouseLeave={onLeave}>
+      <button
+        onClick={() => setPage('services')}
+        className={cn(
+          'flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium transition-colors',
+          active || open
+            ? 'text-foreground'
+            : 'text-muted-foreground hover:text-foreground'
+        )}
+      >
+        Services
+        <ChevronDown className={cn('size-3.5 transition-transform', open && 'rotate-180')} />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.97 }}
+            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute left-1/2 top-full z-50 mt-2 w-[34rem] -translate-x-1/2"
+          >
+            <div className="overflow-hidden rounded-2xl border border-border/60 bg-card/95 shadow-2xl backdrop-blur-xl">
+              {/* Header strip */}
+              <div className="flex items-center justify-between border-b border-border/60 bg-brand-gradient-soft px-5 py-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Our Services
+                </span>
+                <button
+                  onClick={() => { setOpen(false); setPage('services') }}
+                  className="flex items-center gap-1 text-xs font-semibold text-foreground transition-colors hover:text-[var(--brand-pink)]"
+                >
+                  View all
+                  <ArrowRight className="size-3" />
+                </button>
+              </div>
+              {/* Services grid */}
+              <div className="grid grid-cols-1 gap-1 p-3">
+                {SERVICES.map((service, i) => {
+                  const Icon = service.icon
+                  return (
+                    <a
+                      key={service.id}
+                      href={`/services/${service.slug}`}
+                      className="group flex items-start gap-3 rounded-xl p-3 transition-colors hover:bg-muted/60"
+                    >
+                      <span className={cn(
+                        'grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br text-white shadow-md transition-transform group-hover:scale-110',
+                        service.accent
+                      )}>
+                        <Icon className="size-5" />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-display text-sm font-bold tracking-tight">{service.title}</p>
+                          <span className="font-mono text-[10px] text-muted-foreground/60">0{i + 1}</span>
+                        </div>
+                        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground line-clamp-1">
+                          {service.tagline}
+                        </p>
+                      </div>
+                      <ArrowRight className="size-4 shrink-0 text-muted-foreground opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-60" />
+                    </a>
+                  )
+                })}
+              </div>
+              {/* Footer CTA */}
+              <div className="border-t border-border/60 bg-muted/30 px-5 py-3">
+                <button
+                  onClick={() => { setOpen(false); setPage('contact') }}
+                  className="flex w-full items-center justify-between text-sm font-semibold"
+                >
+                  <span>Not sure which service you need?</span>
+                  <span className="flex items-center gap-1 text-[var(--brand-pink)]">
+                    Get a free consultation
+                    <ArrowRight className="size-3.5" />
+                  </span>
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
 export function Navbar() {
   const { page, setPage } = useNav()
   const [scrolled, setScrolled] = React.useState(false)
@@ -100,6 +203,10 @@ export function Navbar() {
           <nav className="hidden lg:flex items-center gap-1">
             {NAV_ITEMS.map((item) => {
               const active = page === item.id
+              // Render mega menu for Services
+              if (item.id === 'services') {
+                return <MegaMenu key={item.id} active={active} />
+              }
               return (
                 <button
                   key={item.id}
@@ -169,27 +276,48 @@ export function Navbar() {
                   {NAV_ITEMS.map((item, i) => {
                     const active = page === item.id
                     return (
-                      <motion.button
+                      <motion.div
                         key={item.id}
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.04 * i }}
-                        onClick={() => go(item.id)}
-                        className={cn(
-                          'flex items-center justify-between rounded-xl px-4 py-3.5 text-left text-base font-medium transition-colors',
-                          active
-                            ? 'bg-muted/70 text-foreground'
-                            : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground'
-                        )}
                       >
-                        <span className="flex items-center gap-3">
-                          <span className="font-mono text-xs text-muted-foreground/70">
-                            0{i + 1}
+                        <button
+                          onClick={() => go(item.id)}
+                          className={cn(
+                            'flex w-full items-center justify-between rounded-xl px-4 py-3.5 text-left text-base font-medium transition-colors',
+                            active
+                              ? 'bg-muted/70 text-foreground'
+                              : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground'
+                          )}
+                        >
+                          <span className="flex items-center gap-3">
+                            <span className="font-mono text-xs text-muted-foreground/70">
+                              0{i + 1}
+                            </span>
+                            {item.label}
                           </span>
-                          {item.label}
-                        </span>
-                        <ArrowRight className="size-4 opacity-50" />
-                      </motion.button>
+                          <ArrowRight className="size-4 opacity-50" />
+                        </button>
+                        {/* Show service links under Services on mobile */}
+                        {item.id === 'services' && (
+                          <div className="ml-4 mt-1 space-y-0.5 border-l border-border/40 pl-4">
+                            {SERVICES.map((s) => {
+                              const Icon = s.icon
+                              return (
+                                <a
+                                  key={s.id}
+                                  href={`/services/${s.slug}`}
+                                  className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground"
+                                >
+                                  <Icon className="size-4 shrink-0" style={{ color: 'var(--brand-pink)' }} />
+                                  {s.title}
+                                </a>
+                              )
+                            })}
+                          </div>
+                        )}
+                      </motion.div>
                     )
                   })}
                 </nav>

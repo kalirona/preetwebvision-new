@@ -38,6 +38,7 @@ export async function POST(req: NextRequest) {
 
     // Trim to last 10 messages for context safety
     const recent = messages.slice(-10)
+    const lastUserMessage = [...recent].reverse().find((m) => m.role === 'user')
 
     const zai = await ZAI.create()
     const completion = await zai.chat.completions.create({
@@ -57,19 +58,55 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Optionally capture the lead (best-effort, non-blocking)
-    if (email && process.env.NODE_ENV !== 'test') {
+    // Persist conversation to DB (best-effort, non-blocking) using raw SQL
+    // for resilience against Prisma client delegate staleness in dev
+    const sessionId = req.headers.get('x-chat-session') || `s-${Date.now()}`
+    if (process.env.NODE_ENV !== 'test' && lastUserMessage) {
       try {
         const { db } = await import('@/lib/db')
-        await db.chatLead.create({
-          data: { email, message: recent[recent.length - 1]?.content ?? '' },
-        })
-      } catch {
-        /* ignore db errors for chat */
+        const now = new Date().toISOString()
+        const convId = crypto.randomUUID()
+
+        // First, try to find existing conversation by sessionId
+        const existing = (await db.$queryRaw`
+          SELECT id FROM ChatConversation WHERE sessionId = ${sessionId}
+        `) as Array<{ id: string }>
+
+        let conversationId: string
+        if (existing.length > 0) {
+          conversationId = existing[0].id
+          // Update email if provided
+          if (email) {
+            await db.$executeRaw`
+              UPDATE ChatConversation SET email = ${email}, updatedAt = ${now} WHERE id = ${conversationId}
+            `
+          }
+        } else {
+          // Create new conversation
+          await db.$executeRaw`
+            INSERT INTO ChatConversation (id, sessionId, email, status, createdAt, updatedAt)
+            VALUES (${convId}, ${sessionId}, ${email || null}, 'new', ${now}, ${now})
+          `
+          conversationId = convId
+        }
+
+        // Save user message
+        await db.$executeRaw`
+          INSERT INTO ChatMessage (id, conversationId, role, content, createdAt)
+          VALUES (${crypto.randomUUID()}, ${conversationId}, 'user', ${lastUserMessage.content}, ${now})
+        `
+        // Save assistant reply
+        await db.$executeRaw`
+          INSERT INTO ChatMessage (id, conversationId, role, content, createdAt)
+          VALUES (${crypto.randomUUID()}, ${conversationId}, 'assistant', ${reply}, ${now})
+        `
+      } catch (e) {
+        console.error('Chat persistence error:', e)
+        /* ignore — chat still works */
       }
     }
 
-    return NextResponse.json({ ok: true, reply })
+    return NextResponse.json({ ok: true, reply, sessionId })
   } catch (err) {
     console.error('Chat API error:', err)
     return NextResponse.json(
