@@ -23,12 +23,105 @@ import {
   Building2,
   DollarSign,
   RefreshCw,
+  Settings,
+  Bell,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 
 type Tab = 'overview' | 'submissions' | 'chats' | 'ai'
+
+/* ============ Notification Bell ============ */
+function NotificationBell() {
+  const [open, setOpen] = React.useState(false)
+  const [notifications, setNotifications] = React.useState<Array<{ id: string; type: string; title: string; message: string; read: boolean; createdAt: string }>>([])
+  const [unread, setUnread] = React.useState(0)
+  const ref = React.useRef<HTMLDivElement>(null)
+
+  const fetchNotifs = React.useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/notifications')
+      const data = await res.json()
+      setNotifications(data.notifications || [])
+      setUnread(data.unreadCount || 0)
+    } catch { /* ignore */ }
+  }, [])
+
+  React.useEffect(() => {
+    fetchNotifs()
+    const id = setInterval(fetchNotifs, 15000)
+    return () => clearInterval(id)
+  }, [fetchNotifs])
+
+  React.useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onClick)
+    return () => document.removeEventListener('mousedown', onClick)
+  }, [])
+
+  const markAllRead = async () => {
+    await fetch('/api/admin/notifications', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ markAllRead: true }) })
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+    setUnread(0)
+  }
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="relative grid size-9 place-items-center rounded-full border border-border/70 bg-muted/30 text-muted-foreground transition-colors hover:text-foreground"
+        aria-label="Notifications"
+      >
+        <Bell className="size-4" />
+        {unread > 0 && (
+          <span className="absolute -right-1 -top-1 grid min-w-[18px] h-[18px] place-items-center rounded-full bg-brand-gradient px-1 text-[10px] font-bold text-white">
+            {unread > 9 ? '9+' : unread}
+          </span>
+        )}
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.97 }}
+            className="absolute right-0 top-full z-50 mt-2 w-80 overflow-hidden rounded-2xl border border-border/60 bg-card shadow-2xl"
+          >
+            <div className="flex items-center justify-between border-b border-border/60 p-3">
+              <p className="text-sm font-bold">Notifications</p>
+              {unread > 0 && (
+                <button onClick={markAllRead} className="text-xs font-semibold text-[var(--brand-pink)] hover:underline">
+                  Mark all read
+                </button>
+              )}
+            </div>
+            <div className="max-h-80 overflow-y-auto">
+              {notifications.length === 0 ? (
+                <p className="p-6 text-center text-sm text-muted-foreground">No notifications yet.</p>
+              ) : (
+                notifications.slice(0, 10).map((n) => (
+                  <a key={n.id} href={n.link || '/admin/dashboard'} className={cn('block border-b border-border/40 p-3 transition-colors hover:bg-muted/30', !n.read && 'bg-brand-gradient-soft')}>
+                    <div className="flex items-start gap-2">
+                      <span className={cn('mt-1 size-2 shrink-0 rounded-full', n.read ? 'bg-muted-foreground/30' : 'bg-[var(--brand-pink)]')} />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold">{n.title}</p>
+                        <p className="truncate text-xs text-muted-foreground">{n.message}</p>
+                        <p className="mt-0.5 text-[10px] text-muted-foreground">{timeAgo(n.createdAt)}</p>
+                      </div>
+                    </div>
+                  </a>
+                ))
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
 
 type Submission = {
   id: string
@@ -124,10 +217,19 @@ export default function AdminDashboard() {
               Admin Dashboard
             </h1>
           </div>
-          <Button variant="ghost" size="sm" onClick={logout} className="rounded-full text-muted-foreground hover:text-foreground">
-            <LogOut className="size-4" />
-            Logout
-          </Button>
+          <div className="flex items-center gap-2">
+            <a href="/admin/settings">
+              <Button variant="ghost" size="sm" className="rounded-full text-muted-foreground hover:text-foreground">
+                <Settings className="size-4" />
+                Settings
+              </Button>
+            </a>
+            <NotificationBell />
+            <Button variant="ghost" size="sm" onClick={logout} className="rounded-full text-muted-foreground hover:text-foreground">
+              <LogOut className="size-4" />
+              Logout
+            </Button>
+          </div>
         </div>
       </header>
 

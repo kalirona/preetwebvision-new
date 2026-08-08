@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import ZAI from 'z-ai-web-dev-sdk'
 
-const SYSTEM_PROMPT = `You are "Vision AI", the friendly, expert assistant for Preet Web Vision — a modern digital marketing agency. You live on their website as a live demo of the agency's AI automation capabilities.
+const DEFAULT_SYSTEM_PROMPT = `You are "Vision AI", the friendly, expert assistant for Preet Web Vision — a modern digital marketing agency. You live on their website as a live demo of the agency's AI automation capabilities.
 
 About Preet Web Vision:
 - A digital studio offering: Website Design & Development, AI Automations, Web App Development, SEO & Digital Growth, and Ecommerce Solutions.
@@ -62,10 +62,22 @@ export async function POST(req: NextRequest) {
       reply = "👋 Thanks for your message! A team member has taken over this chat and will respond to you shortly. For urgent matters, please email hello@preetwebvision.com."
     } else {
       // AI mode — generate reply via LLM
+      // Read custom system prompt from settings (fallback to default)
+      let systemPrompt = DEFAULT_SYSTEM_PROMPT
+      try {
+        const { db } = await import('@/lib/db')
+        const promptRows = (await db.$queryRaw`SELECT value FROM SiteSetting WHERE key = 'ai_system_prompt'`) as Array<{ value: string }>
+        if (promptRows.length > 0 && promptRows[0].value) {
+          systemPrompt = promptRows[0].value
+        }
+      } catch {
+        /* ignore — use default */
+      }
+
       const zai = await ZAI.create()
       const completion = await zai.chat.completions.create({
         messages: [
-          { role: 'assistant', content: SYSTEM_PROMPT },
+          { role: 'assistant', content: systemPrompt },
           ...recent.map((m) => ({ role: m.role, content: m.content })),
         ],
         thinking: { type: 'disabled' },
@@ -104,6 +116,15 @@ export async function POST(req: NextRequest) {
               UPDATE ChatConversation SET email = ${email}, updatedAt = ${now} WHERE id = ${conversationId}
             `
           }
+          // Check if in human mode — create notification for admin
+          const modeRows = (await db.$queryRaw`SELECT mode FROM ChatConversation WHERE id = ${conversationId}`) as Array<{ mode: string }>
+          if (modeRows[0]?.mode === 'human') {
+            const notifId = `notif-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+            await db.$executeRaw`
+              INSERT INTO Notification (id, type, title, message, link, read, createdAt)
+              VALUES (${notifId}, 'chat_reply', 'New reply in human-mode chat', ${lastUserMessage.content.slice(0, 100)}, '/admin/dashboard', 0, ${now})
+            `
+          }
         } else {
           // Create new conversation
           await db.$executeRaw`
@@ -111,6 +132,12 @@ export async function POST(req: NextRequest) {
             VALUES (${convId}, ${sessionId}, ${email || null}, 'new', ${now}, ${now})
           `
           conversationId = convId
+          // Notify admin of new chat
+          const notifId = `notif-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+          await db.$executeRaw`
+            INSERT INTO Notification (id, type, title, message, link, read, createdAt)
+            VALUES (${notifId}, 'chat', 'New chat conversation started', ${lastUserMessage.content.slice(0, 100)}, '/admin/dashboard', 0, ${now})
+          `
         }
 
         // Save user message

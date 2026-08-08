@@ -1078,3 +1078,22 @@ Agent: main (Z.ai Code)
 7. SEO: title template, expanded keywords, robots, canonical in layout
 8. Better portfolio images: 3 new realistic screenshots (p1-v2, p2-v2, p3-v2)
 9. All 11 routes return 200, lint clean
+
+---
+Task ID: 26 (Admin Settings + Notifications + Export)
+Agent: main (Z.ai Code)
+
+## Completed
+1. **SiteSetting + Notification tables** created in DB with default settings (AI prompt, greeting, suggestions, contact info, admin password, notification toggles)
+2. **Settings API** (`/api/admin/settings` GET/PUT, auth-protected) — read/write all settings
+3. **Admin Settings page** (`/admin/settings`) with 5 tabs:
+   - AI Assistant: edit system prompt (textarea), greeting message, suggested questions (add/remove/edit)
+   - Password: change admin password (current/new/confirm validation)
+   - Site Info: contact email, phone, admin notification email
+   - Notifications: toggle notifications for form submissions, new chats, human-mode replies
+   - Export Data: download CSV for form submissions + chat transcripts
+4. **AI chat reads custom system prompt** from settings (fallback to default)
+5. **Notification system**: auto-creates notifications on form submission, new chat, human-mode reply
+6. **Notification bell** in dashboard header — shows unread count, dropdown with recent notifications, mark all read
+7. **CSV export API** (`/api/admin/export?type=submissions|chats`) — downloads CSV files
+8. All routes return 200 (APIs return 401 without auth), lint clean

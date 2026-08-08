@@ -42,6 +42,18 @@ export async function POST(req: NextRequest) {
       },
     })
 
+    // Create admin notification
+    try {
+      const notifId = `notif-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+      const now = new Date().toISOString()
+      await db.$executeRaw`
+        INSERT INTO Notification (id, type, title, message, link, read, createdAt)
+        VALUES (${notifId}, 'form', 'New form submission', ${name + ' (' + email + ')' + (safeService ? ' — ' + safeService : '')}, '/admin/dashboard', 0, ${now})
+      `
+    } catch {
+      /* ignore notification errors */
+    }
+
     return NextResponse.json({ ok: true, id: submission.id })
   } catch (err) {
     console.error('Contact API error:', err)
