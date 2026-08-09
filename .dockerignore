@@ -1,0 +1,17 @@
+node_modules
+.next
+.git
+dev.log
+server.log
+*.md
+screenshots
+agent-ctx
+db/*.db
+db/*.db-journal
+tests
+examples
+mini-services
+tool-results
+.zscripts
+download
+skills
