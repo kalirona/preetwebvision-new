@@ -1,22 +1,39 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { AnimatePresence, motion, type Variants } from 'framer-motion'
 import { Navbar } from '@/components/site/navbar'
 import { Footer } from '@/components/site/footer'
-import { AiAssistant } from '@/components/site/ai-assistant'
 import { ScrollProgress, BackToTop, CookieConsent } from '@/components/site/site-chrome'
-import { SocialProofNotifications } from '@/components/site/social-proof'
-import { CommandPalette } from '@/components/site/command-palette'
-import { KeyboardShortcuts } from '@/components/site/keyboard-shortcuts'
 import { useNav } from '@/lib/nav-store'
 import type { PageId } from '@/lib/site-data'
-import { HomePage } from '@/components/site/pages/home-page'
-import { ServicesPage } from '@/components/site/pages/services-page'
-import { PortfolioPage } from '@/components/site/pages/portfolio-page'
-import { AboutPage } from '@/components/site/pages/about-page'
-import { PricingPage } from '@/components/site/pages/pricing-page'
-import { ContactPage } from '@/components/site/pages/contact-page'
-import { BlogPage } from '@/components/site/pages/blog-page'
+
+// Lazy-load non-critical components to reduce initial JS bundle
+const AiAssistant = dynamic(() => import('@/components/site/ai-assistant').then((m) => m.AiAssistant), {
+  ssr: false,
+  loading: () => null,
+})
+const SocialProofNotifications = dynamic(() => import('@/components/site/social-proof').then((m) => m.SocialProofNotifications), {
+  ssr: false,
+  loading: () => null,
+})
+const CommandPalette = dynamic(() => import('@/components/site/command-palette').then((m) => m.CommandPalette), {
+  ssr: false,
+  loading: () => null,
+})
+const KeyboardShortcuts = dynamic(() => import('@/components/site/keyboard-shortcuts').then((m) => m.KeyboardShortcuts), {
+  ssr: false,
+  loading: () => null,
+})
+
+// Lazy-load page components — only the active page is loaded
+const HomePage = dynamic(() => import('@/components/site/pages/home-page').then((m) => m.HomePage), { loading: () => null })
+const ServicesPage = dynamic(() => import('@/components/site/pages/services-page').then((m) => m.ServicesPage), { loading: () => null })
+const PortfolioPage = dynamic(() => import('@/components/site/pages/portfolio-page').then((m) => m.PortfolioPage), { loading: () => null })
+const AboutPage = dynamic(() => import('@/components/site/pages/about-page').then((m) => m.AboutPage), { loading: () => null })
+const PricingPage = dynamic(() => import('@/components/site/pages/pricing-page').then((m) => m.PricingPage), { loading: () => null })
+const ContactPage = dynamic(() => import('@/components/site/pages/contact-page').then((m) => m.ContactPage), { loading: () => null })
+const BlogPage = dynamic(() => import('@/components/site/pages/blog-page').then((m) => m.BlogPage), { loading: () => null })
 
 // Per-page transition variants for a more dynamic feel
 const PAGE_VARIANTS: Record<PageId, Variants> = {

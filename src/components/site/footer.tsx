@@ -205,8 +205,8 @@ export function Footer() {
               </li>
               <li className="flex items-start gap-2.5 text-muted-foreground">
                 <Phone className="mt-0.5 size-4 shrink-0" style={{ color: 'var(--brand-orange)' }} />
-                <a href="tel:+919000000000" className="hover:text-foreground">
-                  +91 90000 00000
+                <a href="https://wa.me/9633112000" className="hover:text-foreground">
+                  +9633112000
                 </a>
               </li>
               <li className="flex items-start gap-2.5 text-muted-foreground">

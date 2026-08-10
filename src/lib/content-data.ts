@@ -101,7 +101,7 @@ export const BLOG_POSTS: BlogPost[] = [
     excerpt:
       "No rebuild required. These seven conversion-rate optimizations consistently lift revenue for the stores we work with.",
     category: "Ecommerce",
-    author: "Preet Kaur",
+    author: "Preet Kalirona",
     authorRole: "Founder & Creative Director",
     authorInitials: "PK",
     authorAccent: "from-orange-500 to-pink-500",
@@ -168,7 +168,7 @@ export const BLOG_POSTS: BlogPost[] = [
     excerpt:
       "A design system isn't bureaucracy — it's leverage. Here's how a lightweight system pays for itself in weeks.",
     category: "Web Design",
-    author: "Preet Kaur",
+    author: "Preet Kalirona",
     authorRole: "Founder & Creative Director",
     authorInitials: "PK",
     authorAccent: "from-orange-500 to-pink-500",
@@ -400,7 +400,7 @@ export type TeamProfile = {
 export const TEAM_PROFILES: TeamProfile[] = [
   {
     id: "preet",
-    name: "Preet Kaur",
+    name: "Preet Kalirona",
     role: "Founder & Creative Director",
     initials: "PK",
     accent: "from-orange-500 to-pink-500",
@@ -408,7 +408,7 @@ export const TEAM_PROFILES: TeamProfile[] = [
     tagline: "Design that earns its keep",
     bio: [
       "Preet founded Preet Web Vision in 2016 with one belief: design and engineering belong together. Twelve years and 180+ projects later, that conviction still drives every decision.",
-      "Before founding the studio, Preet led design at two funded startups and a global agency, shipping products used by millions. She brings brand strategy, UX rigor and a relentless eye for craft to every engagement.",
+      "Before founding the studio, Preet led design at two funded startups and a global agency, shipping products used by millions. He brings brand strategy, UX rigor and a relentless eye for craft to every engagement.",
       "Today Preet oversees creative direction across all projects, mentors the design team, and partners directly with founder clients on strategy.",
     ],
     skills: [

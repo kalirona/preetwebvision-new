@@ -10,16 +10,8 @@ import {
   Heart,
   Zap,
   Quote,
-  Linkedin,
-  Twitter,
-  Github,
-  Link as LinkIcon,
-  MapPin,
-  Briefcase,
-  ArrowUpRight,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
@@ -32,21 +24,9 @@ import {
   GradientText,
 } from '@/components/site/primitives'
 import { AmbientBackground } from '@/components/site/ambient-background'
-import { TeamModal } from '@/components/site/team-modal'
 import { useNav } from '@/lib/nav-store'
-import { TEAM, VALUES, TIMELINE, STATS, AWARDS, TECH_STACK } from '@/lib/site-data'
-import { TEAM_PROFILES, JOB_ROLES, type TeamProfile } from '@/lib/content-data'
+import { VALUES, TIMELINE, STATS, AWARDS, TECH_STACK } from '@/lib/site-data'
 import { cn } from '@/lib/utils'
-
-/* Social icon resolver — maps a label string to a Lucide icon */
-function SocialIcon({ label }: { label: string }) {
-  const cls = 'size-4'
-  if (label.toLowerCase().includes('linked')) return <Linkedin className={cls} />
-  if (label.toLowerCase().includes('git')) return <Github className={cls} />
-  if (label.toLowerCase().includes('twitter') || label.toLowerCase().includes('x'))
-    return <Twitter className={cls} />
-  return <LinkIcon className={cls} />
-}
 
 /* ============================== HERO ============================== */
 function Hero() {
@@ -278,7 +258,7 @@ function Story() {
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-display text-sm font-bold">Preet Kaur</p>
+                      <p className="font-display text-sm font-bold">Mr.Preet Kalirona</p>
                       <p className="text-xs text-muted-foreground">Founder &amp; Creative Director</p>
                     </div>
                   </div>
@@ -451,110 +431,6 @@ function TimelineSection() {
   )
 }
 
-/* ============================== TEAM ============================== */
-function Team({ onOpen }: { onOpen: (p: TeamProfile) => void }) {
-  const { setPage } = useNav()
-  return (
-    <section className="relative py-20 sm:py-28">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <SectionHeading
-          eyebrow="Meet the team"
-          title={
-            <>
-              The <GradientText>humans</GradientText> behind the vision
-            </>
-          }
-          description="A senior, multidisciplinary crew. Tap a face to learn more — the people you meet are the people doing the work."
-        />
-
-        <StaggerGroup className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {TEAM.map((m, i) => (
-            <motion.button
-              key={m.name}
-              variants={staggerItem}
-              onClick={() => onOpen(TEAM_PROFILES[i])}
-              className="group card-sheen relative flex h-full flex-col overflow-hidden rounded-3xl border border-border/60 bg-card p-6 text-left transition-all duration-300 hover:-translate-y-1 hover:border-border hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-            >
-              <span
-                className={cn(
-                  'pointer-events-none absolute -right-10 -top-10 size-32 rounded-full bg-gradient-to-br opacity-10 blur-2xl transition-opacity duration-300 group-hover:opacity-30',
-                  m.accent
-                )}
-              />
-              <div className="relative flex items-center gap-4">
-                <Avatar className="size-14 border-2 border-background shadow-md transition-transform duration-300 group-hover:scale-105">
-                  {TEAM_PROFILES[i]?.image ? (
-                    <img
-                      src={TEAM_PROFILES[i].image}
-                      alt={m.name}
-                      className="size-full object-cover"
-                    />
-                  ) : null}
-                  <AvatarFallback
-                    className={cn(
-                      'bg-gradient-to-br text-white font-display text-lg font-bold',
-                      m.accent
-                    )}
-                  >
-                    {m.initials}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 flex-1">
-                  <p className="font-display text-lg font-bold tracking-tight">{m.name}</p>
-                  <p className="text-sm text-muted-foreground">{m.role}</p>
-                </div>
-                <span className="text-xs font-semibold text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
-                  View →
-                </span>
-              </div>
-              <p className="relative mt-4 text-sm leading-relaxed text-muted-foreground">
-                {m.bio}
-              </p>
-              <div className="relative mt-5 flex items-center gap-2 pt-1">
-                {m.socials.map((s) => (
-                  <span
-                    key={s.label}
-                    aria-label={`${m.name} on ${s.label}`}
-                    className="grid size-9 place-items-center rounded-full border border-border/60 bg-muted/40 text-muted-foreground transition-all group-hover:border-border group-hover:bg-brand-gradient-soft group-hover:text-foreground"
-                  >
-                    <SocialIcon label={s.label} />
-                  </span>
-                ))}
-              </div>
-            </motion.button>
-          ))}
-
-          {/* Join the team — CTA card */}
-          <motion.button
-            variants={staggerItem}
-            onClick={() => setPage('contact')}
-            className="group relative flex h-full min-h-[220px] flex-col justify-between overflow-hidden rounded-3xl border border-dashed border-border/70 bg-muted/20 p-6 text-left transition-colors hover:border-border"
-          >
-            <span className="absolute -right-8 -top-8 size-32 rounded-full bg-brand-gradient opacity-10 blur-2xl transition-opacity group-hover:opacity-25" />
-            <div>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                <span className="size-1.5 animate-pulse rounded-full bg-emerald-500" />
-                We&apos;re hiring
-              </span>
-              <h3 className="mt-5 font-display text-xl font-bold tracking-tight">
-                Join the team
-              </h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                We&apos;re always looking for senior designers, engineers and AI folks who care
-                deeply about craft. Say hello.
-              </p>
-            </div>
-            <span className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-foreground">
-              Open roles
-              <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
-            </span>
-          </motion.button>
-        </StaggerGroup>
-      </div>
-    </section>
-  )
-}
-
 /* ============================== AWARDS STRIP ============================== */
 function Awards() {
   return (
@@ -661,126 +537,8 @@ function FinalCta() {
   )
 }
 
-/* ============================== CAREERS ============================== */
-function Careers() {
-  const { setPage } = useNav()
-  const [teamFilter, setTeamFilter] = React.useState<string>('All')
-  const teams = ['All', 'Design', 'Engineering', 'AI', 'Growth', 'Operations']
-  const filtered = teamFilter === 'All' ? JOB_ROLES : JOB_ROLES.filter((r) => r.team === teamFilter)
-
-  return (
-    <section className="relative py-20 sm:py-28">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
-          <div className="lg:sticky lg:top-28">
-            <SectionHeading
-              align="left"
-              eyebrow="We're hiring"
-              title={
-                <>
-                  Build your career at <GradientText>Preet Web Vision</GradientText>
-                </>
-              }
-              description="Senior, remote-first and obsessed with craft. We're growing the team carefully — come shape what we build next."
-            />
-            <Reveal delay={0.15}>
-              <div className="mt-7 grid grid-cols-3 gap-3">
-                {[
-                  { label: 'Open roles', value: JOB_ROLES.length },
-                  { label: 'Remote-first', value: '100%' },
-                  { label: 'Avg tenure', value: '3.2y' },
-                ].map((s) => (
-                  <div key={s.label} className="rounded-2xl border border-border/60 bg-card p-3.5 text-center">
-                    <p className="font-display text-xl font-bold text-gradient-brand">{s.value}</p>
-                    <p className="mt-0.5 text-[11px] uppercase tracking-wide text-muted-foreground">{s.label}</p>
-                  </div>
-                ))}
-              </div>
-            </Reveal>
-            <Reveal delay={0.2}>
-              <div className="mt-6 flex flex-wrap gap-3">
-                <Button onClick={() => setPage('contact')} className="rounded-full bg-brand-gradient text-white">
-                  Apply / introduce yourself
-                  <ArrowRight className="size-4" />
-                </Button>
-              </div>
-            </Reveal>
-          </div>
-
-          <div>
-            {/* Team filter */}
-            <Reveal>
-              <div className="flex flex-wrap gap-2">
-                {teams.map((t) => {
-                  const active = teamFilter === t
-                  return (
-                    <button
-                      key={t}
-                      onClick={() => setTeamFilter(t)}
-                      className={cn(
-                        'relative rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors',
-                        active ? 'text-white' : 'text-muted-foreground hover:text-foreground'
-                      )}
-                    >
-                      {active && (
-                        <motion.span
-                          layoutId="careers-filter-pill"
-                          className="absolute inset-0 rounded-full bg-brand-gradient"
-                          transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                        />
-                      )}
-                      <span className="relative z-10">{t}</span>
-                    </button>
-                  )
-                })}
-              </div>
-            </Reveal>
-
-            {/* Roles list */}
-            <StaggerGroup className="mt-5 space-y-3">
-              {filtered.map((role) => (
-                <motion.button
-                  key={role.id}
-                  variants={staggerItem}
-                  onClick={() => setPage('contact')}
-                  className="group cmp-row flex w-full items-center gap-4 rounded-2xl border border-border/60 bg-card p-4 text-left transition-all hover:-translate-y-0.5 hover:border-border hover:shadow-lg sm:p-5"
-                >
-                  <span className={cn('grid size-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br text-white shadow-md', role.accent)}>
-                    <Briefcase className="size-5" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                      <p className="font-display text-base font-bold tracking-tight">{role.title}</p>
-                      <span className="rounded-full bg-muted/60 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">{role.team}</span>
-                    </div>
-                    <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{role.blurb}</p>
-                    <div className="mt-2 flex items-center gap-3 text-[11px] text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="size-3" />
-                        {role.location}
-                      </span>
-                      <span>·</span>
-                      <span>{role.type}</span>
-                    </div>
-                  </div>
-                  <ArrowUpRight className="size-5 shrink-0 text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-foreground" />
-                </motion.button>
-              ))}
-            </StaggerGroup>
-
-            {filtered.length === 0 && (
-              <p className="mt-8 text-center text-sm text-muted-foreground">No open roles in this team right now.</p>
-            )}
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
 /* ============================== PAGE ============================== */
 export function AboutPage() {
-  const [activeProfile, setActiveProfile] = React.useState<TeamProfile | null>(null)
   return (
     <div className="relative">
       <Hero />
@@ -788,12 +546,9 @@ export function AboutPage() {
       <StatsBand />
       <Values />
       <TimelineSection />
-      <Team onOpen={setActiveProfile} />
-      <Careers />
       <Awards />
       <TechStack />
       <FinalCta />
-      <TeamModal profile={activeProfile} onClose={() => setActiveProfile(null)} />
     </div>
   )
 }

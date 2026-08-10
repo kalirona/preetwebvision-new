@@ -429,7 +429,7 @@ export type TeamMember = {
 
 export const TEAM: TeamMember[] = [
   {
-    name: "Preet Kaur",
+    name: "Preet Kalirona",
     role: "Founder & Creative Director",
     initials: "PK",
     bio: "12+ years shaping brands and digital products. Obsessed with design that drives revenue.",
