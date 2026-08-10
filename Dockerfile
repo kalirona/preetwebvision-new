@@ -1,7 +1,7 @@
 FROM oven/bun:1 AS deps
 WORKDIR /app
 COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile
+RUN bun install
 
 FROM oven/bun:1 AS builder
 WORKDIR /app
@@ -23,9 +23,10 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
 
 RUN mkdir -p /app/db
 
 EXPOSE 3010
 
-CMD ["sh", "-c", "bunx prisma db push --accept-data-loss && node server.js"]
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node server.js"]
