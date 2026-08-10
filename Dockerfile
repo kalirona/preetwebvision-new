@@ -2,12 +2,14 @@ FROM oven/bun:1 AS deps
 WORKDIR /app
 COPY package.json bun.lock ./
 RUN bun install
+RUN bun add -d prisma@6.11.1 --force
+RUN bun add @prisma/client@6.11.1 --force
 
 FROM oven/bun:1 AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN bunx prisma generate
+RUN bunx --bun prisma@6.11.1 generate
 RUN bun run build
 
 FROM oven/bun:1-slim AS runner
@@ -29,4 +31,4 @@ RUN mkdir -p /app/db
 
 EXPOSE 3010
 
-CMD ["sh", "-c", "bunx prisma db push --accept-data-loss && node server.js"]
+CMD ["sh", "-c", "bunx --bun prisma@6.11.1 db push --accept-data-loss && node server.js"]
