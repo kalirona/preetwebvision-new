@@ -1,6 +1,6 @@
 FROM oven/bun:1 AS deps
 WORKDIR /app
-COPY package.json bun.lock ./
+COPY package.json ./
 RUN bun install
 RUN bun add -d prisma@6.11.1 --force
 RUN bun add @prisma/client@6.11.1 --force
