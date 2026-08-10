@@ -29,4 +29,4 @@ RUN mkdir -p /app/db
 
 EXPOSE 3010
 
-CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node server.js"]
+CMD ["sh", "-c", "bunx prisma db push --accept-data-loss && node server.js"]
