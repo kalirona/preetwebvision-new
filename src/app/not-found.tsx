@@ -85,7 +85,7 @@ export default function NotFound() {
           {[
             { label: 'Services', hash: '#services' },
             { label: 'Work', hash: '#portfolio' },
-            { label: 'Pricing', hash: '#pricing' },
+            { label: 'Tools', hash: '#pricing' },
             { label: 'Blog', hash: '#blog' },
             { label: 'Contact', hash: '#contact' },
           ].map((link) => (

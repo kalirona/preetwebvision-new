@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
+// Force dynamic — must re-query DB on every request, not serve build-time cache
+export const dynamic = 'force-dynamic'
+
 // Public endpoint — returns only active affiliates, ordered by `order` field
 export async function GET() {
   try {

@@ -36,7 +36,7 @@ export const NAV_ITEMS: { id: PageId; label: string }[] = [
   { id: "home", label: "Home" },
   { id: "services", label: "Services" },
   { id: "about", label: "About" },
-  { id: "pricing", label: "Pricing" },
+  { id: "pricing", label: "Tools" },
   { id: "blog", label: "Blog" },
   { id: "contact", label: "Contact" },
 ];
