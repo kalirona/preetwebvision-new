@@ -56,4 +56,6 @@ server.log
 agent-ctx/
 db/*.db
 db/*.db-journal
+prisma/*.db
+prisma/*.db-journal
 .env
