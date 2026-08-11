@@ -31,7 +31,6 @@ import {
 import { FaqWithSearch } from '@/components/site/faq-with-search'
 import { AmbientBackground } from '@/components/site/ambient-background'
 import { RoiCalculator } from '@/components/site/roi-calculator'
-import { ComparisonTable } from '@/components/site/comparison-table'
 import { useNav } from '@/lib/nav-store'
 import { SERVICES, STATS, TESTIMONIALS, FAQS } from '@/lib/site-data'
 import { AffiliateBox, type AffiliateBoxItem } from '@/components/site/affiliate-box'
@@ -462,7 +461,6 @@ export function PricingPage() {
       <AffiliateSection />
       <ServiceMapping />
       <AddOns />
-      <ComparisonTable />
       <RoiSection />
       <StatsBand />
       <TestimonialHighlight />

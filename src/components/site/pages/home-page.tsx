@@ -855,8 +855,6 @@ export function HomePage() {
       <Testimonials />
       <AiDemoCta />
       <LiveStatsWidget />
-      <SvgDivider />
-      <BlogPreview />
       <TechStack />
       <FaqSection />
     </div>

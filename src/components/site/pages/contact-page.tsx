@@ -26,6 +26,7 @@ import {
   Linkedin,
   Github,
   Instagram,
+  Youtube,
   Zap,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -165,9 +166,9 @@ function ContactInfoPanel() {
     },
     {
       icon: Phone,
-      label: 'Call us',
-      value: '+91 90000 00000',
-      href: 'tel:+919000000000',
+      label: 'WhatsApp',
+      value: '+63 963 311 2000',
+      href: 'https://wa.me/639633112000',
       tile: 'bg-emerald-500/15 text-emerald-500',
     },
     {
@@ -191,6 +192,7 @@ function ContactInfoPanel() {
     { icon: Linkedin, label: 'LinkedIn', href: '#' },
     { icon: Github, label: 'GitHub', href: '#' },
     { icon: Instagram, label: 'Instagram', href: '#' },
+    { icon: Youtube, label: 'YouTube — Free Learnings', href: 'https://youtube.com/@preet_tech_ideas' },
   ]
 
   return (
@@ -302,6 +304,8 @@ function ContactInfoPanel() {
                 <a
                   key={s.label}
                   href={s.href}
+                  target={s.href.startsWith('http') ? '_blank' : undefined}
+                  rel={s.href.startsWith('http') ? 'noopener noreferrer' : undefined}
                   aria-label={s.label}
                   className="grid size-9 place-items-center rounded-xl border border-border/60 bg-card/60 text-muted-foreground transition-all hover:-translate-y-0.5 hover:border-transparent hover:bg-brand-gradient hover:text-white hover:shadow-[0_8px_24px_-8px_rgba(255,45,117,0.6)]"
                 >

@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Mail, MapPin, Phone, ArrowUpRight, Instagram, Linkedin, Twitter, Github, Send, Loader2, Check, Cookie } from 'lucide-react'
+import { Mail, MapPin, Phone, ArrowUpRight, Instagram, Linkedin, Twitter, Github, Send, Loader2, Check, Cookie, Youtube } from 'lucide-react'
 import { useNav } from '@/lib/nav-store'
 import { NAV_ITEMS, SERVICES } from '@/lib/site-data'
 import { Input } from '@/components/ui/input'
@@ -138,14 +138,17 @@ export function Footer() {
             )}
             <div className="mt-5 flex items-center gap-2">
               {[
-                { Icon: Linkedin, label: 'LinkedIn' },
-                { Icon: Twitter, label: 'Twitter' },
-                { Icon: Instagram, label: 'Instagram' },
-                { Icon: Github, label: 'GitHub' },
-              ].map(({ Icon, label }) => (
+                { Icon: Linkedin, label: 'LinkedIn', href: '#' },
+                { Icon: Twitter, label: 'Twitter', href: '#' },
+                { Icon: Instagram, label: 'Instagram', href: '#' },
+                { Icon: Github, label: 'GitHub', href: '#' },
+                { Icon: Youtube, label: 'YouTube — Free Learnings', href: 'https://youtube.com/@preet_tech_ideas' },
+              ].map(({ Icon, label, href }) => (
                 <a
                   key={label}
-                  href="#"
+                  href={href}
+                  target={href.startsWith('http') ? '_blank' : undefined}
+                  rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
                   aria-label={label}
                   className="grid size-9 place-items-center rounded-full border border-border/70 bg-background/40 text-muted-foreground transition-colors hover:text-foreground hover:border-border"
                 >
@@ -205,8 +208,8 @@ export function Footer() {
               </li>
               <li className="flex items-start gap-2.5 text-muted-foreground">
                 <Phone className="mt-0.5 size-4 shrink-0" style={{ color: 'var(--brand-orange)' }} />
-                <a href="https://wa.me/9633112000" className="hover:text-foreground">
-                  +9633112000
+                <a href="https://wa.me/639633112000" className="hover:text-foreground">
+                  +63 963 311 2000 (WhatsApp)
                 </a>
               </li>
               <li className="flex items-start gap-2.5 text-muted-foreground">
