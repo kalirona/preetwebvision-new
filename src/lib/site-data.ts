@@ -35,7 +35,6 @@ export type PageId =
 export const NAV_ITEMS: { id: PageId; label: string }[] = [
   { id: "home", label: "Home" },
   { id: "services", label: "Services" },
-  { id: "portfolio", label: "Work" },
   { id: "about", label: "About" },
   { id: "pricing", label: "Pricing" },
   { id: "blog", label: "Blog" },
