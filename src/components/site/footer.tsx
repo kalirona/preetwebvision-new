@@ -224,8 +224,8 @@ export function Footer() {
         <div className="flex flex-col items-center justify-between gap-3 border-t border-border/60 py-6 text-xs text-muted-foreground sm:flex-row">
           <p>© {new Date().getFullYear()} Preet Web Vision. Crafted with care.</p>
           <div className="flex items-center gap-4">
-            <a href="#" className="hover:text-foreground">Privacy</a>
-            <a href="#" className="hover:text-foreground">Terms</a>
+            <a href="/privacy" className="hover:text-foreground">Privacy</a>
+            <a href="/terms" className="hover:text-foreground">Terms</a>
             <button
               onClick={() => setCookiePrefsOpen(true)}
               className="flex items-center gap-1 transition-colors hover:text-foreground"

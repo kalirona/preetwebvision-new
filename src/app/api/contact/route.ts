@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { rateLimit, getClientIP } from '@/lib/rate-limit'
 
 const SERVICE_OPTIONS = [
   'Website Design & Development',
@@ -13,8 +14,23 @@ const BUDGET_OPTIONS = ['<$5k', '$5k–$15k', '$15k–$50k', '$50k+']
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit: 5 submissions per hour per IP
+    const ip = getClientIP(req)
+    const { limited } = rateLimit(`contact-${ip}`, { limit: 5, window: 3600000 })
+    if (limited) {
+      return NextResponse.json(
+        { ok: false, error: 'Too many submissions. Please try again later.' },
+        { status: 429 }
+      )
+    }
+
     const body = await req.json()
     const { name, email, company, service, budget, message } = body || {}
+
+    // Honeypot anti-spam check
+    if (body.website) {
+      return NextResponse.json({ ok: true, id: 'honeypot' })
+    }
 
     if (!name || typeof name !== 'string' || name.trim().length < 2) {
       return NextResponse.json({ ok: false, error: 'Please enter your name.' }, { status: 400 })

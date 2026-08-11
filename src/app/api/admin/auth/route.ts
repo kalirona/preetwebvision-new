@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { rateLimit, getClientIP } from '@/lib/rate-limit'
 
-// Simple credential-based admin auth
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@preetwebvision.com'
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'preet2025'
 
-// GET: check if authenticated
 export async function GET(req: NextRequest) {
   const cookie = req.cookies.get('pwv-admin')
   if (cookie?.value) {
@@ -15,6 +14,16 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    // Brute force protection: 5 attempts per 15 minutes
+    const ip = getClientIP(req)
+    const { limited } = rateLimit(`admin-login-${ip}`, { limit: 5, window: 900000 })
+    if (limited) {
+      return NextResponse.json(
+        { ok: false, error: 'Too many login attempts. Try again in 15 minutes.' },
+        { status: 429 }
+      )
+    }
+
     const { email, password } = await req.json()
 
     if (!email || !password) {
@@ -31,7 +40,7 @@ export async function POST(req: NextRequest) {
       res.cookies.set('pwv-admin', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        sameSite: 'strict',
         maxAge: 60 * 60 * 24 * 7, // 7 days
         path: '/',
       })

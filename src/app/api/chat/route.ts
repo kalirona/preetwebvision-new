@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import ZAI from 'z-ai-web-dev-sdk'
+import { rateLimit, getClientIP } from '@/lib/rate-limit'
 
 const DEFAULT_SYSTEM_PROMPT = `You are "Vision AI", the friendly, expert assistant for Preet Web Vision — a modern digital marketing agency. You live on their website as a live demo of the agency's AI automation capabilities.
 
@@ -24,6 +25,16 @@ type ChatMessage = { role: 'user' | 'assistant'; content: string }
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit: 30 messages per hour per IP
+    const ip = getClientIP(req)
+    const { limited } = rateLimit(`chat-${ip}`, { limit: 30, window: 3600000 })
+    if (limited) {
+      return NextResponse.json(
+        { ok: false, error: 'You are sending messages too fast. Please slow down.' },
+        { status: 429 }
+      )
+    }
+
     const { messages, email } = (await req.json()) as {
       messages: ChatMessage[]
       email?: string
