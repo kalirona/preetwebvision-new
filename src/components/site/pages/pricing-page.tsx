@@ -33,14 +33,8 @@ import { AmbientBackground } from '@/components/site/ambient-background'
 import { RoiCalculator } from '@/components/site/roi-calculator'
 import { ComparisonTable } from '@/components/site/comparison-table'
 import { useNav } from '@/lib/nav-store'
-import {
-  PRICING,
-  SERVICES,
-  STATS,
-  TESTIMONIALS,
-  FAQS,
-  type PricingPlan,
-} from '@/lib/site-data'
+import { SERVICES, STATS, TESTIMONIALS, FAQS } from '@/lib/site-data'
+import { AffiliateBox, type AffiliateBoxItem } from '@/components/site/affiliate-box'
 import { cn } from '@/lib/utils'
 
 /* ============================== HERO ============================== */
@@ -58,297 +52,72 @@ function Hero() {
         <Reveal>
           <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-muted/40 px-3.5 py-1.5 text-xs font-medium text-muted-foreground backdrop-blur">
             <span className="flex size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Pricing · Transparent, flexible, fair
+            Partners & affiliates
           </span>
         </Reveal>
         <Reveal delay={0.05}>
           <h1 className="mt-5 font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
-            Simple, <GradientText>transparent</GradientText> pricing
+            Tools we <GradientText>recommend</GradientText>
           </h1>
         </Reveal>
         <Reveal delay={0.12}>
           <p className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground sm:text-lg leading-relaxed">
-            Pick a plan that matches your stage. Every engagement is fixed-scope
-            or retainer — no hidden fees, no surprises. Just senior craft,
-            AI-native thinking and outcomes you can measure.
+            Remote-friendly prices and affiliate links to the tools and services we use and trust.
           </p>
-        </Reveal>
-        <Reveal delay={0.18}>
-          <div className="mt-7 flex flex-wrap items-center justify-center gap-x-5 gap-y-2.5 text-sm text-muted-foreground">
-            {reassurances.map((r) => (
-              <span key={r} className="inline-flex items-center gap-1.5">
-                <CheckCircle2 className="size-4 text-emerald-500" />
-                {r}
-              </span>
-            ))}
-          </div>
-        </Reveal>
-        <Reveal delay={0.24}>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Button
-              onClick={() => setPage('contact')}
-              className="group relative h-12 overflow-hidden rounded-full bg-brand-gradient px-6 text-base text-white shadow-[0_10px_40px_-8px_rgba(255,45,117,0.6)] hover:shadow-[0_14px_50px_-8px_rgba(255,45,117,0.85)]"
-            >
-              <span className="relative z-10 flex items-center gap-2">
-                Start a project
-                <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
-              </span>
-              <span className="absolute inset-0 animate-shimmer opacity-40" />
-            </Button>
-            <Button
-              onClick={() => setPage('contact')}
-              variant="outline"
-              className="h-12 rounded-full px-6 text-base backdrop-blur"
-            >
-              <Headset className="size-4" />
-              Talk to us
-            </Button>
-          </div>
         </Reveal>
       </div>
     </section>
   )
 }
 
-/* ============================== PRICING CARDS ============================== */
-type BillingMode = 'project' | 'monthly'
+/* ============================== AFFILIATES ============================== */
+function AffiliateSection() {
+  const [items, setItems] = React.useState<AffiliateBoxItem[]>([])
+  const [loading, setLoading] = React.useState(true)
 
-// Monthly retainer equivalents (for the billing toggle)
-const MONTHLY_PRICING: Record<string, { price: string; period: string }> = {
-  Launch: { price: '$0', period: '/ one-time' },
-  Growth: { price: '$1.9k', period: '/ month' },
-  Enterprise: { price: 'Custom', period: '/ month' },
-}
+  React.useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    fetch('/api/affiliates')
+      .then((r) => r.json())
+      .then((d) => {
+        if (!cancelled && d.ok) setItems(d.affiliates)
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
-function BillingToggle({
-  mode,
-  onChange,
-}: {
-  mode: BillingMode
-  onChange: (m: BillingMode) => void
-}) {
-  return (
-    <div className="flex items-center justify-center">
-      <div className="relative inline-flex items-center rounded-full border border-border/60 bg-muted/30 p-1 backdrop-blur">
-        {(['project', 'monthly'] as BillingMode[]).map((m) => {
-          const active = mode === m
-          return (
-            <button
-              key={m}
-              onClick={() => onChange(m)}
-              className={cn(
-                'relative rounded-full px-5 py-2 text-sm font-semibold transition-colors',
-                active ? 'text-white' : 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              {active && (
-                <motion.span
-                  layoutId="billing-pill"
-                  className="absolute inset-0 rounded-full bg-brand-gradient shadow-[0_4px_20px_-6px_rgba(255,45,117,0.6)]"
-                  transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                />
-              )}
-              <span className="relative z-10 flex items-center gap-1.5">
-                {m === 'project' ? 'One-time project' : 'Monthly retainer'}
-                {m === 'monthly' && (
-                  <span className={cn(
-                    'rounded-full px-1.5 py-0.5 text-[10px] font-bold',
-                    active ? 'bg-white/20 text-white' : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-                  )}>
-                    Save 20%
-                  </span>
-                )}
-              </span>
-            </button>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
-function PricingCards() {
-  const { setPage } = useNav()
-  const [billing, setBilling] = React.useState<BillingMode>('project')
   return (
     <section className="relative py-12 sm:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <Reveal>
-          <BillingToggle mode={billing} onChange={setBilling} />
-        </Reveal>
-        <StaggerGroup className="mt-10 grid items-stretch gap-6 lg:grid-cols-3 lg:gap-5">
-          {PRICING.map((plan) => (
-            <motion.div key={plan.name} variants={staggerItem} className="h-full">
-              <PricingCard
-                plan={plan}
-                billing={billing}
-                onCta={() => setPage('contact')}
-              />
-            </motion.div>
-          ))}
-        </StaggerGroup>
-
-        <Reveal delay={0.1}>
-          <p className="mt-8 text-center text-sm text-muted-foreground">
-            All plans include a{' '}
-            <span className="font-medium text-foreground">free discovery call</span>,{' '}
-            <span className="font-medium text-foreground">transparent timeline</span> and{' '}
-            <span className="font-medium text-foreground">weekly demos</span>. Need something
-            different? <button onClick={() => setPage('contact')} className="font-semibold text-foreground underline-offset-4 hover:underline">Tell us what you have in mind</button>.
-          </p>
-        </Reveal>
+        {loading ? (
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="h-72 animate-pulse rounded-3xl bg-muted/60" />
+            ))}
+          </div>
+        ) : (
+          <StaggerGroup className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {items.map((item, i) => (
+              <motion.div key={item.id} variants={staggerItem} className="h-full">
+                <AffiliateBox item={item} index={i} />
+              </motion.div>
+            ))}
+          </StaggerGroup>
+        )}
       </div>
     </section>
-  )
-}
-
-function PricingCard({
-  plan,
-  billing,
-  onCta,
-}: {
-  plan: PricingPlan
-  billing: BillingMode
-  onCta: () => void
-}) {
-  const featured = !!plan.featured
-  const monthly = MONTHLY_PRICING[plan.name]
-  const showPrice = billing === 'monthly' && monthly ? monthly.price : plan.price
-  const showPeriod = billing === 'monthly' && monthly ? monthly.period : plan.period
-  // For the Launch plan, monthly retainer isn't offered — show a note instead
-  const launchMonthlyNote = billing === 'monthly' && plan.name === 'Launch'
-  return (
-    <div
-      className={cn(
-        'group card-sheen relative flex h-full flex-col overflow-hidden rounded-3xl transition-all duration-300',
-        featured
-          ? 'gradient-border glow-brand lg:scale-105 lg:-translate-y-2'
-          : 'border border-border/60 bg-card hover:-translate-y-1 hover:border-border hover:shadow-xl'
-      )}
-    >
-      {/* featured gradient header strip */}
-      {featured && (
-        <div
-          className={cn(
-            'h-1.5 w-full bg-gradient-to-r',
-            plan.accent
-          )}
-          aria-hidden
-        />
-      )}
-
-      {/* featured ambient glow */}
-      {featured && (
-        <div
-          className="pointer-events-none absolute -top-20 left-1/2 size-64 -translate-x-1/2 rounded-full bg-brand-gradient opacity-20 blur-3xl"
-          aria-hidden
-        />
-      )}
-
-      <div className="relative flex flex-1 flex-col p-7 sm:p-8">
-        {/* Plan header */}
-        <div className="flex items-center justify-between">
-          <h3 className="font-display text-xl font-bold tracking-tight">
-            {plan.name}
-          </h3>
-          {featured ? (
-            <Badge className="rounded-full border-0 bg-brand-gradient px-3 py-1 text-xs font-semibold text-white shadow-md">
-              <Sparkles className="mr-1 size-3.5" />
-              Most popular
-            </Badge>
-          ) : (
-            <span className="rounded-full border border-border/60 bg-muted/40 px-3 py-1 text-xs font-medium text-muted-foreground">
-              Plan
-            </span>
-          )}
-        </div>
-
-        {/* Price */}
-        <div className="mt-5 flex items-end gap-1.5">
-          {launchMonthlyNote ? (
-            <span className="font-display text-3xl font-bold tracking-tight text-muted-foreground">
-              Retainer ready
-            </span>
-          ) : (
-            <motion.span
-              key={showPrice}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className={cn(
-                'font-display text-5xl font-bold tracking-tight',
-                featured && 'text-gradient-brand'
-              )}
-            >
-              {showPrice}
-            </motion.span>
-          )}
-          {!launchMonthlyNote && (
-            <span className="mb-1.5 text-sm font-medium text-muted-foreground">
-              {showPeriod}
-            </span>
-          )}
-        </div>
-
-        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          {launchMonthlyNote
-            ? 'Launch is a one-time project. Upgrade to a Growth or Enterprise retainer for ongoing work.'
-            : plan.description}
-        </p>
-
-        {/* CTA */}
-        <div className="mt-6">
-          {featured ? (
-            <Button
-              onClick={onCta}
-              className="group/cta relative h-11 w-full overflow-hidden rounded-full bg-brand-gradient text-white shadow-[0_8px_30px_-8px_rgba(255,45,117,0.6)] hover:shadow-[0_12px_40px_-8px_rgba(255,45,117,0.85)]"
-            >
-              <span className="relative z-10 flex items-center justify-center gap-2">
-                {plan.cta}
-                <ArrowRight className="size-4 transition-transform group-hover/cta:translate-x-1" />
-              </span>
-              <span className="absolute inset-0 animate-shimmer opacity-40" />
-            </Button>
-          ) : (
-            <Button
-              onClick={onCta}
-              variant="outline"
-              className="h-11 w-full rounded-full"
-            >
-              {plan.cta}
-              <ArrowRight className="size-4" />
-            </Button>
-          )}
-        </div>
-
-        {/* Divider */}
-        <div className="my-7 h-px w-full bg-border/60" />
-
-        {/* Features */}
-        <ul className="flex flex-1 flex-col gap-3.5">
-          {plan.features.map((f) => (
-            <li key={f} className="flex items-start gap-3 text-sm">
-              <span
-                className={cn(
-                  'mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-gradient-to-br text-white shadow-sm',
-                  plan.accent
-                )}
-              >
-                <Check className="size-3.5" strokeWidth={3} />
-              </span>
-              <span className="text-foreground/90">{f}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
   )
 }
 
 /* ============================== SERVICE MAPPING ============================== */
 function ServiceMapping() {
   const { setPage } = useNav()
-  // Map each service to a pricing hint tag
   const pricingHint: Record<string, string> = {
     'web-design': 'Starts at $2.4k',
     'ai-automation': 'Included in Growth',
@@ -504,11 +273,7 @@ function AddOns() {
                   {a.desc}
                 </p>
                 <div className="relative mt-5 flex items-center justify-between">
-                  <span
-                    className={cn(
-                      'font-display text-sm font-bold text-gradient-brand'
-                    )}
-                  >
+                  <span className="font-display text-sm font-bold text-gradient-brand">
                     {a.price}
                   </span>
                   <button
@@ -556,7 +321,6 @@ function StatsBand() {
 
 /* ============================== TESTIMONIAL HIGHLIGHT ============================== */
 function TestimonialHighlight() {
-  // Pick the ROI-focused testimonial
   const t = TESTIMONIALS[0]
   return (
     <section className="relative py-20 sm:py-28">
@@ -589,9 +353,7 @@ function TestimonialHighlight() {
               </blockquote>
               <div className="relative mt-7 flex items-center gap-3">
                 <Avatar className="size-12 border-2 border-background">
-                  <AvatarFallback
-                    className={cn('bg-gradient-to-br text-white', t.accent)}
-                  >
+                  <AvatarFallback className={cn('bg-gradient-to-br text-white', t.accent)}>
                     {t.initials}
                   </AvatarFallback>
                 </Avatar>
@@ -612,7 +374,6 @@ function TestimonialHighlight() {
 
 /* ============================== FAQ ============================== */
 function FaqSection() {
-  // Lead with the most pricing-relevant FAQs
   const pricingFaqs = [FAQS[5], FAQS[0], FAQS[2], FAQS[1], FAQS[4]]
   return (
     <section className="relative py-20 sm:py-28">
@@ -659,7 +420,7 @@ function FinalCta() {
             </Reveal>
             <Reveal delay={0.1}>
               <p className="mt-5 max-w-xl text-base text-muted-foreground sm:text-lg leading-relaxed">
-                Book a free 30-minute consultation. We&apos;ll review your goals,
+                Book a free 30-minute consultation. We'll review your goals,
                 scope and timeline — then recommend the right plan (or a custom
                 blend) with a transparent quote.
               </p>
@@ -698,7 +459,7 @@ export function PricingPage() {
   return (
     <div className="relative">
       <Hero />
-      <PricingCards />
+      <AffiliateSection />
       <ServiceMapping />
       <AddOns />
       <ComparisonTable />
@@ -719,7 +480,7 @@ function RoiSection() {
           eyebrow="See the upside"
           title={
             <>
-              What&apos;s your <GradientText>return</GradientText>?
+              What's your <GradientText>return</GradientText>?
             </>
           }
           description="Drag the sliders to estimate the revenue upside of each plan. Numbers speak louder than price tags."

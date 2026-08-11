@@ -25,12 +25,14 @@ import {
   RefreshCw,
   Settings,
   Bell,
+  X,
+  Check,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 
-type Tab = 'overview' | 'submissions' | 'chats' | 'ai'
+type Tab = 'overview' | 'submissions' | 'chats' | 'ai' | 'affiliates'
 
 /* ============ Notification Bell ============ */
 function NotificationBell() {
@@ -241,6 +243,7 @@ export default function AdminDashboard() {
             { id: 'submissions', label: 'Form Submissions', icon: Mail },
             { id: 'chats', label: 'Chat Inbox', icon: MessageSquare },
             { id: 'ai', label: 'AI Management', icon: Bot },
+            { id: 'affiliates', label: 'Affiliates', icon: ExternalLink },
           ] as { id: Tab; label: string; icon: typeof Mail }[]).map((t) => {
             const Icon = t.icon
             return (
@@ -268,6 +271,7 @@ export default function AdminDashboard() {
         {tab === 'submissions' && <SubmissionsTab />}
         {tab === 'chats' && <ChatsTab />}
         {tab === 'ai' && <AITab />}
+        {tab === 'affiliates' && <AffiliatesTab />}
       </div>
     </div>
   )
@@ -651,6 +655,251 @@ function ChatsTab() {
         )}
       </div>
     </div>
+  )
+}
+
+/* ============ AFFILIATES TAB ============ */
+type AffiliateRow = {
+  id: string
+  title: string
+  description: string | null
+  price: string | null
+  imageUrl: string | null
+  affiliateUrl: string
+  category: string | null
+  featured: boolean
+  order: number
+  active: boolean
+  createdAt: string
+}
+
+function AffiliatesTab() {
+  const [affiliates, setAffiliates] = React.useState<AffiliateRow[]>([])
+  const [loading, setLoading] = React.useState(true)
+  const [editing, setEditing] = React.useState<AffiliateRow | null>(null)
+  const [showForm, setShowForm] = React.useState(false)
+  const [saving, setSaving] = React.useState(false)
+
+  const fetchAffiliates = React.useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/admin/affiliates')
+      const data = await res.json()
+      setAffiliates(data.affiliates || [])
+    } catch { /* ignore */ } finally { setLoading(false) }
+  }, [])
+
+  React.useEffect(() => { fetchAffiliates() }, [fetchAffiliates])
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Delete this affiliate?')) return
+    await fetch('/api/admin/affiliates', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    })
+    setAffiliates((prev) => prev.filter((a) => a.id !== id))
+  }
+
+  const handleToggleActive = async (a: AffiliateRow) => {
+    await fetch('/api/admin/affiliates', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: a.id, active: !a.active }),
+    })
+    setAffiliates((prev) => prev.map((x) => (x.id === a.id ? { ...x, active: !x.active } : x)))
+  }
+
+  const handleToggleFeatured = async (a: AffiliateRow) => {
+    await fetch('/api/admin/affiliates', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: a.id, featured: !a.featured }),
+    })
+    setAffiliates((prev) => prev.map((x) => (x.id === a.id ? { ...x, featured: !x.featured } : x)))
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="font-display text-2xl font-bold tracking-tight">Affiliates</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Manage the affiliate boxes shown on the pricing page.</p>
+        </div>
+        <Button onClick={() => { setEditing(null); setShowForm(true) }} className="rounded-full bg-brand-gradient text-white">
+          <ExternalLink className="size-4" />
+          Add affiliate
+        </Button>
+      </div>
+
+      {/* Form */}
+      {showForm && (
+        <AffiliateForm
+          initial={editing}
+          onClose={() => setShowForm(false)}
+          onSaved={() => { setShowForm(false); setEditing(null); fetchAffiliates() }}
+        />
+      )}
+
+      {/* List */}
+      {loading ? (
+        <div className="flex justify-center py-12"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>
+      ) : affiliates.length === 0 ? (
+        <div className="flex flex-col items-center rounded-2xl border border-dashed border-border/60 py-16 text-center">
+          <ExternalLink className="size-10 text-muted-foreground/40" />
+          <p className="mt-3 font-display text-lg font-bold">No affiliates yet</p>
+          <p className="mt-1 text-sm text-muted-foreground">Add your first affiliate link to display it on the pricing page.</p>
+          <Button onClick={() => { setEditing(null); setShowForm(true) }} className="mt-4 rounded-full bg-brand-gradient text-white">
+            Add affiliate
+          </Button>
+        </div>
+      ) : (
+        <div className="overflow-hidden rounded-2xl border border-border/60 bg-card">
+          <div className="divide-y divide-border/40">
+            {affiliates.map((a) => (
+              <div key={a.id} className="flex items-center gap-4 p-4">
+                <div className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-muted/40">
+                  {a.imageUrl ? (
+                    <img src={a.imageUrl} alt={a.title} className="size-full object-cover" />
+                  ) : (
+                    <ExternalLink className="size-5 text-muted-foreground/50" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="truncate font-display text-sm font-bold">{a.title}</p>
+                    {a.featured && (
+                      <span className="rounded-full bg-brand-gradient px-2 py-0.5 text-[9px] font-bold uppercase text-white">Featured</span>
+                    )}
+                    {!a.active && (
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-[9px] font-bold uppercase text-muted-foreground">Hidden</span>
+                    )}
+                  </div>
+                  <p className="truncate text-xs text-muted-foreground">{a.affiliateUrl}</p>
+                  {a.price && <p className="text-xs font-semibold text-gradient-brand">{a.price}</p>}
+                </div>
+                <div className="flex shrink-0 items-center gap-1.5">
+                  <Button size="sm" variant="ghost" onClick={() => handleToggleFeatured(a)} className="rounded-full text-xs">
+                    {a.featured ? 'Unfeature' : 'Feature'}
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => handleToggleActive(a)} className="rounded-full text-xs">
+                    {a.active ? 'Hide' : 'Show'}
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => { setEditing(a); setShowForm(true) }} className="rounded-full text-xs">
+                    Edit
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => handleDelete(a.id)} className="rounded-full text-xs text-red-500 hover:text-red-600">
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function AffiliateForm({ initial, onClose, onSaved }: { initial: AffiliateRow | null; onClose: () => void; onSaved: () => void }) {
+  const [title, setTitle] = React.useState(initial?.title || '')
+  const [description, setDescription] = React.useState(initial?.description || '')
+  const [price, setPrice] = React.useState(initial?.price || '')
+  const [imageUrl, setImageUrl] = React.useState(initial?.imageUrl || '')
+  const [affiliateUrl, setAffiliateUrl] = React.useState(initial?.affiliateUrl || '')
+  const [category, setCategory] = React.useState(initial?.category || '')
+  const [featured, setFeatured] = React.useState(initial?.featured || false)
+  const [saving, setSaving] = React.useState(false)
+  const [error, setError] = React.useState('')
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!title.trim() || !affiliateUrl.trim()) {
+      setError('Title and affiliate URL are required.')
+      return
+    }
+    setSaving(true)
+    setError('')
+    try {
+      const res = await fetch('/api/admin/affiliates', {
+        method: initial ? 'PATCH' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...(initial ? { id: initial.id } : {}),
+          title: title.trim(),
+          description: description.trim() || null,
+          price: price.trim() || null,
+          imageUrl: imageUrl.trim() || null,
+          affiliateUrl: affiliateUrl.trim(),
+          category: category.trim() || null,
+          featured,
+        }),
+      })
+      const data = await res.json()
+      if (!data.ok) throw new Error(data.error || 'Failed to save')
+      onSaved()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="rounded-2xl border border-border/60 bg-card p-6">
+      <div className="flex items-center justify-between">
+        <h3 className="font-display text-lg font-bold">{initial ? 'Edit affiliate' : 'Add new affiliate'}</h3>
+        <button type="button" onClick={onClose} className="text-muted-foreground hover:text-foreground">
+          <X className="size-5" />
+        </button>
+      </div>
+      <div className="mt-5 grid gap-4 sm:grid-cols-2">
+        <div className="sm:col-span-2">
+          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Title *</label>
+          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Hostinger Web Hosting" />
+        </div>
+        <div className="sm:col-span-2">
+          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Affiliate URL *</label>
+          <Input value={affiliateUrl} onChange={(e) => setAffiliateUrl(e.target.value)} placeholder="https://affiliate.example.com/ref=you" />
+        </div>
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Price</label>
+          <Input value={price} onChange={(e) => setPrice(e.target.value)} placeholder="e.g. $2.99/mo" />
+        </div>
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Category</label>
+          <Input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="e.g. Hosting, AI, SEO" />
+        </div>
+        <div className="sm:col-span-2">
+          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Image URL</label>
+          <Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://example.com/logo.png" />
+        </div>
+        <div className="sm:col-span-2">
+          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Description</label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Short description of the tool/service…"
+            rows={3}
+            className="w-full rounded-xl border border-border/60 bg-background/60 px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-[var(--brand-pink)]"
+          />
+        </div>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={featured} onChange={(e) => setFeatured(e.target.checked)} className="size-4 accent-[var(--brand-pink)]" />
+          Featured
+        </label>
+      </div>
+      {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
+      <div className="mt-5 flex gap-2">
+        <Button type="submit" disabled={saving} className="rounded-full bg-brand-gradient text-white">
+          {saving ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+          {initial ? 'Save changes' : 'Add affiliate'}
+        </Button>
+        <Button type="button" variant="outline" onClick={onClose} className="rounded-full">
+          Cancel
+        </Button>
+      </div>
+    </form>
   )
 }
 
