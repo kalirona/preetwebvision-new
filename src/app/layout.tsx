@@ -98,6 +98,42 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          {/* Organization + WebSite schema.org JSON-LD */}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                name: "Preet Web Vision",
+                url: "https://preetwebvision.com",
+                logo: "https://preetwebvision.com/logo.svg",
+                description: "A modern digital marketing agency crafting stunning websites, AI automations, web apps, SEO and ecommerce experiences.",
+                email: "hello@preetwebvision.com",
+                telephone: "+639633112000",
+                sameAs: [
+                  "https://youtube.com/@preet_tech_ideas",
+                ],
+                areaServed: "Worldwide",
+              }),
+            }}
+          />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "WebSite",
+                name: "Preet Web Vision",
+                url: "https://preetwebvision.com",
+                potentialAction: {
+                  "@type": "SearchAction",
+                  target: "https://preetwebvision.com/#blog?q={search_term_string}",
+                  "query-input": "required name=search_term_string",
+                },
+              }),
+            }}
+          />
           {children}
           <Toaster />
           <SonnerToaster position="bottom-right" richColors closeButton />

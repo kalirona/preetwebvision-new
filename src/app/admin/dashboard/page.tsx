@@ -31,8 +31,12 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
 
-type Tab = 'overview' | 'submissions' | 'chats' | 'ai' | 'affiliates'
+// Icons used across tabs
+import { Save } from 'lucide-react'
+
+type Tab = 'overview' | 'submissions' | 'chats' | 'ai' | 'affiliates' | 'seo'
 
 /* ============ Notification Bell ============ */
 function NotificationBell() {
@@ -244,6 +248,7 @@ export default function AdminDashboard() {
             { id: 'chats', label: 'Chat Inbox', icon: MessageSquare },
             { id: 'ai', label: 'AI Management', icon: Bot },
             { id: 'affiliates', label: 'Affiliates', icon: ExternalLink },
+            { id: 'seo', label: 'SEO Settings', icon: Search },
           ] as { id: Tab; label: string; icon: typeof Mail }[]).map((t) => {
             const Icon = t.icon
             return (
@@ -272,6 +277,7 @@ export default function AdminDashboard() {
         {tab === 'chats' && <ChatsTab />}
         {tab === 'ai' && <AITab />}
         {tab === 'affiliates' && <AffiliatesTab />}
+        {tab === 'seo' && <SeoTab />}
       </div>
     </div>
   )
@@ -1009,6 +1015,219 @@ function AITab() {
           )}
         </div>
       </div>
+    </div>
+  )
+}
+
+/* ============ SEO SETTINGS TAB ============ */
+import { Textarea } from '@/components/ui/textarea'
+
+function SeoTab() {
+  const [settings, setSettings] = React.useState<Record<string, string>>({})
+  const [loaded, setLoaded] = React.useState(false)
+  const [saving, setSaving] = React.useState(false)
+
+  React.useEffect(() => {
+    fetch('/api/admin/seo')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.ok) setSettings(data.settings)
+        setLoaded(true)
+      })
+      .catch(() => setLoaded(true))
+  }, [])
+
+  const save = async (updates: Record<string, string>) => {
+    setSaving(true)
+    try {
+      await fetch('/api/admin/seo', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      })
+      setSettings((prev) => ({ ...prev, ...updates }))
+      toast.success('SEO settings saved!')
+    } catch {
+      toast.error('Failed to save SEO settings')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (!loaded) {
+    return <div className="flex justify-center py-12"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="font-display text-2xl font-bold tracking-tight">SEO Settings</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Manage site-wide SEO, sitemap, robots.txt, schema.org, and social metadata.</p>
+      </div>
+
+      {/* General SEO */}
+      <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-4">
+        <h3 className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">General SEO</h3>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="mb-1 block text-xs font-semibold">Site Name</label>
+            <Input value={settings.site_name || ''} onChange={(e) => setSettings((s) => ({ ...s, site_name: e.target.value }))} className="bg-muted/30" />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold">Canonical URL</label>
+            <Input value={settings.canonical_url || ''} onChange={(e) => setSettings((s) => ({ ...s, canonical_url: e.target.value }))} className="bg-muted/30" placeholder="https://preetwebvision.com" />
+          </div>
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold">Site Title (meta title)</label>
+          <Input value={settings.site_title || ''} onChange={(e) => setSettings((s) => ({ ...s, site_title: e.target.value }))} className="bg-muted/30" />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold">Meta Description</label>
+          <Textarea value={settings.site_description || ''} onChange={(e) => setSettings((s) => ({ ...s, site_description: e.target.value }))} rows={2} className="bg-muted/30" />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold">Keywords (comma-separated)</label>
+          <Input value={settings.site_keywords || ''} onChange={(e) => setSettings((s) => ({ ...s, site_keywords: e.target.value }))} className="bg-muted/30" />
+        </div>
+      </div>
+
+      {/* Open Graph / Social */}
+      <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-4">
+        <h3 className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">Open Graph & Social</h3>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="mb-1 block text-xs font-semibold">OG Image URL</label>
+            <Input value={settings.og_image_url || ''} onChange={(e) => setSettings((s) => ({ ...s, og_image_url: e.target.value }))} className="bg-muted/30" placeholder="/og-image.png" />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold">Twitter Handle</label>
+            <Input value={settings.twitter_handle || ''} onChange={(e) => setSettings((s) => ({ ...s, twitter_handle: e.target.value }))} className="bg-muted/30" placeholder="@preetwebvision" />
+          </div>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="mb-1 block text-xs font-semibold">Google Analytics ID</label>
+            <Input value={settings.google_analytics_id || ''} onChange={(e) => setSettings((s) => ({ ...s, google_analytics_id: e.target.value }))} className="bg-muted/30" placeholder="G-XXXXXXXXXX" />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold">Google Search Console (verification code)</label>
+            <Input value={settings.google_search_console || ''} onChange={(e) => setSettings((s) => ({ ...s, google_search_console: e.target.value }))} className="bg-muted/30" placeholder="google-site-verification code" />
+          </div>
+        </div>
+      </div>
+
+      {/* Schema.org */}
+      <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-4">
+        <h3 className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">Schema.org Structured Data</h3>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="mb-1 block text-xs font-semibold">Organization Name</label>
+            <Input value={settings.schema_organization_name || ''} onChange={(e) => setSettings((s) => ({ ...s, schema_organization_name: e.target.value }))} className="bg-muted/30" />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold">Organization URL</label>
+            <Input value={settings.schema_organization_url || ''} onChange={(e) => setSettings((s) => ({ ...s, schema_organization_url: e.target.value }))} className="bg-muted/30" />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold">Logo URL</label>
+            <Input value={settings.schema_organization_logo || ''} onChange={(e) => setSettings((s) => ({ ...s, schema_organization_logo: e.target.value }))} className="bg-muted/30" />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold">Email</label>
+            <Input value={settings.schema_organization_email || ''} onChange={(e) => setSettings((s) => ({ ...s, schema_organization_email: e.target.value }))} className="bg-muted/30" />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold">Phone</label>
+            <Input value={settings.schema_organization_phone || ''} onChange={(e) => setSettings((s) => ({ ...s, schema_organization_phone: e.target.value }))} className="bg-muted/30" />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold">Address</label>
+            <Input value={settings.schema_organization_address || ''} onChange={(e) => setSettings((s) => ({ ...s, schema_organization_address: e.target.value }))} className="bg-muted/30" />
+          </div>
+        </div>
+      </div>
+
+      {/* Sitemap Settings */}
+      <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-4">
+        <h3 className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">Sitemap Configuration</h3>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="mb-1 block text-xs font-semibold">Home Priority (0.0–1.0)</label>
+            <Input value={settings.sitemap_priority_home || '1.0'} onChange={(e) => setSettings((s) => ({ ...s, sitemap_priority_home: e.target.value }))} className="bg-muted/30" />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold">Services Priority</label>
+            <Input value={settings.sitemap_priority_services || '0.9'} onChange={(e) => setSettings((s) => ({ ...s, sitemap_priority_services: e.target.value }))} className="bg-muted/30" />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold">Blog Priority</label>
+            <Input value={settings.sitemap_priority_blog || '0.8'} onChange={(e) => setSettings((s) => ({ ...s, sitemap_priority_blog: e.target.value }))} className="bg-muted/30" />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold">Other Pages Priority</label>
+            <Input value={settings.sitemap_priority_other || '0.6'} onChange={(e) => setSettings((s) => ({ ...s, sitemap_priority_other: e.target.value }))} className="bg-muted/30" />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold">Home Change Freq</label>
+            <select value={settings.sitemap_changefreq_home || 'weekly'} onChange={(e) => setSettings((s) => ({ ...s, sitemap_changefreq_home: e.target.value }))} className="h-9 w-full rounded-md border border-border bg-muted/30 px-3 text-sm">
+              <option value="always">always</option><option value="hourly">hourly</option><option value="daily">daily</option><option value="weekly">weekly</option><option value="monthly">monthly</option><option value="yearly">yearly</option>
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold">Blog Change Freq</label>
+            <select value={settings.sitemap_changefreq_blog || 'weekly'} onChange={(e) => setSettings((s) => ({ ...s, sitemap_changefreq_blog: e.target.value }))} className="h-9 w-full rounded-md border border-border bg-muted/30 px-3 text-sm">
+              <option value="daily">daily</option><option value="weekly">weekly</option><option value="monthly">monthly</option>
+            </select>
+          </div>
+        </div>
+        <a href="/sitemap.xml" target="_blank" className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--brand-pink)] hover:underline">
+          View sitemap.xml <ExternalLink className="size-3.5" />
+        </a>
+      </div>
+
+      {/* Robots.txt Settings */}
+      <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-4">
+        <h3 className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">Robots.txt Configuration</h3>
+        <div className="space-y-2">
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={settings.robots_allow_all !== 'false'} onChange={(e) => setSettings((s) => ({ ...s, robots_allow_all: String(e.target.checked) }))} className="size-4 rounded" />
+            Allow all crawlers to index the site
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={settings.robots_disallow_admin !== 'false'} onChange={(e) => setSettings((s) => ({ ...s, robots_disallow_admin: String(e.target.checked) }))} className="size-4 rounded" />
+            Disallow /admin (block admin pages from indexing)
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={settings.robots_disallow_api !== 'false'} onChange={(e) => setSettings((s) => ({ ...s, robots_disallow_api: String(e.target.checked) }))} className="size-4 rounded" />
+            Disallow /api (block API routes from indexing)
+          </label>
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold">Sitemap URL in robots.txt</label>
+          <Input value={settings.robots_sitemap_url || ''} onChange={(e) => setSettings((s) => ({ ...s, robots_sitemap_url: e.target.value }))} className="bg-muted/30" />
+        </div>
+        <a href="/robots.txt" target="_blank" className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--brand-pink)] hover:underline">
+          View robots.txt <ExternalLink className="size-3.5" />
+        </a>
+      </div>
+
+      {/* Social Links */}
+      <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-4">
+        <h3 className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">Social Links (for schema.org)</h3>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div><label className="mb-1 block text-xs font-semibold">YouTube</label><Input value={settings.social_youtube || ''} onChange={(e) => setSettings((s) => ({ ...s, social_youtube: e.target.value }))} className="bg-muted/30" /></div>
+          <div><label className="mb-1 block text-xs font-semibold">LinkedIn</label><Input value={settings.social_linkedin || ''} onChange={(e) => setSettings((s) => ({ ...s, social_linkedin: e.target.value }))} className="bg-muted/30" /></div>
+          <div><label className="mb-1 block text-xs font-semibold">Twitter</label><Input value={settings.social_twitter || ''} onChange={(e) => setSettings((s) => ({ ...s, social_twitter: e.target.value }))} className="bg-muted/30" /></div>
+          <div><label className="mb-1 block text-xs font-semibold">Instagram</label><Input value={settings.social_instagram || ''} onChange={(e) => setSettings((s) => ({ ...s, social_instagram: e.target.value }))} className="bg-muted/30" /></div>
+          <div><label className="mb-1 block text-xs font-semibold">GitHub</label><Input value={settings.social_github || ''} onChange={(e) => setSettings((s) => ({ ...s, social_github: e.target.value }))} className="bg-muted/30" /></div>
+        </div>
+      </div>
+
+      <Button onClick={() => save(settings)} disabled={saving} className="rounded-full bg-brand-gradient text-white">
+        {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
+        Save All SEO Settings
+      </Button>
     </div>
   )
 }

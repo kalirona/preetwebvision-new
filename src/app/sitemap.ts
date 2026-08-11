@@ -1,24 +1,53 @@
 import type { MetadataRoute } from 'next'
+import { getSeoSettings } from '@/lib/seo-settings'
+import { SERVICES } from '@/lib/site-data'
+import { BLOG_POSTS } from '@/lib/content-data'
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const base = 'https://preetwebvision.com'
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const settings = await getSeoSettings()
+  const base = settings.canonical_url || 'https://preetwebvision.com'
   const now = new Date()
 
-  // The site is a single-route SPA, but we declare logical pages for SEO
-  const pages = [
-    { path: '/', priority: 1.0, changeFrequency: 'weekly' as const },
-    { path: '/#services', priority: 0.9, changeFrequency: 'monthly' as const },
-    { path: '/#portfolio', priority: 0.9, changeFrequency: 'weekly' as const },
-    { path: '/#about', priority: 0.8, changeFrequency: 'monthly' as const },
-    { path: '/#pricing', priority: 0.8, changeFrequency: 'monthly' as const },
-    { path: '/#blog', priority: 0.7, changeFrequency: 'weekly' as const },
-    { path: '/#contact', priority: 0.9, changeFrequency: 'monthly' as const },
+  const priorityHome = parseFloat(settings.sitemap_priority_home || '1.0')
+  const priorityServices = parseFloat(settings.sitemap_priority_services || '0.9')
+  const priorityBlog = parseFloat(settings.sitemap_priority_blog || '0.8')
+  const priorityOther = parseFloat(settings.sitemap_priority_other || '0.6')
+
+  const freqHome = (settings.sitemap_changefreq_home || 'weekly') as MetadataRoute.Sitemap[number]['changeFrequency']
+  const freqServices = (settings.sitemap_changefreq_services || 'monthly') as MetadataRoute.Sitemap[number]['changeFrequency']
+  const freqBlog = (settings.sitemap_changefreq_blog || 'weekly') as MetadataRoute.Sitemap[number]['changeFrequency']
+
+  const pages: MetadataRoute.Sitemap = [
+    { url: `${base}/`, lastModified: now, changeFrequency: freqHome, priority: priorityHome },
+    { url: `${base}/#services`, lastModified: now, changeFrequency: freqServices, priority: priorityServices },
+    { url: `${base}/#portfolio`, lastModified: now, changeFrequency: freqServices, priority: priorityServices },
+    { url: `${base}/#about`, lastModified: now, changeFrequency: freqServices, priority: priorityOther },
+    { url: `${base}/#pricing`, lastModified: now, changeFrequency: freqServices, priority: priorityOther },
+    { url: `${base}/#blog`, lastModified: now, changeFrequency: freqBlog, priority: priorityBlog },
+    { url: `${base}/#contact`, lastModified: now, changeFrequency: freqServices, priority: priorityServices },
+    { url: `${base}/privacy`, lastModified: now, changeFrequency: 'yearly' as const, priority: 0.3 },
+    { url: `${base}/terms`, lastModified: now, changeFrequency: 'yearly' as const, priority: 0.3 },
   ]
 
-  return pages.map((p) => ({
-    url: `${base}${p.path}`,
-    lastModified: now,
-    changeFrequency: p.changeFrequency,
-    priority: p.priority,
-  }))
+  // Add service detail pages
+  for (const service of SERVICES) {
+    pages.push({
+      url: `${base}/services/${service.slug}`,
+      lastModified: now,
+      changeFrequency: freqServices,
+      priority: priorityServices,
+    })
+  }
+
+  // Add blog article pages (as hash URLs since blog is SPA)
+  for (const post of BLOG_POSTS) {
+    pages.push({
+      url: `${base}/#blog`,
+      lastModified: new Date(post.date),
+      changeFrequency: freqBlog,
+      priority: priorityBlog,
+    })
+  }
+
+  return pages
 }
