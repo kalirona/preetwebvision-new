@@ -43,7 +43,6 @@ import {
   SERVICES,
   STATS,
   PROCESS,
-  PROJECTS,
   TESTIMONIALS,
   FAQS,
   TRUSTED_BY,
@@ -121,14 +120,6 @@ function Hero() {
                     <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
                   </span>
                   <span className="absolute inset-0 animate-shimmer opacity-40" />
-                </Button>
-                <Button
-                  onClick={() => setPage('portfolio')}
-                  variant="outline"
-                  className="h-12 rounded-full px-6 text-base backdrop-blur"
-                >
-                  <Play className="size-4" />
-                  View our work
                 </Button>
               </div>
             </Reveal>
@@ -522,76 +513,6 @@ function Process() {
   )
 }
 
-/* ============================== PORTFOLIO PREVIEW ============================== */
-function PortfolioPreview() {
-  const { setPage } = useNav()
-  const featured = PROJECTS.slice(0, 4)
-  return (
-    <section className="relative py-20 sm:py-28">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
-          <SectionHeading
-            align="left"
-            eyebrow="Selected work"
-            title={
-              <>
-                Results we&apos;re <GradientText>proud of</GradientText>
-              </>
-            }
-            description="A glimpse of recent projects across ecommerce, AI, web apps and brand sites."
-            className="max-w-xl"
-          />
-          <Reveal delay={0.1}>
-            <Button
-              onClick={() => setPage('portfolio')}
-              variant="outline"
-              className="rounded-full"
-            >
-              View all work
-              <ArrowRight className="size-4" />
-            </Button>
-          </Reveal>
-        </div>
-
-        <StaggerGroup className="mt-12 grid gap-5 sm:grid-cols-2">
-          {featured.map((p) => (
-            <motion.button
-              key={p.id}
-              variants={staggerItem}
-              onClick={() => setPage('portfolio')}
-              className="group relative aspect-[16/11] overflow-hidden rounded-3xl border border-border/60 text-left"
-            >
-              <div className={cn('absolute inset-0 bg-gradient-to-br', p.gradient)} />
-              <div className="absolute inset-0 grid-bg opacity-20" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-              <span className="absolute right-4 top-4 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
-                {p.category}
-              </span>
-              <span className="absolute left-4 top-4 text-4xl drop-shadow-lg">{p.emoji}</span>
-              <div className="absolute inset-x-0 bottom-0 p-5">
-                <p className="text-xs text-white/70">{p.client} · {p.year}</p>
-                <h3 className="mt-1 font-display text-lg font-bold text-white">{p.title}</h3>
-                <p className="mt-1.5 text-sm text-white/80 line-clamp-2">{p.blurb}</p>
-                <div className="mt-3 flex flex-wrap gap-3">
-                  {p.metric.map((m) => (
-                    <div key={m.label} className="rounded-lg bg-white/10 px-2.5 py-1 backdrop-blur">
-                      <p className="text-[10px] uppercase tracking-wide text-white/60">{m.label}</p>
-                      <p className="text-sm font-bold text-white">{m.value}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <span className="absolute right-4 top-1/2 grid size-11 -translate-y-1/2 translate-x-4 place-items-center rounded-full bg-white text-black opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100">
-                <ArrowRight className="size-5" />
-              </span>
-            </motion.button>
-          ))}
-        </StaggerGroup>
-      </div>
-    </section>
-  )
-}
-
 /* ============================== TESTIMONIALS ============================== */
 function Testimonials() {
   const [active, setActive] = React.useState(0)
@@ -931,7 +852,6 @@ export function HomePage() {
       <WhyUs />
       <Process />
       <SvgDivider />
-      <PortfolioPreview />
       <Testimonials />
       <AiDemoCta />
       <LiveStatsWidget />
