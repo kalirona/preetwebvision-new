@@ -2,6 +2,7 @@ FROM node:20-slim AS deps
 WORKDIR /app
 COPY package.json bun.lock ./
 RUN npm install --legacy-peer-deps
+RUN npm install prisma@6.11.1 --save-dev
 
 FROM node:20-slim AS builder
 WORKDIR /app
