@@ -5,9 +5,9 @@ services:
     ports:
       - "3010:3010"
     environment:
-      - DATABASE_URL=file:/app/db/custom.db
-      - ADMIN_EMAIL=admin@preetwebvision.com
-      - ADMIN_PASSWORD=preet2025
+      - DATABASE_URL=${DATABASE_URL:-file:/app/db/custom.db}
+      - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@preetwebvision.com}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-preet2025}
       - NODE_ENV=production
       - PORT=3010
       - HOSTNAME=0.0.0.0
