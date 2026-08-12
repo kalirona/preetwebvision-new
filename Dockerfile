@@ -2,11 +2,13 @@ FROM node:20-slim AS deps
 WORKDIR /app
 COPY package.json bun.lock ./
 RUN npm install --legacy-peer-deps
-RUN npm install prisma@6.11.1 --save-dev
+RUN npm install -g prisma@6.11.1
 
 FROM node:20-slim AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /usr/local/lib/node_modules/prisma /usr/local/lib/node_modules/prisma
+COPY --from=deps /usr/local/bin/prisma /usr/local/bin/prisma
 COPY . .
 RUN npx prisma generate
 RUN npx next build
@@ -24,10 +26,11 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
+COPY --from=deps /usr/local/lib/node_modules/prisma /usr/local/lib/node_modules/prisma
+COPY --from=deps /usr/local/bin/prisma /usr/local/bin/prisma
 
 RUN mkdir -p /app/db
 
 EXPOSE 3010
 
-CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node server.js"]
+CMD ["sh", "-c", "prisma db push --accept-data-loss && node server.js"]
