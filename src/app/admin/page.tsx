@@ -81,7 +81,7 @@ export default function AdminLoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@preetwebvision.com"
+                  placeholder="you@example.com"
                   className="h-11 rounded-xl bg-muted/30 pl-10"
                   disabled={loading}
                 />
@@ -130,15 +130,9 @@ export default function AdminLoginPage() {
             </Button>
           </form>
 
-          {/* Demo credentials hint */}
-          <div className="mt-6 rounded-xl border border-border/60 bg-muted/20 p-3.5 text-center text-xs text-muted-foreground">
-            <p className="font-semibold text-foreground">Demo credentials</p>
-            <p className="mt-1">admin@preetwebvision.com · preet2025</p>
-          </div>
-
           <a
             href="/"
-            className="mt-5 flex items-center justify-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            className="mt-6 flex items-center justify-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             ← Back to website
           </a>
