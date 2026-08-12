@@ -1,18 +1,16 @@
-FROM oven/bun:1 AS deps
+FROM node:20-slim AS deps
 WORKDIR /app
-COPY package.json ./
-RUN bun install
-RUN bun add -d prisma@6.11.1 --force
-RUN bun add @prisma/client@6.11.1 --force
+COPY package.json bun.lock ./
+RUN npm install --legacy-peer-deps
 
-FROM oven/bun:1 AS builder
+FROM node:20-slim AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN bunx --bun prisma@6.11.1 generate
-RUN bun run build
+RUN npx prisma generate
+RUN npx next build
 
-FROM oven/bun:1-slim AS runner
+FROM node:20-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -31,4 +29,4 @@ RUN mkdir -p /app/db
 
 EXPOSE 3010
 
-CMD ["sh", "-c", "bunx --bun prisma@6.11.1 db push --accept-data-loss && node server.js"]
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node server.js"]
