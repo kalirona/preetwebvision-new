@@ -34,9 +34,9 @@ import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 
 // Icons used across tabs
-import { Save } from 'lucide-react'
+import { Save, BookOpen } from 'lucide-react'
 
-type Tab = 'overview' | 'submissions' | 'chats' | 'ai' | 'affiliates' | 'seo'
+type Tab = 'overview' | 'submissions' | 'chats' | 'ai' | 'affiliates' | 'seo' | 'blog'
 
 /* ============ Notification Bell ============ */
 function NotificationBell() {
@@ -249,6 +249,7 @@ export default function AdminDashboard() {
             { id: 'ai', label: 'AI Management', icon: Bot },
             { id: 'affiliates', label: 'Affiliates', icon: ExternalLink },
             { id: 'seo', label: 'SEO Settings', icon: Search },
+            { id: 'blog', label: 'Blog Posts', icon: BookOpen },
           ] as { id: Tab; label: string; icon: typeof Mail }[]).map((t) => {
             const Icon = t.icon
             return (
@@ -278,6 +279,7 @@ export default function AdminDashboard() {
         {tab === 'ai' && <AITab />}
         {tab === 'affiliates' && <AffiliatesTab />}
         {tab === 'seo' && <SeoTab />}
+        {tab === 'blog' && <BlogTab />}
       </div>
     </div>
   )
@@ -1228,6 +1230,335 @@ function SeoTab() {
         {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
         Save All SEO Settings
       </Button>
+    </div>
+  )
+}
+
+/* ============ BLOG MANAGEMENT TAB ============ */
+type BlogPostRow = {
+  id: string
+  title: string
+  slug: string
+  excerpt: string
+  content: string
+  category: string
+  author: string
+  authorRole: string
+  authorInitials: string
+  authorAccent: string
+  imageUrl: string | null
+  featured: boolean
+  status: string
+  createdAt: string
+  updatedAt: string
+}
+
+function BlogTab() {
+  const [posts, setPosts] = React.useState<BlogPostRow[]>([])
+  const [loading, setLoading] = React.useState(true)
+  const [editing, setEditing] = React.useState<BlogPostRow | null>(null)
+  const [showForm, setShowForm] = React.useState(false)
+
+  const fetchPosts = React.useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/admin/blog')
+      const data = await res.json()
+      setPosts(data.posts || [])
+    } catch { /* ignore */ } finally { setLoading(false) }
+  }, [])
+
+  React.useEffect(() => { fetchPosts() }, [fetchPosts])
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Delete this blog post? This cannot be undone.')) return
+    await fetch('/api/admin/blog', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
+    setPosts((prev) => prev.filter((p) => p.id !== id))
+    toast.success('Post deleted')
+  }
+
+  const handleToggleFeatured = async (post: BlogPostRow) => {
+    await fetch('/api/admin/blog', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: post.id, featured: !post.featured }),
+    })
+    setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, featured: !p.featured } : p)))
+  }
+
+  const handleToggleStatus = async (post: BlogPostRow) => {
+    const newStatus = post.status === 'published' ? 'draft' : 'published'
+    await fetch('/api/admin/blog', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: post.id, status: newStatus }),
+    })
+    setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, status: newStatus } : p)))
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="font-display text-2xl font-bold tracking-tight">Blog Posts</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Create, edit, and publish blog articles. Changes appear instantly on the website.</p>
+        </div>
+        <Button onClick={() => { setEditing(null); setShowForm(true) }} className="rounded-full bg-brand-gradient text-white">
+          <BookOpen className="size-4" />
+          New post
+        </Button>
+      </div>
+
+      {showForm && (
+        <BlogPostForm
+          initial={editing}
+          onClose={() => { setShowForm(false); setEditing(null) }}
+          onSaved={() => { setShowForm(false); setEditing(null); fetchPosts() }}
+        />
+      )}
+
+      {loading ? (
+        <div className="flex justify-center py-12"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>
+      ) : posts.length === 0 ? (
+        <div className="flex flex-col items-center rounded-2xl border border-dashed border-border/60 py-16 text-center">
+          <BookOpen className="size-10 text-muted-foreground/40" />
+          <p className="mt-3 font-display text-lg font-bold">No blog posts yet</p>
+          <p className="mt-1 text-sm text-muted-foreground">Write your first article to publish it on the blog.</p>
+          <Button onClick={() => { setEditing(null); setShowForm(true) }} className="mt-4 rounded-full bg-brand-gradient text-white">
+            Write first post
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {posts.map((post) => (
+            <div key={post.id} className="flex items-start gap-4 rounded-2xl border border-border/60 bg-card p-4">
+              <div className="size-16 shrink-0 overflow-hidden rounded-xl bg-muted">
+                {post.imageUrl && <img src={post.imageUrl} alt={post.title} className="size-full object-cover" />}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate font-display text-sm font-bold">{post.title}</p>
+                    <p className="truncate text-xs text-muted-foreground">{post.excerpt || 'No excerpt'}</p>
+                  </div>
+                  <div className="flex shrink-0 gap-1">
+                    <button onClick={() => handleToggleFeatured(post)} className={cn('rounded-full px-2 py-1 text-[10px] font-bold uppercase', post.featured ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400' : 'bg-muted text-muted-foreground')} title="Toggle featured">
+                      ★
+                    </button>
+                    <button onClick={() => handleToggleStatus(post)} className={cn('rounded-full px-2 py-1 text-[10px] font-bold uppercase', post.status === 'published' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-muted text-muted-foreground')}>
+                      {post.status}
+                    </button>
+                  </div>
+                </div>
+                <div className="mt-2 flex items-center gap-3 text-[10px] text-muted-foreground">
+                  <span>{post.category}</span>
+                  <span>·</span>
+                  <span>{post.author}</span>
+                  <span>·</span>
+                  <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+                </div>
+                <div className="mt-2 flex gap-2">
+                  <Button size="sm" variant="ghost" onClick={() => { setEditing(post); setShowForm(true) }} className="rounded-full text-xs">
+                    Edit
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => handleDelete(post.id)} className="rounded-full text-xs text-destructive hover:text-destructive">
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ============ BLOG POST FORM ============ */
+function BlogPostForm({ initial, onClose, onSaved }: { initial: BlogPostRow | null; onClose: () => void; onSaved: () => void }) {
+  const [title, setTitle] = React.useState(initial?.title || '')
+  const [slug, setSlug] = React.useState(initial?.slug || '')
+  const [excerpt, setExcerpt] = React.useState(initial?.excerpt || '')
+  const [content, setContent] = React.useState(initial?.content || '[{"type":"p","text":""}]')
+  const [category, setCategory] = React.useState(initial?.category || 'Web Design')
+  const [author, setAuthor] = React.useState(initial?.author || 'Preet Kaur')
+  const [authorRole, setAuthorRole] = React.useState(initial?.authorRole || 'Founder & Creative Director')
+  const [authorInitials, setAuthorInitials] = React.useState(initial?.authorInitials || 'PK')
+  const [authorAccent, setAuthorAccent] = React.useState(initial?.authorAccent || 'from-orange-500 to-pink-500')
+  const [imageUrl, setImageUrl] = React.useState(initial?.imageUrl || '')
+  const [featured, setFeatured] = React.useState(initial?.featured || false)
+  const [status, setStatus] = React.useState(initial?.status || 'published')
+  const [saving, setSaving] = React.useState(false)
+  const [contentType, setContentType] = React.useState<'json' | 'plain'>('json')
+
+  // Parse content for editing
+  React.useEffect(() => {
+    try {
+      const parsed = JSON.parse(content)
+      if (Array.isArray(parsed)) {
+        setContentType('json')
+      }
+    } catch {
+      setContentType('plain')
+    }
+  }, [])
+
+  const generateSlug = (title: string) => {
+    return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+  }
+
+  const handleTitleChange = (val: string) => {
+    setTitle(val)
+    if (!initial) setSlug(generateSlug(val))
+  }
+
+  const save = async () => {
+    if (!title || !slug) {
+      toast.error('Title and slug are required')
+      return
+    }
+    setSaving(true)
+    try {
+      const method = initial ? 'PUT' : 'POST'
+      const body = { id: initial?.id, title, slug, excerpt, content, category, author, authorRole, authorInitials, authorAccent, imageUrl, featured, status }
+      const res = await fetch('/api/admin/blog', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const data = await res.json()
+      if (!data.ok) throw new Error(data.error || 'Save failed')
+      toast.success(initial ? 'Post updated!' : 'Post created!')
+      onSaved()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Save failed')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const parseContentToPlainText = () => {
+    try {
+      const blocks = JSON.parse(content)
+      return blocks.map((b: { text?: string }) => b.text || '').join('\n\n')
+    } catch {
+      return content
+    }
+  }
+
+  const plainToContent = (plain: string) => {
+    const paragraphs = plain.split(/\n\n+/).filter(Boolean)
+    const blocks = paragraphs.map((text) => ({ type: 'p', text: text.trim() }))
+    return JSON.stringify(blocks)
+  }
+
+  return (
+    <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="font-display text-lg font-bold">{initial ? 'Edit Post' : 'New Blog Post'}</h3>
+        <Button size="sm" variant="ghost" onClick={onClose} className="rounded-full">✕</Button>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label className="mb-1 block text-xs font-semibold">Title *</label>
+          <Input value={title} onChange={(e) => handleTitleChange(e.target.value)} className="bg-muted/30" placeholder="How to scale your ecommerce store..." />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold">Slug *</label>
+          <Input value={slug} onChange={(e) => setSlug(e.target.value)} className="bg-muted/30 font-mono text-xs" placeholder="how-to-scale-ecommerce" />
+        </div>
+      </div>
+
+      <div>
+        <label className="mb-1 block text-xs font-semibold">Excerpt (summary shown in card)</label>
+        <Textarea value={excerpt} onChange={(e) => setExcerpt(e.target.value)} rows={2} className="bg-muted/30" placeholder="A short summary of the article..." />
+      </div>
+
+      <div>
+        <div className="mb-1 flex items-center justify-between">
+          <label className="text-xs font-semibold">Content</label>
+          <div className="flex gap-1">
+            <button onClick={() => { setContent(plainToContent(parseContentToPlainText())); setContentType('plain') }} className={cn('rounded px-2 py-0.5 text-[10px] font-bold', contentType === 'plain' ? 'bg-brand-gradient text-white' : 'bg-muted text-muted-foreground')}>
+              Plain text
+            </button>
+            <button onClick={() => setContentType('json')} className={cn('rounded px-2 py-0.5 text-[10px] font-bold', contentType === 'json' ? 'bg-brand-gradient text-white' : 'bg-muted text-muted-foreground')}>
+              JSON blocks
+            </button>
+          </div>
+        </div>
+        {contentType === 'plain' ? (
+          <Textarea
+            value={parseContentToPlainText()}
+            onChange={(e) => setContent(plainToContent(e.target.value))}
+            rows={10}
+            className="bg-muted/30 font-mono text-xs"
+            placeholder="Write your article here. Separate paragraphs with a blank line."
+          />
+        ) : (
+          <Textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            rows={10}
+            className="bg-muted/30 font-mono text-xs"
+            placeholder='[{"type":"p","text":"Your paragraph"},{"type":"h2","text":"Heading"},{"type":"ul","items":["Item 1","Item 2"]}]'
+          />
+        )}
+        <p className="mt-1 text-[10px] text-muted-foreground">
+          {contentType === 'plain' ? 'Separate paragraphs with blank lines. Each becomes a <p> block.' : 'JSON array of content blocks: {type, text} or {type:"ul", items:[]}'}
+        </p>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <div>
+          <label className="mb-1 block text-xs font-semibold">Category</label>
+          <select value={category} onChange={(e) => setCategory(e.target.value)} className="h-9 w-full rounded-md border border-border bg-muted/30 px-3 text-sm">
+            <option>Web Design</option><option>AI</option><option>SEO</option><option>Ecommerce</option><option>Growth</option>
+          </select>
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold">Image URL</label>
+          <Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} className="bg-muted/30" placeholder="/blog/b1.png" />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold">Status</label>
+          <select value={status} onChange={(e) => setStatus(e.target.value)} className="h-9 w-full rounded-md border border-border bg-muted/30 px-3 text-sm">
+            <option value="published">Published</option><option value="draft">Draft</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-4">
+        <div>
+          <label className="mb-1 block text-xs font-semibold">Author</label>
+          <Input value={author} onChange={(e) => setAuthor(e.target.value)} className="bg-muted/30" />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold">Author Role</label>
+          <Input value={authorRole} onChange={(e) => setAuthorRole(e.target.value)} className="bg-muted/30" />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold">Initials</label>
+          <Input value={authorInitials} onChange={(e) => setAuthorInitials(e.target.value)} className="bg-muted/30" maxLength={3} />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold">Accent (tailwind)</label>
+          <Input value={authorAccent} onChange={(e) => setAuthorAccent(e.target.value)} className="bg-muted/30 text-xs" />
+        </div>
+      </div>
+
+      <label className="flex items-center gap-2 text-sm">
+        <input type="checkbox" checked={featured} onChange={(e) => setFeatured(e.target.checked)} className="size-4 rounded" />
+        Featured post (shown as the large highlighted card)
+      </label>
+
+      <div className="flex gap-2">
+        <Button onClick={save} disabled={saving} className="rounded-full bg-brand-gradient text-white">
+          {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
+          {initial ? 'Update post' : 'Create post'}
+        </Button>
+        <Button variant="outline" onClick={onClose} className="rounded-full">Cancel</Button>
+      </div>
     </div>
   )
 }
