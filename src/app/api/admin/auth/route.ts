@@ -33,7 +33,13 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+    // Case-insensitive email + trim whitespace for both
+    const inputEmail = String(email).trim().toLowerCase()
+    const inputPassword = String(password).trim()
+    const envEmail = ADMIN_EMAIL.trim().toLowerCase()
+    const envPassword = ADMIN_PASSWORD.trim()
+
+    if (inputEmail === envEmail && inputPassword === envPassword) {
       // Create a simple session token (in production, use JWT or signed cookies)
       const token = Buffer.from(`${email}:${Date.now()}`).toString('base64')
       const res = NextResponse.json({ ok: true, token, email })
