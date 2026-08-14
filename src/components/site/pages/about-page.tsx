@@ -61,16 +61,6 @@ function Hero() {
             <Reveal delay={0.18}>
               <div className="mt-8 flex flex-wrap items-center gap-3">
                 <Button
-                  onClick={() => setPage('contact')}
-                  className="group relative h-12 overflow-hidden rounded-full bg-brand-gradient px-6 text-base text-white shadow-[0_10px_40px_-8px_rgba(255,45,117,0.6)] hover:shadow-[0_14px_50px_-8px_rgba(255,45,117,0.85)]"
-                >
-                  <span className="relative z-10 flex items-center gap-2">
-                    Work with us
-                    <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
-                  </span>
-                  <span className="absolute inset-0 animate-shimmer opacity-40" />
-                </Button>
-                <Button
                   onClick={() => setPage('portfolio')}
                   variant="outline"
                   className="h-12 rounded-full px-6 text-base backdrop-blur"

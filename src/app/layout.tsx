@@ -58,13 +58,13 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "https://preetwebvision.com",
-    images: [{ url: "/og-image.png", width: 1344, height: 768, alt: "Preet Web Vision — Digital Marketing Agency" }],
+    images: [{ url: "https://preetwebvision.com/og-image.png", width: 1344, height: 768, alt: "Preet Web Vision — Digital Marketing Agency" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Preet Web Vision",
     description: "Web Design, AI Automations & Digital Growth",
-    images: ["/og-image.png"],
+    images: ["https://preetwebvision.com/og-image.png"],
   },
   robots: {
     index: true,

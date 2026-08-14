@@ -27,13 +27,13 @@ const KeyboardShortcuts = dynamic(() => import('@/components/site/keyboard-short
 })
 
 // Lazy-load page components — only the active page is loaded
-const HomePage = dynamic(() => import('@/components/site/pages/home-page').then((m) => m.HomePage), { loading: () => null })
-const ServicesPage = dynamic(() => import('@/components/site/pages/services-page').then((m) => m.ServicesPage), { loading: () => null })
-const PortfolioPage = dynamic(() => import('@/components/site/pages/portfolio-page').then((m) => m.PortfolioPage), { loading: () => null })
-const AboutPage = dynamic(() => import('@/components/site/pages/about-page').then((m) => m.AboutPage), { loading: () => null })
-const PricingPage = dynamic(() => import('@/components/site/pages/pricing-page').then((m) => m.PricingPage), { loading: () => null })
-const ContactPage = dynamic(() => import('@/components/site/pages/contact-page').then((m) => m.ContactPage), { loading: () => null })
-const BlogPage = dynamic(() => import('@/components/site/pages/blog-page').then((m) => m.BlogPage), { loading: () => null })
+const HomePage = dynamic(() => import('@/components/site/pages/home-page').then((m) => m.HomePage), { ssr: true, loading: () => null })
+const ServicesPage = dynamic(() => import('@/components/site/pages/services-page').then((m) => m.ServicesPage), { ssr: true, loading: () => null })
+const PortfolioPage = dynamic(() => import('@/components/site/pages/portfolio-page').then((m) => m.PortfolioPage), { ssr: true, loading: () => null })
+const AboutPage = dynamic(() => import('@/components/site/pages/about-page').then((m) => m.AboutPage), { ssr: true, loading: () => null })
+const PricingPage = dynamic(() => import('@/components/site/pages/pricing-page').then((m) => m.PricingPage), { ssr: true, loading: () => null })
+const ContactPage = dynamic(() => import('@/components/site/pages/contact-page').then((m) => m.ContactPage), { ssr: true, loading: () => null })
+const BlogPage = dynamic(() => import('@/components/site/pages/blog-page').then((m) => m.BlogPage), { ssr: true, loading: () => null })
 
 // Per-page transition variants for a more dynamic feel
 const PAGE_VARIANTS: Record<PageId, Variants> = {
