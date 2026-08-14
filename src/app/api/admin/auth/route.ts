@@ -1,8 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { rateLimit, getClientIP } from '@/lib/rate-limit'
+import { createHash, timingSafeEqual } from 'crypto'
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@preetwebvision.com'
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'preet2025'
+
+// Hash password with SHA-256 + salt for comparison
+function hashPassword(password: string): string {
+  return createHash('sha256').update(password.trim() + '|pwv-salt-2025').digest('hex')
+}
+
+// Timing-safe comparison to prevent timing attacks
+function safeCompare(a: string, b: string): boolean {
+  const bufA = Buffer.from(a)
+  const bufB = Buffer.from(b)
+  if (bufA.length !== bufB.length) return false
+  return timingSafeEqual(bufA, bufB)
+}
 
 export async function GET(req: NextRequest) {
   const cookie = req.cookies.get('pwv-admin')
@@ -33,13 +47,13 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Case-insensitive email + trim whitespace for both
+    // Case-insensitive email + trim whitespace + hashed password comparison
     const inputEmail = String(email).trim().toLowerCase()
-    const inputPassword = String(password).trim()
+    const inputPasswordHash = hashPassword(String(password))
     const envEmail = ADMIN_EMAIL.trim().toLowerCase()
-    const envPassword = ADMIN_PASSWORD.trim()
+    const envPasswordHash = hashPassword(ADMIN_PASSWORD)
 
-    if (inputEmail === envEmail && inputPassword === envPassword) {
+    if (inputEmail === envEmail && safeCompare(inputPasswordHash, envPasswordHash)) {
       // Create a simple session token (in production, use JWT or signed cookies)
       const token = Buffer.from(`${email}:${Date.now()}`).toString('base64')
       const res = NextResponse.json({ ok: true, token, email })

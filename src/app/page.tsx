@@ -25,6 +25,14 @@ const KeyboardShortcuts = dynamic(() => import('@/components/site/keyboard-short
   ssr: false,
   loading: () => null,
 })
+const WhatsAppButton = dynamic(() => import('@/components/site/whatsapp-button').then((m) => m.WhatsAppButton), {
+  ssr: false,
+  loading: () => null,
+})
+const Analytics = dynamic(() => import('@/components/site/analytics').then((m) => m.Analytics), {
+  ssr: false,
+  loading: () => null,
+})
 
 // Lazy-load page components — only the active page is loaded
 const HomePage = dynamic(() => import('@/components/site/pages/home-page').then((m) => m.HomePage), { ssr: true, loading: () => null })
@@ -109,6 +117,8 @@ export default function Home() {
       <SocialProofNotifications />
       <CommandPalette />
       <KeyboardShortcuts />
+      <WhatsAppButton />
+      <Analytics />
     </div>
   )
 }

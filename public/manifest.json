@@ -1,0 +1,18 @@
+{
+  "name": "Preet Web Vision",
+  "short_name": "PWV",
+  "description": "Digital marketing agency — web design, AI automations, SEO & ecommerce",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#ff2d75",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

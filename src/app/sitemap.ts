@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next'
+import { db } from '@/lib/db'
 import { getSeoSettings } from '@/lib/seo-settings'
 import { SERVICES } from '@/lib/site-data'
-import { BLOG_POSTS } from '@/lib/content-data'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const settings = await getSeoSettings()
@@ -44,14 +44,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })
   }
 
-  // Add blog article pages (as hash URLs since blog is SPA)
-  for (const post of BLOG_POSTS) {
-    pages.push({
-      url: `${base}/#blog`,
-      lastModified: new Date(post.date),
-      changeFrequency: freqBlog,
-      priority: priorityBlog,
-    })
+  // Add individual blog article pages — fetched from DB via raw SQL.
+  // Each published post gets its own /blog/[slug] URL so search engines
+  // can index every article independently (previously we only emitted a
+  // single #blog hash URL for the whole blog).
+  try {
+    const posts = (await db.$queryRaw`
+      SELECT slug, updatedAt, createdAt
+      FROM BlogPost
+      WHERE status = 'published' AND slug IS NOT NULL AND slug != ''
+      ORDER BY createdAt DESC
+    `) as Array<{ slug: string; updatedAt: string | null; createdAt: string }>
+
+    for (const post of posts) {
+      const lastModified = post.updatedAt || post.createdAt
+      pages.push({
+        url: `${base}/blog/${post.slug}`,
+        lastModified: lastModified ? new Date(lastModified) : now,
+        changeFrequency: freqBlog,
+        priority: priorityBlog,
+      })
+    }
+  } catch (err) {
+    // Fail soft — if the DB query errors, the sitemap still returns the static pages.
+    console.error('Sitemap blog fetch error:', err)
   }
 
   return pages

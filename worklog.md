@@ -1097,3 +1097,57 @@ Agent: main (Z.ai Code)
 6. **Notification bell** in dashboard header — shows unread count, dropdown with recent notifications, mark all read
 7. **CSV export API** (`/api/admin/export?type=submissions|chats`) — downloads CSV files
 8. All routes return 200 (APIs return 401 without auth), lint clean
+
+---
+Task ID: Admin-Testimonials-Services
+Agent: main (Z.ai Code)
+
+## Completed
+1. **Testimonial + Service SQLite tables** created via `bun run scripts/seed-testimonials-services.ts` (raw SQL `CREATE TABLE IF NOT EXISTS`, idempotent — only seeds when empty).
+   - `Testimonial`: id, quote, name, role, company, rating (1–5 INTEGER), initials, accent, active (BOOLEAN), createdAt
+   - `Service`: id, title, slug, tagline, description, features (JSON string), deliverables (JSON string), accent, icon (string name), active (BOOLEAN), createdAt
+   - Seeded the 5 existing testimonials and 5 existing services from `src/lib/site-data.ts` (TESTIMONIALS + SERVICES arrays), preserving their `accent` gradients and icon component names.
+2. **`/api/admin/testimonials` route** (`src/app/api/admin/testimonials/route.ts`) — GET / POST / PUT / DELETE, all auth-protected via `isAdmin(req)` cookie check on `pwv-admin`. Uses raw SQL only (`db.$queryRaw` / `db.$executeRaw`). PUT supports both full-update and an `active`-only toggle path.
+3. **`/api/admin/services` route** (`src/app/api/admin/services/route.ts`) — GET / POST / PUT / DELETE, auth-protected, raw SQL. Features/deliverables are stored as JSON strings and accept either comma-separated strings or JSON arrays on write (helper `normalizeList`).
+4. **Admin dashboard new tabs** (`src/app/admin/dashboard/page.tsx`):
+   - Extended `Tab` type to include `'testimonials' | 'services'`
+   - Added `Star` and `Palette` to the lucide-react imports (alongside existing `BookOpen`)
+   - Added two new tab buttons in the dashboard nav ("Testimonials" + "Services")
+   - `TestimonialsTab`: lists all testimonials with gradient initials avatar, name, role/company, 5-star rating row, active/hidden badge, quote preview (line-clamp-2), Edit / Hide-Show / Delete buttons
+   - `TestimonialForm`: quote textarea, name (auto-generates initials on create), role, company, clickable 5-star rating picker, accent gradient dropdown with live preview swatch
+   - `ServicesTab`: lists all services with gradient icon tile, title, tagline, slug (mono), feature/deliverable counts, description preview, icon name badge, active/hidden badge, Edit / Hide-Show / Delete buttons
+   - `ServiceForm`: title (auto-generates slug on create), slug, tagline, description, features + deliverables as comma-separated textareas, accent gradient dropdown with live preview, icon name dropdown (Palette/Bot/Code2/Search/ShoppingCart/Rocket/Sparkles/Gauge/Smartphone/PenTool/Workflow/BrainCircuit/Zap/Globe)
+5. **Brand palette respected**: all gradients and accents are warm (orange/pink/rose/amber/emerald) — NO indigo/blue. Reuses `.bg-brand-gradient`, `.bg-brand-gradient-soft`, `.text-gradient-brand` helpers from the existing design system.
+6. **End-to-end smoke test**: logged in as admin and exercised POST → PUT (toggle active / partial update) → DELETE on both endpoints — all returned `{ok:true}`. Dashboard renders HTTP 200. Both APIs return 401 without auth.
+
+## Files created / modified
+- `scripts/seed-testimonials-services.ts` (NEW — table creation + seed, raw SQL)
+- `src/app/api/admin/testimonials/route.ts` (NEW — CRUD API, raw SQL, auth)
+- `src/app/api/admin/services/route.ts` (NEW — CRUD API, raw SQL, auth)
+- `src/app/admin/dashboard/page.tsx` (MODIFIED — added 2 tabs, 2 list components, 2 form components, expanded Tab type, added Star + Palette imports)
+
+## Notes
+- Front-end (`home-page`, `services-page`, etc.) still reads from the static `src/lib/site-data.ts` — these admin tabs are the future-CMS scaffolding as instructed.
+- The seed script is kept (not deleted) so it can be re-run safely after a DB reset.
+- `bun run lint` reports only pre-existing `react-hooks/set-state-in-effect` and `@next/next/no-location-assign` warnings — the two new tabs use the exact same `useEffect(() => fetchX(), [fetchX])` pattern as the existing AffiliatesTab / BlogTab. No new rule categories were introduced.
+
+---
+Task ID: Blog-Routes-Editor
+Agent: main (Z.ai Code)
+Task: Build the real `/blog/[slug]` route with SEO metadata + JSON-LD, replace the admin BlogPostForm content editor with a Markdown editor (toolbar + live preview), and add individual blog article URLs to the sitemap.
+
+Work Log:
+- Created `src/lib/markdown.ts` — zero-dependency Markdown → HTML renderer (escapes HTML first, then applies inline + block rules). Supports `## h2`, `### h3`, `**bold**`, `*italic*`, `[text](url)` links (http(s) links get `target="_blank" rel="noopener"`), `> blockquote`, `- ` bullet lists, blank-line paragraphs, inline `` `code` ``. Also exports `estimateReadingMinutes(content)` which works for both Markdown and legacy JSON-block content. Used both server-side (article route) and client-side (editor preview).
+- Created `src/components/site/blog-share-button.tsx` — small client component used by the article route. Uses `navigator.share()` when available (mobile / Safari), falls back to `navigator.clipboard.writeText()` with a Sonner toast.
+- Created `src/app/blog/[slug]/page.tsx` — real Next.js route (server component, no `'use client'`). Fetches the post via `db.$queryRaw` (`WHERE slug = ? AND status = 'published'`), `notFound()` if missing/draft. `generateMetadata({ params })` (async) produces unique `title`, `description`, `keywords`, `authors`, `alternates.canonical`, full OpenGraph (`type: 'article'`, `publishedTime`, `modifiedTime`, `authors`, `images`, `tags`), Twitter card, `robots`. Injects two JSON-LD blocks: `Article` schema (headline, image, dates, author Person, publisher Organization w/ logo, mainEntityOfPage, articleSection, url) and `BreadcrumbList` (Home → Blog → Article). Renders `Navbar` + `Footer` + `AiAssistant` (imported from existing components as instructed). UI: shadcn `Breadcrumb` (Home > Blog > Article), category pill + date + reading-time, `h1` title, excerpt, author avatar (gradient `AvatarFallback` using `authorAccent`) + share button, cover image (gradient fallback when null), article body inside `.prose-brand` (content is parsed via `contentToHtml()` which tries legacy JSON blocks first then falls back to `markdownToHtml` — backwards compatible with all existing posts), author CTA strip, "Back to all articles" link, related-posts grid (up to 3 same-category posts, fallback to latest), final CTA card.
+- Modified `src/app/admin/dashboard/page.tsx` `BlogPostForm`: replaced the JSON-plain toggle editor with a Markdown editor. Added a 7-button toolbar (Bold, Italic, H2, H3, List, Quote, Link) using lucide icons. Inline actions wrap the current selection (or insert a placeholder) and restore the caret via `requestAnimationFrame`; block actions prefix each selected line. Live preview toggle (Eye/Pencil) renders `markdownToHtml(content)` inside `.prose-brand`. Markdown cheat sheet toggle (Code2 icon) shows a syntax grid. Live word count in the toolbar. Content is stored as raw Markdown text — the API already accepts any string. Legacy JSON-block posts are auto-converted to Markdown when opened (`jsonBlocksToMarkdown` helper). Textarea DOM node held in **state** (callback ref `ref={setTextareaEl}`) rather than `useRef` — avoids the React Compiler lint rule "Cannot access ref value during render" since toolbar handlers (defined in render scope) need to read the textarea selection; state reads during render are allowed.
+- Modified `src/app/sitemap.ts`: removed the static `BLOG_POSTS` loop that emitted duplicate `${base}/#blog` URLs; added a raw-SQL fetch (`SELECT slug, updatedAt, createdAt FROM BlogPost WHERE status = 'published' AND slug IS NOT NULL AND slug != ''`) emitting one `${base}/blog/${slug}` URL per published post, using `updatedAt ?? createdAt` for `lastModified`. Wrapped in try/catch so a DB failure doesn't break the whole sitemap.
+- Verification: seeded two test posts via a temporary Prisma script → `GET /blog/testing-markdown-articles` returned 200 with correctly rendered Markdown (`<h2>`, `<h3>`, `<strong>`, `<em>`, `<li>`, links), Article + BreadcrumbList JSON-LD, all OG/Twitter meta, related-posts grid, author CTA, back-to-blog link; `GET /blog/nonexistent` → 404; `GET /sitemap.xml` included both `/blog/<slug>` URLs. Cleaned up seed posts + scripts afterwards.
+- `bun run lint` — passed (29 problems, all pre-existing in other files; zero errors in any new/modified file). My `BlogPostForm` refactor actually removed 4 pre-existing problems (the old JSON/plain toggle had unused-variable issues).
+
+Stage Summary:
+- Real blog article routes (`/blog/[slug]`) are now live with full SEO metadata, Article + Breadcrumb JSON-LD, server-side rendering, breadcrumbs, author info, share button, related posts, and back-to-blog navigation. Navbar + Footer + AiAssistant are included via the existing site components.
+- Admin blog editor is now a proper Markdown editor with a formatting toolbar, live preview, cheat sheet, and word count — content is stored as Markdown text but legacy JSON-block posts are auto-converted on open.
+- Sitemap emits one URL per published blog post (previously only emitted a single `#blog` hash URL).
+- Backwards compatible: existing JSON-block posts render correctly on the public route AND open as Markdown in the admin editor.
+- All DB access uses `db.$queryRaw` / `db.$executeRaw` raw SQL. Brand palette is warm throughout (no indigo/blue). `font-display` on all headings. No new npm packages added.

@@ -1,17 +1,29 @@
 'use client'
 
+import * as React from 'react'
 import { motion } from 'framer-motion'
 import { Home, Search, ArrowRight, Bot } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 export default function NotFound() {
+  const [query, setQuery] = React.useState('')
+
   const goHome = () => {
     window.location.href = '/'
   }
   const goHomeAndSearch = () => {
-    // Navigate to home route, then open command palette after mount
     sessionStorage.setItem('pwv-open-command-palette', '1')
     window.location.href = '/'
+  }
+
+  const searchSite = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (query.trim()) {
+      window.location.href = `/?q=${encodeURIComponent(query.trim())}#blog`
+    } else {
+      goHome()
+    }
   }
 
   return (
@@ -59,7 +71,21 @@ export default function NotFound() {
           The page you&apos;re looking for doesn&apos;t exist — or maybe it moved. Let&apos;s get you back on track.
         </p>
 
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+        {/* Search bar */}
+        <form onSubmit={searchSite} className="mx-auto mt-6 flex w-full max-w-sm items-center gap-2">
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search the site…"
+            className="h-11 rounded-full bg-muted/30 pl-4"
+            autoFocus
+          />
+          <Button type="submit" size="icon" className="h-11 shrink-0 rounded-full bg-brand-gradient text-white">
+            <Search className="size-4" />
+          </Button>
+        </form>
+
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
           <Button
             onClick={goHome}
             className="group relative h-12 overflow-hidden rounded-full bg-brand-gradient px-6 text-base text-white shadow-[0_10px_40px_-8px_rgba(255,45,117,0.6)]"

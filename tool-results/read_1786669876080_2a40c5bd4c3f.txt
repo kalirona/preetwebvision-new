@@ -1,0 +1,1565 @@
+     1→'use client'
+     2→
+     3→import * as React from 'react'
+     4→import { motion, AnimatePresence } from 'framer-motion'
+     5→import {
+     6→  LayoutDashboard,
+     7→  Mail,
+     8→  MessageSquare,
+     9→  Bot,
+    10→  LogOut,
+    11→  ExternalLink,
+    12→  Send,
+    13→  Search,
+    14→  Loader2,
+    15→  CheckCheck,
+    16→  Archive,
+    17→  UserCog,
+    18→  Bot as BotIcon,
+    19→  ArrowLeft,
+    20→  Clock,
+    21→  Inbox as InboxIcon,
+    22→  Phone,
+    23→  Building2,
+    24→  DollarSign,
+    25→  RefreshCw,
+    26→  Settings,
+    27→  Bell,
+    28→  X,
+    29→  Check,
+    30→} from 'lucide-react'
+    31→import { Button } from '@/components/ui/button'
+    32→import { Input } from '@/components/ui/input'
+    33→import { cn } from '@/lib/utils'
+    34→import { toast } from 'sonner'
+    35→
+    36→// Icons used across tabs
+    37→import { Save, BookOpen } from 'lucide-react'
+    38→
+    39→type Tab = 'overview' | 'submissions' | 'chats' | 'ai' | 'affiliates' | 'seo' | 'blog'
+    40→
+    41→/* ============ Notification Bell ============ */
+    42→function NotificationBell() {
+    43→  const [open, setOpen] = React.useState(false)
+    44→  const [notifications, setNotifications] = React.useState<Array<{ id: string; type: string; title: string; message: string; read: boolean; createdAt: string }>>([])
+    45→  const [unread, setUnread] = React.useState(0)
+    46→  const ref = React.useRef<HTMLDivElement>(null)
+    47→
+    48→  const fetchNotifs = React.useCallback(async () => {
+    49→    try {
+    50→      const res = await fetch('/api/admin/notifications')
+    51→      const data = await res.json()
+    52→      setNotifications(data.notifications || [])
+    53→      setUnread(data.unreadCount || 0)
+    54→    } catch { /* ignore */ }
+    55→  }, [])
+    56→
+    57→  React.useEffect(() => {
+    58→    fetchNotifs()
+    59→    const id = setInterval(fetchNotifs, 15000)
+    60→    return () => clearInterval(id)
+    61→  }, [fetchNotifs])
+    62→
+    63→  React.useEffect(() => {
+    64→    const onClick = (e: MouseEvent) => {
+    65→      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    66→    }
+    67→    document.addEventListener('mousedown', onClick)
+    68→    return () => document.removeEventListener('mousedown', onClick)
+    69→  }, [])
+    70→
+    71→  const markAllRead = async () => {
+    72→    await fetch('/api/admin/notifications', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ markAllRead: true }) })
+    73→    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+    74→    setUnread(0)
+    75→  }
+    76→
+    77→  return (
+    78→    <div ref={ref} className="relative">
+    79→      <button
+    80→        onClick={() => setOpen((o) => !o)}
+    81→        className="relative grid size-9 place-items-center rounded-full border border-border/70 bg-muted/30 text-muted-foreground transition-colors hover:text-foreground"
+    82→        aria-label="Notifications"
+    83→      >
+    84→        <Bell className="size-4" />
+    85→        {unread > 0 && (
+    86→          <span className="absolute -right-1 -top-1 grid min-w-[18px] h-[18px] place-items-center rounded-full bg-brand-gradient px-1 text-[10px] font-bold text-white">
+    87→            {unread > 9 ? '9+' : unread}
+    88→          </span>
+    89→        )}
+    90→      </button>
+    91→      <AnimatePresence>
+    92→        {open && (
+    93→          <motion.div
+    94→            initial={{ opacity: 0, y: 10, scale: 0.97 }}
+    95→            animate={{ opacity: 1, y: 0, scale: 1 }}
+    96→            exit={{ opacity: 0, y: 10, scale: 0.97 }}
+    97→            className="absolute right-0 top-full z-50 mt-2 w-80 overflow-hidden rounded-2xl border border-border/60 bg-card shadow-2xl"
+    98→          >
+    99→            <div className="flex items-center justify-between border-b border-border/60 p-3">
+   100→              <p className="text-sm font-bold">Notifications</p>
+   101→              {unread > 0 && (
+   102→                <button onClick={markAllRead} className="text-xs font-semibold text-[var(--brand-pink)] hover:underline">
+   103→                  Mark all read
+   104→                </button>
+   105→              )}
+   106→            </div>
+   107→            <div className="max-h-80 overflow-y-auto">
+   108→              {notifications.length === 0 ? (
+   109→                <p className="p-6 text-center text-sm text-muted-foreground">No notifications yet.</p>
+   110→              ) : (
+   111→                notifications.slice(0, 10).map((n) => (
+   112→                  <a key={n.id} href={n.link || '/admin/dashboard'} className={cn('block border-b border-border/40 p-3 transition-colors hover:bg-muted/30', !n.read && 'bg-brand-gradient-soft')}>
+   113→                    <div className="flex items-start gap-2">
+   114→                      <span className={cn('mt-1 size-2 shrink-0 rounded-full', n.read ? 'bg-muted-foreground/30' : 'bg-[var(--brand-pink)]')} />
+   115→                      <div className="min-w-0 flex-1">
+   116→                        <p className="text-sm font-semibold">{n.title}</p>
+   117→                        <p className="truncate text-xs text-muted-foreground">{n.message}</p>
+   118→                        <p className="mt-0.5 text-[10px] text-muted-foreground">{timeAgo(n.createdAt)}</p>
+   119→                      </div>
+   120→                    </div>
+   121→                  </a>
+   122→                ))
+   123→              )}
+   124→            </div>
+   125→          </motion.div>
+   126→        )}
+   127→      </AnimatePresence>
+   128→    </div>
+   129→  )
+   130→}
+   131→
+   132→type Submission = {
+   133→  id: string
+   134→  name: string
+   135→  email: string
+   136→  company: string | null
+   137→  service: string | null
+   138→  budget: string | null
+   139→  message: string
+   140→  status: string
+   141→  createdAt: string
+   142→}
+   143→
+   144→type Conversation = {
+   145→  id: string
+   146→  sessionId: string
+   147→  email: string | null
+   148→  name: string | null
+   149→  status: string
+   150→  mode: string
+   151→  createdAt: string
+   152→  updatedAt: string
+   153→  lastMessage: string | null
+   154→  lastRole: string | null
+   155→  messageCount: number
+   156→}
+   157→
+   158→type Message = {
+   159→  id: string
+   160→  role: string
+   161→  content: string
+   162→  createdAt: string
+   163→}
+   164→
+   165→function timeAgo(iso: string) {
+   166→  const diff = Date.now() - new Date(iso).getTime()
+   167→  const mins = Math.floor(diff / 60000)
+   168→  if (mins < 1) return 'just now'
+   169→  if (mins < 60) return `${mins}m ago`
+   170→  const hrs = Math.floor(mins / 60)
+   171→  if (hrs < 24) return `${hrs}h ago`
+   172→  return `${Math.floor(hrs / 24)}d ago`
+   173→}
+   174→
+   175→export default function AdminDashboard() {
+   176→  const [tab, setTab] = React.useState<Tab>('overview')
+   177→  const [authChecked, setAuthChecked] = React.useState(false)
+   178→
+   179→  React.useEffect(() => {
+   180→    // Check if admin is authenticated via API
+   181→    fetch('/api/admin/auth')
+   182→      .then((r) => r.json())
+   183→      .then((data) => {
+   184→        if (!data.authenticated) {
+   185→          window.location.href = '/admin'
+   186→          return
+   187→        }
+   188→        setAuthChecked(true)
+   189→      })
+   190→      .catch(() => {
+   191→        window.location.href = '/admin'
+   192→      })
+   193→  }, [])
+   194→
+   195→  if (!authChecked) {
+   196→    return (
+   197→      <div className="grid min-h-screen place-items-center">
+   198→        <Loader2 className="size-6 animate-spin text-muted-foreground" />
+   199→      </div>
+   200→    )
+   201→  }
+   202→
+   203→  const logout = async () => {
+   204→    await fetch('/api/admin/auth', { method: 'DELETE' })
+   205→    window.location.href = '/admin'
+   206→  }
+   207→
+   208→  return (
+   209→    <div className="min-h-screen bg-background">
+   210→      {/* Top bar */}
+   211→      <header className="sticky top-0 z-40 border-b border-border/60 bg-card/80 backdrop-blur-xl">
+   212→        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
+   213→          <div className="flex items-center gap-3">
+   214→            <a href="/" className="flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground">
+   215→              <ArrowLeft className="size-4" />
+   216→              Site
+   217→            </a>
+   218→            <span className="text-border">|</span>
+   219→            <h1 className="flex items-center gap-2 font-display text-lg font-bold">
+   220→              <span className="grid size-7 place-items-center rounded-lg bg-brand-gradient text-white">
+   221→                <LayoutDashboard className="size-4" />
+   222→              </span>
+   223→              Admin Dashboard
+   224→            </h1>
+   225→          </div>
+   226→          <div className="flex items-center gap-2">
+   227→            <a href="/admin/settings">
+   228→              <Button variant="ghost" size="sm" className="rounded-full text-muted-foreground hover:text-foreground">
+   229→                <Settings className="size-4" />
+   230→                Settings
+   231→              </Button>
+   232→            </a>
+   233→            <NotificationBell />
+   234→            <Button variant="ghost" size="sm" onClick={logout} className="rounded-full text-muted-foreground hover:text-foreground">
+   235→              <LogOut className="size-4" />
+   236→              Logout
+   237→            </Button>
+   238→          </div>
+   239→        </div>
+   240→      </header>
+   241→
+   242→      {/* Tabs */}
+   243→      <div className="border-b border-border/60 bg-muted/20">
+   244→        <div className="mx-auto flex max-w-7xl gap-1 px-4 sm:px-6">
+   245→          {([
+   246→            { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+   247→            { id: 'submissions', label: 'Form Submissions', icon: Mail },
+   248→            { id: 'chats', label: 'Chat Inbox', icon: MessageSquare },
+   249→            { id: 'ai', label: 'AI Management', icon: Bot },
+   250→            { id: 'affiliates', label: 'Affiliates', icon: ExternalLink },
+   251→            { id: 'seo', label: 'SEO Settings', icon: Search },
+   252→            { id: 'blog', label: 'Blog Posts', icon: BookOpen },
+   253→          ] as { id: Tab; label: string; icon: typeof Mail }[]).map((t) => {
+   254→            const Icon = t.icon
+   255→            return (
+   256→              <button
+   257→                key={t.id}
+   258→                onClick={() => setTab(t.id)}
+   259→                className={cn(
+   260→                  'flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors',
+   261→                  tab === t.id
+   262→                    ? 'border-[var(--brand-pink)] text-foreground'
+   263→                    : 'border-transparent text-muted-foreground hover:text-foreground'
+   264→                )}
+   265→              >
+   266→                <Icon className="size-4" />
+   267→                {t.label}
+   268→              </button>
+   269→            )
+   270→          })}
+   271→        </div>
+   272→      </div>
+   273→
+   274→      {/* Content */}
+   275→      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+   276→        {tab === 'overview' && <OverviewTab onNavigate={setTab} />}
+   277→        {tab === 'submissions' && <SubmissionsTab />}
+   278→        {tab === 'chats' && <ChatsTab />}
+   279→        {tab === 'ai' && <AITab />}
+   280→        {tab === 'affiliates' && <AffiliatesTab />}
+   281→        {tab === 'seo' && <SeoTab />}
+   282→        {tab === 'blog' && <BlogTab />}
+   283→      </div>
+   284→    </div>
+   285→  )
+   286→}
+   287→
+   288→/* ============ OVERVIEW TAB ============ */
+   289→function OverviewTab({ onNavigate }: { onNavigate: (t: Tab) => void }) {
+   290→  const [stats, setStats] = React.useState({ submissions: 0, chats: 0, newSubs: 0, newChats: 0 })
+   291→
+   292→  React.useEffect(() => {
+   293→    Promise.all([
+   294→      fetch('/api/admin/submissions').then((r) => r.json()),
+   295→      fetch('/api/admin/conversations').then((r) => r.json()),
+   296→    ]).then(([subs, convs]) => {
+   297→      setStats({
+   298→        submissions: subs.submissions?.length || 0,
+   299→        chats: convs.conversations?.length || 0,
+   300→        newSubs: subs.submissions?.filter((s: Submission) => s.status === 'new').length || 0,
+   301→        newChats: convs.conversations?.filter((c: Conversation) => c.status === 'new').length || 0,
+   302→      })
+   303→    }).catch(() => {})
+   304→  }, [])
+   305→
+   306→  const cards = [
+   307→    { label: 'Form Submissions', value: stats.submissions, sub: `${stats.newSubs} new`, icon: Mail, accent: 'from-orange-500 to-pink-500', tab: 'submissions' as Tab },
+   308→    { label: 'Chat Conversations', value: stats.chats, sub: `${stats.newChats} new`, icon: MessageSquare, accent: 'from-fuchsia-500 to-rose-500', tab: 'chats' as Tab },
+   309→    { label: 'AI Auto-Replies', value: 'Active', sub: '24/7', icon: Bot, accent: 'from-emerald-500 to-teal-500', tab: 'ai' as Tab },
+   310→  ]
+   311→
+   312→  return (
+   313→    <div className="space-y-6">
+   314→      <div>
+   315→        <h2 className="font-display text-2xl font-bold tracking-tight">Welcome back, Preet 👋</h2>
+   316→        <p className="mt-1 text-sm text-muted-foreground">Here's what's happening with your studio today.</p>
+   317→      </div>
+   318→      <div className="grid gap-4 sm:grid-cols-3">
+   319→        {cards.map((card) => {
+   320→          const Icon = card.icon
+   321→          return (
+   322→            <button
+   323→              key={card.label}
+   324→              onClick={() => onNavigate(card.tab)}
+   325→              className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-6 text-left transition-all hover:-translate-y-1 hover:shadow-lg"
+   326→            >
+   327→              <div className={cn('pointer-events-none absolute -right-8 -top-8 size-28 rounded-full bg-gradient-to-br opacity-10 blur-2xl transition-opacity group-hover:opacity-20', card.accent)} />
+   328→              <span className={cn('grid size-11 place-items-center rounded-xl bg-gradient-to-br text-white shadow-md', card.accent)}>
+   329→                <Icon className="size-5" />
+   330→              </span>
+   331→              <p className="mt-4 font-display text-3xl font-bold">{card.value}</p>
+   332→              <p className="mt-1 text-sm font-medium text-muted-foreground">{card.label}</p>
+   333→              <p className="mt-0.5 text-xs font-semibold" style={{ color: 'var(--brand-pink)' }}>{card.sub}</p>
+   334→            </button>
+   335→          )
+   336→        })}
+   337→      </div>
+   338→    </div>
+   339→  )
+   340→}
+   341→
+   342→/* ============ SUBMISSIONS TAB ============ */
+   343→function SubmissionsTab() {
+   344→  const [submissions, setSubmissions] = React.useState<Submission[]>([])
+   345→  const [loading, setLoading] = React.useState(true)
+   346→  const [selected, setSelected] = React.useState<Submission | null>(null)
+   347→  const [filter, setFilter] = React.useState('all')
+   348→  const [search, setSearch] = React.useState('')
+   349→
+   350→  const fetchSubs = React.useCallback(async () => {
+   351→    setLoading(true)
+   352→    try {
+   353→      const res = await fetch(`/api/admin/submissions?status=${filter}`)
+   354→      const data = await res.json()
+   355→      setSubmissions(data.submissions || [])
+   356→    } catch { /* ignore */ } finally { setLoading(false) }
+   357→  }, [filter])
+   358→
+   359→  React.useEffect(() => { fetchSubs() }, [fetchSubs])
+   360→
+   361→  const updateStatus = async (id: string, status: string) => {
+   362→    await fetch('/api/admin/submissions', {
+   363→      method: 'PATCH',
+   364→      headers: { 'Content-Type': 'application/json' },
+   365→      body: JSON.stringify({ id, status }),
+   366→    })
+   367→    setSubmissions((prev) => prev.map((s) => (s.id === id ? { ...s, status } : s)))
+   368→    if (selected?.id === id) setSelected((s) => (s ? { ...s, status } : s))
+   369→  }
+   370→
+   371→  const filtered = submissions.filter((s) => {
+   372→    if (search) {
+   373→      const q = search.toLowerCase()
+   374→      return s.name.toLowerCase().includes(q) || s.email.toLowerCase().includes(q) || s.message.toLowerCase().includes(q)
+   375→    }
+   376→    return true
+   377→  })
+   378→
+   379→  return (
+   380→    <div className="grid gap-0 lg:grid-cols-[420px_1fr]">
+   381→      {/* List */}
+   382→      <div className="border-r border-border/60">
+   383→        <div className="space-y-3 border-b border-border/60 p-4">
+   384→          <div className="relative">
+   385→            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+   386→            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search submissions…" className="rounded-full bg-muted/30 pl-9" />
+   387→          </div>
+   388→          <div className="flex gap-1.5">
+   389→            {['all', 'new', 'read', 'replied', 'archived'].map((f) => (
+   390→              <button key={f} onClick={() => setFilter(f)} className={cn('rounded-full px-3 py-1 text-xs font-semibold capitalize transition-colors', filter === f ? 'bg-brand-gradient text-white' : 'bg-muted/40 text-muted-foreground hover:text-foreground')}>
+   391→                {f}
+   392→              </button>
+   393→            ))}
+   394→          </div>
+   395→        </div>
+   396→        <div className="max-h-[60vh] overflow-y-auto lg:max-h-[calc(100vh-280px)]">
+   397→          {loading ? (
+   398→            <div className="flex justify-center py-12"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>
+   399→          ) : filtered.length === 0 ? (
+   400→            <div className="flex flex-col items-center py-12 text-center">
+   401→              <Mail className="size-8 text-muted-foreground/40" />
+   402→              <p className="mt-2 text-sm text-muted-foreground">No submissions found.</p>
+   403→            </div>
+   404→          ) : (
+   405→            filtered.map((sub) => (
+   406→              <button key={sub.id} onClick={() => { setSelected(sub); if (sub.status === 'new') updateStatus(sub.id, 'read') }} className={cn('flex w-full flex-col gap-1 border-b border-border/40 p-4 text-left transition-colors hover:bg-muted/30', selected?.id === sub.id && 'bg-brand-gradient-soft')}>
+   407→                <div className="flex items-center justify-between">
+   408→                  <p className="truncate text-sm font-semibold">{sub.name}</p>
+   409→                  <span className="shrink-0 text-[10px] text-muted-foreground">{timeAgo(sub.createdAt)}</span>
+   410→                </div>
+   411→                <p className="truncate text-xs text-muted-foreground">{sub.email}</p>
+   412→                <p className="truncate text-xs text-muted-foreground/70">{sub.message}</p>
+   413→                <div className="mt-1 flex items-center gap-2">
+   414→                  {sub.service && <span className="rounded-full bg-muted px-1.5 py-0.5 text-[9px] font-medium text-muted-foreground">{sub.service}</span>}
+   415→                  <span className={cn('rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase', sub.status === 'new' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : sub.status === 'replied' ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400' : 'bg-muted text-muted-foreground')}>{sub.status}</span>
+   416→                </div>
+   417→              </button>
+   418→            ))
+   419→          )}
+   420→        </div>
+   421→      </div>
+   422→
+   423→      {/* Detail */}
+   424→      <div className="p-4 lg:p-6">
+   425→        {selected ? (
+   426→          <div className="space-y-5">
+   427→            <div className="flex items-center justify-between">
+   428→              <div>
+   429→                <h3 className="font-display text-xl font-bold">{selected.name}</h3>
+   430→                <p className="text-sm text-muted-foreground">{timeAgo(selected.createdAt)}</p>
+   431→              </div>
+   432→              <div className="flex gap-1.5">
+   433→                <Button size="sm" variant="ghost" onClick={() => updateStatus(selected.id, 'replied')} className="rounded-full text-xs"><CheckCheck className="size-3.5" />Mark replied</Button>
+   434→                <Button size="sm" variant="ghost" onClick={() => updateStatus(selected.id, 'archived')} className="rounded-full text-xs"><Archive className="size-3.5" />Archive</Button>
+   435→              </div>
+   436→            </div>
+   437→            <div className="grid gap-3 sm:grid-cols-2">
+   438→              <DetailRow icon={Mail} label="Email" value={selected.email} />
+   439→              <DetailRow icon={Building2} label="Company" value={selected.company || '—'} />
+   440→              <DetailRow icon={BotIcon} label="Service" value={selected.service || '—'} />
+   441→              <DetailRow icon={DollarSign} label="Budget" value={selected.budget || '—'} />
+   442→            </div>
+   443→            <div className="rounded-2xl border border-border/60 bg-card p-5">
+   444→              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Message</p>
+   445→              <p className="text-sm leading-relaxed">{selected.message}</p>
+   446→            </div>
+   447→            <div className="flex gap-2">
+   448→              <a href={`mailto:${selected.email}?subject=Re: Your project inquiry&body=Hi ${selected.name},%0D%0A%0D%0AThanks for reaching out to Preet Web Vision! %0D%0A%0D%0A`}>
+   449→                <Button className="rounded-full bg-brand-gradient text-white">
+   450→                  <Send className="size-4" />Reply via email
+   451→                </Button>
+   452→              </a>
+   453→              <Button variant="outline" className="rounded-full" onClick={() => updateStatus(selected.id, 'replied')}>
+   454→                Mark as replied
+   455→              </Button>
+   456→            </div>
+   457→          </div>
+   458→        ) : (
+   459→          <div className="flex flex-col items-center justify-center py-20 text-center">
+   460→            <span className="grid size-16 place-items-center rounded-full bg-muted/40"><Mail className="size-8 text-muted-foreground/40" /></span>
+   461→            <p className="mt-4 font-display text-lg font-bold">Select a submission</p>
+   462→            <p className="mt-1 text-sm text-muted-foreground">Choose a form submission from the list to view details.</p>
+   463→          </div>
+   464→        )}
+   465→      </div>
+   466→    </div>
+   467→  )
+   468→}
+   469→
+   470→function DetailRow({ icon: Icon, label, value }: { icon: typeof Mail; label: string; value: string }) {
+   471→  return (
+   472→    <div className="flex items-center gap-3 rounded-xl border border-border/60 bg-card p-3.5">
+   473→      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-muted/40"><Icon className="size-4 text-muted-foreground" /></span>
+   474→      <div className="min-w-0">
+   475→        <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</p>
+   476→        <p className="truncate text-sm font-medium">{value}</p>
+   477→      </div>
+   478→    </div>
+   479→  )
+   480→}
+   481→
+   482→/* ============ CHATS TAB ============ */
+   483→function ChatsTab() {
+   484→  const [conversations, setConversations] = React.useState<Conversation[]>([])
+   485→  const [selected, setSelected] = React.useState<Conversation | null>(null)
+   486→  const [messages, setMessages] = React.useState<Message[]>([])
+   487→  const [reply, setReply] = React.useState('')
+   488→  const [loading, setLoading] = React.useState(true)
+   489→  const [loadingMsgs, setLoadingMsgs] = React.useState(false)
+   490→  const [sending, setSending] = React.useState(false)
+   491→  const scrollRef = React.useRef<HTMLDivElement>(null)
+   492→
+   493→  const fetchConvs = React.useCallback(async () => {
+   494→    setLoading(true)
+   495→    try {
+   496→      const res = await fetch('/api/admin/conversations')
+   497→      const data = await res.json()
+   498→      setConversations(data.conversations || [])
+   499→    } catch { /* ignore */ } finally { setLoading(false) }
+   500→  }, [])
+   501→
+   502→  React.useEffect(() => {
+   503→    fetchConvs()
+   504→    const id = setInterval(fetchConvs, 30000)
+   505→    return () => clearInterval(id)
+   506→  }, [fetchConvs])
+   507→
+   508→  const selectConv = async (conv: Conversation) => {
+   509→    setSelected(conv)
+   510→    setLoadingMsgs(true)
+   511→    setMessages([])
+   512→    try {
+   513→      const res = await fetch(`/api/chat/reply?id=${conv.id}`)
+   514→      const data = await res.json()
+   515→      setMessages(data.messages || [])
+   516→    } catch { /* ignore */ } finally { setLoadingMsgs(false) }
+   517→  }
+   518→
+   519→  React.useEffect(() => {
+   520→    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
+   521→  }, [messages])
+   522→
+   523→  const sendReply = async () => {
+   524→    if (!reply.trim() || !selected || sending) return
+   525→    setSending(true)
+   526→    try {
+   527→      const res = await fetch('/api/chat/reply', {
+   528→        method: 'POST',
+   529→        headers: { 'Content-Type': 'application/json' },
+   530→        body: JSON.stringify({ conversationId: selected.id, content: reply.trim() }),
+   531→      })
+   532→      const data = await res.json()
+   533→      if (data.ok) {
+   534→        setMessages((m) => [...m, { id: data.id, role: 'assistant', content: reply.trim(), createdAt: new Date().toISOString() }])
+   535→        setReply('')
+   536→        fetchConvs()
+   537→      }
+   538→    } catch { /* ignore */ } finally { setSending(false) }
+   539→  }
+   540→
+   541→  const toggleMode = async (conv: Conversation) => {
+   542→    const newMode = conv.mode === 'ai' ? 'human' : 'ai'
+   543→    await fetch('/api/admin/conversations', {
+   544→      method: 'PATCH',
+   545→      headers: { 'Content-Type': 'application/json' },
+   546→      body: JSON.stringify({ conversationId: conv.id, mode: newMode }),
+   547→    })
+   548→    setConversations((prev) => prev.map((c) => (c.id === conv.id ? { ...c, mode: newMode } : c)))
+   549→    if (selected?.id === conv.id) setSelected((s) => (s ? { ...s, mode: newMode } : s))
+   550→  }
+   551→
+   552→  const updateStatus = async (conv: Conversation, status: string) => {
+   553→    await fetch('/api/admin/conversations', {
+   554→      method: 'PATCH',
+   555→      headers: { 'Content-Type': 'application/json' },
+   556→      body: JSON.stringify({ conversationId: conv.id, status }),
+   557→    })
+   558→    setConversations((prev) => prev.map((c) => (c.id === conv.id ? { ...c, status } : c)))
+   559→    if (selected?.id === conv.id) setSelected((s) => (s ? { ...s, status } : s))
+   560→  }
+   561→
+   562→  return (
+   563→    <div className="grid gap-0 lg:grid-cols-[380px_1fr]">
+   564→      {/* Conversation list */}
+   565→      <div className="border-r border-border/60">
+   566→        <div className="flex items-center justify-between border-b border-border/60 p-4">
+   567→          <p className="text-sm font-semibold">{conversations.length} conversations</p>
+   568→          <Button size="sm" variant="ghost" onClick={fetchConvs} className="rounded-full text-xs"><RefreshCw className="size-3.5" />Refresh</Button>
+   569→        </div>
+   570→        <div className="max-h-[60vh] overflow-y-auto lg:max-h-[calc(100vh-280px)]">
+   571→          {loading ? (
+   572→            <div className="flex justify-center py-12"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>
+   573→          ) : conversations.length === 0 ? (
+   574→            <div className="flex flex-col items-center py-12 text-center">
+   575→              <MessageSquare className="size-8 text-muted-foreground/40" />
+   576→              <p className="mt-2 text-sm text-muted-foreground">No conversations yet.</p>
+   577→            </div>
+   578→          ) : (
+   579→            conversations.map((conv) => (
+   580→              <button key={conv.id} onClick={() => selectConv(conv)} className={cn('flex w-full items-start gap-3 border-b border-border/40 p-4 text-left transition-colors hover:bg-muted/30', selected?.id === conv.id && 'bg-brand-gradient-soft')}>
+   581→                <span className={cn('grid size-10 shrink-0 place-items-center rounded-full text-xs font-bold text-white', conv.mode === 'human' ? 'bg-amber-500' : 'bg-brand-gradient')}>
+   582→                  {conv.email ? conv.email[0].toUpperCase() : '?'}
+   583→                </span>
+   584→                <div className="min-w-0 flex-1">
+   585→                  <div className="flex items-center justify-between">
+   586→                    <p className="truncate text-sm font-semibold">{conv.email || 'Anonymous'}</p>
+   587→                    <span className="shrink-0 text-[10px] text-muted-foreground">{timeAgo(conv.updatedAt)}</span>
+   588→                  </div>
+   589→                  <p className="mt-0.5 truncate text-xs text-muted-foreground">{conv.lastRole === 'user' ? '👤 ' : '🤖 '}{conv.lastMessage || 'No messages'}</p>
+   590→                  <div className="mt-1.5 flex items-center gap-2">
+   591→                    <span className={cn('rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase', conv.mode === 'human' ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400' : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400')}>
+   592→                      {conv.mode === 'human' ? '👤 Human' : '🤖 AI'}
+   593→                    </span>
+   594→                    <span className="text-[10px] text-muted-foreground">{conv.messageCount} msgs</span>
+   595→                  </div>
+   596→                </div>
+   597→              </button>
+   598→            ))
+   599→          )}
+   600→        </div>
+   601→      </div>
+   602→
+   603→      {/* Message view */}
+   604→      <div className="flex h-[calc(100vh-200px)] flex-col">
+   605→        {selected ? (
+   606→          <>
+   607→            <div className="flex items-center justify-between border-b border-border/60 p-4">
+   608→              <div className="flex items-center gap-3">
+   609→                <span className="grid size-10 place-items-center rounded-full bg-brand-gradient text-white">{selected.email ? selected.email[0].toUpperCase() : '?'}</span>
+   610→                <div>
+   611→                  <p className="font-display text-sm font-bold">{selected.email || 'Anonymous'}</p>
+   612→                  <p className="text-xs text-muted-foreground">{selected.messageCount} messages · {timeAgo(selected.createdAt)}</p>
+   613→                </div>
+   614→              </div>
+   615→              <div className="flex gap-1.5">
+   616→                <Button size="sm" variant={selected.mode === 'ai' ? 'outline' : 'default'} onClick={() => toggleMode(selected)} className={cn('rounded-full text-xs', selected.mode === 'human' && 'bg-amber-500 text-white hover:bg-amber-600')}>
+   617→                  {selected.mode === 'ai' ? <><UserCog className="size-3.5" />Take over</> : <><BotIcon className="size-3.5" />Hand to AI</>}
+   618→                </Button>
+   619→                <Button size="sm" variant="ghost" onClick={() => updateStatus(selected, 'archived')} className="rounded-full text-xs"><Archive className="size-3.5" /></Button>
+   620→              </div>
+   621→            </div>
+   622→
+   623→            {selected.mode === 'human' && (
+   624→              <div className="flex items-center gap-2 border-b border-amber-500/20 bg-amber-500/5 px-4 py-2 text-xs text-amber-600 dark:text-amber-400">
+   625→                <UserCog className="size-3.5" />
+   626→                You've taken over this conversation. The AI will not auto-reply. Your messages will appear to the visitor.
+   627→              </div>
+   628→            )}
+   629→
+   630→            <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto p-4">
+   631→              {loadingMsgs ? (
+   632→                <div className="flex justify-center py-12"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>
+   633→              ) : (
+   634→                messages.map((msg) => (
+   635→                  <div key={msg.id} className={cn('flex gap-2.5', msg.role === 'user' ? 'justify-start' : 'justify-end')}>
+   636→                    {msg.role === 'user' && <span className="grid size-7 shrink-0 place-items-center rounded-full bg-muted text-xs">👤</span>}
+   637→                    <div className={cn('max-w-[75%] rounded-2xl px-4 py-2.5 text-sm', msg.role === 'user' ? 'rounded-bl-sm bg-muted/60' : 'rounded-br-sm bg-brand-gradient text-white')}>
+   638→                      <p className="leading-relaxed">{msg.content}</p>
+   639→                      <p className={cn('mt-1 text-[10px]', msg.role === 'user' ? 'text-muted-foreground' : 'text-white/60')}>{timeAgo(msg.createdAt)}</p>
+   640→                    </div>
+   641→                    {msg.role === 'assistant' && <span className="grid size-7 shrink-0 place-items-center rounded-full bg-brand-gradient text-xs">🤖</span>}
+   642→                  </div>
+   643→                ))
+   644→              )}
+   645→            </div>
+   646→
+   647→            <div className="border-t border-border/60 p-4">
+   648→              <form onSubmit={(e) => { e.preventDefault(); sendReply() }} className="flex items-center gap-2">
+   649→                <Input value={reply} onChange={(e) => setReply(e.target.value)} placeholder="Type your reply to the client…" className="rounded-full bg-muted/30" disabled={sending} />
+   650→                <Button type="submit" disabled={sending || !reply.trim()} className="shrink-0 rounded-full bg-brand-gradient text-white">
+   651→                  {sending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+   652→                </Button>
+   653→              </form>
+   654→              <p className="mt-2 text-[11px] text-muted-foreground">Your reply appears instantly to the visitor in the chat widget.</p>
+   655→            </div>
+   656→          </>
+   657→        ) : (
+   658→          <div className="flex flex-1 flex-col items-center justify-center text-center">
+   659→            <span className="grid size-16 place-items-center rounded-full bg-muted/40"><MessageSquare className="size-8 text-muted-foreground/40" /></span>
+   660→            <p className="mt-4 font-display text-lg font-bold">Select a conversation</p>
+   661→            <p className="mt-1 text-sm text-muted-foreground">View messages, reply to clients, or take over from the AI.</p>
+   662→          </div>
+   663→        )}
+   664→      </div>
+   665→    </div>
+   666→  )
+   667→}
+   668→
+   669→/* ============ AFFILIATES TAB ============ */
+   670→type AffiliateRow = {
+   671→  id: string
+   672→  title: string
+   673→  description: string | null
+   674→  price: string | null
+   675→  imageUrl: string | null
+   676→  affiliateUrl: string
+   677→  category: string | null
+   678→  featured: boolean
+   679→  order: number
+   680→  active: boolean
+   681→  createdAt: string
+   682→}
+   683→
+   684→function AffiliatesTab() {
+   685→  const [affiliates, setAffiliates] = React.useState<AffiliateRow[]>([])
+   686→  const [loading, setLoading] = React.useState(true)
+   687→  const [editing, setEditing] = React.useState<AffiliateRow | null>(null)
+   688→  const [showForm, setShowForm] = React.useState(false)
+   689→  const [saving, setSaving] = React.useState(false)
+   690→
+   691→  const fetchAffiliates = React.useCallback(async () => {
+   692→    setLoading(true)
+   693→    try {
+   694→      const res = await fetch('/api/admin/affiliates')
+   695→      const data = await res.json()
+   696→      setAffiliates(data.affiliates || [])
+   697→    } catch { /* ignore */ } finally { setLoading(false) }
+   698→  }, [])
+   699→
+   700→  React.useEffect(() => { fetchAffiliates() }, [fetchAffiliates])
+   701→
+   702→  const handleDelete = async (id: string) => {
+   703→    if (!confirm('Delete this affiliate?')) return
+   704→    await fetch('/api/admin/affiliates', {
+   705→      method: 'DELETE',
+   706→      headers: { 'Content-Type': 'application/json' },
+   707→      body: JSON.stringify({ id }),
+   708→    })
+   709→    setAffiliates((prev) => prev.filter((a) => a.id !== id))
+   710→  }
+   711→
+   712→  const handleToggleActive = async (a: AffiliateRow) => {
+   713→    await fetch('/api/admin/affiliates', {
+   714→      method: 'PATCH',
+   715→      headers: { 'Content-Type': 'application/json' },
+   716→      body: JSON.stringify({ id: a.id, active: !a.active }),
+   717→    })
+   718→    setAffiliates((prev) => prev.map((x) => (x.id === a.id ? { ...x, active: !x.active } : x)))
+   719→  }
+   720→
+   721→  const handleToggleFeatured = async (a: AffiliateRow) => {
+   722→    await fetch('/api/admin/affiliates', {
+   723→      method: 'PATCH',
+   724→      headers: { 'Content-Type': 'application/json' },
+   725→      body: JSON.stringify({ id: a.id, featured: !a.featured }),
+   726→    })
+   727→    setAffiliates((prev) => prev.map((x) => (x.id === a.id ? { ...x, featured: !x.featured } : x)))
+   728→  }
+   729→
+   730→  return (
+   731→    <div className="space-y-6">
+   732→      <div className="flex items-center justify-between">
+   733→        <div>
+   734→          <h2 className="font-display text-2xl font-bold tracking-tight">Affiliates</h2>
+   735→          <p className="mt-1 text-sm text-muted-foreground">Manage the affiliate boxes shown on the pricing page.</p>
+   736→        </div>
+   737→        <Button onClick={() => { setEditing(null); setShowForm(true) }} className="rounded-full bg-brand-gradient text-white">
+   738→          <ExternalLink className="size-4" />
+   739→          Add affiliate
+   740→        </Button>
+   741→      </div>
+   742→
+   743→      {/* Form */}
+   744→      {showForm && (
+   745→        <AffiliateForm
+   746→          initial={editing}
+   747→          onClose={() => setShowForm(false)}
+   748→          onSaved={() => { setShowForm(false); setEditing(null); fetchAffiliates() }}
+   749→        />
+   750→      )}
+   751→
+   752→      {/* List */}
+   753→      {loading ? (
+   754→        <div className="flex justify-center py-12"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>
+   755→      ) : affiliates.length === 0 ? (
+   756→        <div className="flex flex-col items-center rounded-2xl border border-dashed border-border/60 py-16 text-center">
+   757→          <ExternalLink className="size-10 text-muted-foreground/40" />
+   758→          <p className="mt-3 font-display text-lg font-bold">No affiliates yet</p>
+   759→          <p className="mt-1 text-sm text-muted-foreground">Add your first affiliate link to display it on the pricing page.</p>
+   760→          <Button onClick={() => { setEditing(null); setShowForm(true) }} className="mt-4 rounded-full bg-brand-gradient text-white">
+   761→            Add affiliate
+   762→          </Button>
+   763→        </div>
+   764→      ) : (
+   765→        <div className="overflow-hidden rounded-2xl border border-border/60 bg-card">
+   766→          <div className="divide-y divide-border/40">
+   767→            {affiliates.map((a) => (
+   768→              <div key={a.id} className="flex items-center gap-4 p-4">
+   769→                <div className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-muted/40">
+   770→                  {a.imageUrl ? (
+   771→                    <img src={a.imageUrl} alt={a.title} className="size-full object-cover" />
+   772→                  ) : (
+   773→                    <ExternalLink className="size-5 text-muted-foreground/50" />
+   774→                  )}
+   775→                </div>
+   776→                <div className="min-w-0 flex-1">
+   777→                  <div className="flex flex-wrap items-center gap-2">
+   778→                    <p className="truncate font-display text-sm font-bold">{a.title}</p>
+   779→                    {a.featured && (
+   780→                      <span className="rounded-full bg-brand-gradient px-2 py-0.5 text-[9px] font-bold uppercase text-white">Featured</span>
+   781→                    )}
+   782→                    {!a.active && (
+   783→                      <span className="rounded-full bg-muted px-2 py-0.5 text-[9px] font-bold uppercase text-muted-foreground">Hidden</span>
+   784→                    )}
+   785→                  </div>
+   786→                  <p className="truncate text-xs text-muted-foreground">{a.affiliateUrl}</p>
+   787→                  {a.price && <p className="text-xs font-semibold text-gradient-brand">{a.price}</p>}
+   788→                </div>
+   789→                <div className="flex shrink-0 items-center gap-1.5">
+   790→                  <Button size="sm" variant="ghost" onClick={() => handleToggleFeatured(a)} className="rounded-full text-xs">
+   791→                    {a.featured ? 'Unfeature' : 'Feature'}
+   792→                  </Button>
+   793→                  <Button size="sm" variant="ghost" onClick={() => handleToggleActive(a)} className="rounded-full text-xs">
+   794→                    {a.active ? 'Hide' : 'Show'}
+   795→                  </Button>
+   796→                  <Button size="sm" variant="ghost" onClick={() => { setEditing(a); setShowForm(true) }} className="rounded-full text-xs">
+   797→                    Edit
+   798→                  </Button>
+   799→                  <Button size="sm" variant="ghost" onClick={() => handleDelete(a.id)} className="rounded-full text-xs text-red-500 hover:text-red-600">
+   800→                    Delete
+   801→                  </Button>
+   802→                </div>
+   803→              </div>
+   804→            ))}
+   805→          </div>
+   806→        </div>
+   807→      )}
+   808→    </div>
+   809→  )
+   810→}
+   811→
+   812→function AffiliateForm({ initial, onClose, onSaved }: { initial: AffiliateRow | null; onClose: () => void; onSaved: () => void }) {
+   813→  const [title, setTitle] = React.useState(initial?.title || '')
+   814→  const [description, setDescription] = React.useState(initial?.description || '')
+   815→  const [price, setPrice] = React.useState(initial?.price || '')
+   816→  const [imageUrl, setImageUrl] = React.useState(initial?.imageUrl || '')
+   817→  const [affiliateUrl, setAffiliateUrl] = React.useState(initial?.affiliateUrl || '')
+   818→  const [category, setCategory] = React.useState(initial?.category || '')
+   819→  const [featured, setFeatured] = React.useState(initial?.featured || false)
+   820→  const [saving, setSaving] = React.useState(false)
+   821→  const [error, setError] = React.useState('')
+   822→
+   823→  const handleSubmit = async (e: React.FormEvent) => {
+   824→    e.preventDefault()
+   825→    if (!title.trim() || !affiliateUrl.trim()) {
+   826→      setError('Title and affiliate URL are required.')
+   827→      return
+   828→    }
+   829→    setSaving(true)
+   830→    setError('')
+   831→    try {
+   832→      const res = await fetch('/api/admin/affiliates', {
+   833→        method: initial ? 'PATCH' : 'POST',
+   834→        headers: { 'Content-Type': 'application/json' },
+   835→        body: JSON.stringify({
+   836→          ...(initial ? { id: initial.id } : {}),
+   837→          title: title.trim(),
+   838→          description: description.trim() || null,
+   839→          price: price.trim() || null,
+   840→          imageUrl: imageUrl.trim() || null,
+   841→          affiliateUrl: affiliateUrl.trim(),
+   842→          category: category.trim() || null,
+   843→          featured,
+   844→        }),
+   845→      })
+   846→      const data = await res.json()
+   847→      if (!data.ok) throw new Error(data.error || 'Failed to save')
+   848→      onSaved()
+   849→    } catch (err) {
+   850→      setError(err instanceof Error ? err.message : 'Failed to save')
+   851→    } finally {
+   852→      setSaving(false)
+   853→    }
+   854→  }
+   855→
+   856→  return (
+   857→    <form onSubmit={handleSubmit} className="rounded-2xl border border-border/60 bg-card p-6">
+   858→      <div className="flex items-center justify-between">
+   859→        <h3 className="font-display text-lg font-bold">{initial ? 'Edit affiliate' : 'Add new affiliate'}</h3>
+   860→        <button type="button" onClick={onClose} className="text-muted-foreground hover:text-foreground">
+   861→          <X className="size-5" />
+   862→        </button>
+   863→      </div>
+   864→      <div className="mt-5 grid gap-4 sm:grid-cols-2">
+   865→        <div className="sm:col-span-2">
+   866→          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Title *</label>
+   867→          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Hostinger Web Hosting" />
+   868→        </div>
+   869→        <div className="sm:col-span-2">
+   870→          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Affiliate URL *</label>
+   871→          <Input value={affiliateUrl} onChange={(e) => setAffiliateUrl(e.target.value)} placeholder="https://affiliate.example.com/ref=you" />
+   872→        </div>
+   873→        <div>
+   874→          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Price</label>
+   875→          <Input value={price} onChange={(e) => setPrice(e.target.value)} placeholder="e.g. $2.99/mo" />
+   876→        </div>
+   877→        <div>
+   878→          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Category</label>
+   879→          <Input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="e.g. Hosting, AI, SEO" />
+   880→        </div>
+   881→        <div className="sm:col-span-2">
+   882→          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Image URL</label>
+   883→          <Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://example.com/logo.png" />
+   884→        </div>
+   885→        <div className="sm:col-span-2">
+   886→          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Description</label>
+   887→          <textarea
+   888→            value={description}
+   889→            onChange={(e) => setDescription(e.target.value)}
+   890→            placeholder="Short description of the tool/service…"
+   891→            rows={3}
+   892→            className="w-full rounded-xl border border-border/60 bg-background/60 px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-[var(--brand-pink)]"
+   893→          />
+   894→        </div>
+   895→        <label className="flex items-center gap-2 text-sm">
+   896→          <input type="checkbox" checked={featured} onChange={(e) => setFeatured(e.target.checked)} className="size-4 accent-[var(--brand-pink)]" />
+   897→          Featured
+   898→        </label>
+   899→      </div>
+   900→      {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
+   901→      <div className="mt-5 flex gap-2">
+   902→        <Button type="submit" disabled={saving} className="rounded-full bg-brand-gradient text-white">
+   903→          {saving ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+   904→          {initial ? 'Save changes' : 'Add affiliate'}
+   905→        </Button>
+   906→        <Button type="button" variant="outline" onClick={onClose} className="rounded-full">
+   907→          Cancel
+   908→        </Button>
+   909→      </div>
+   910→    </form>
+   911→  )
+   912→}
+   913→
+   914→/* ============ AI MANAGEMENT TAB ============ */
+   915→function AITab() {
+   916→  const [conversations, setConversations] = React.useState<Conversation[]>([])
+   917→
+   918→  React.useEffect(() => {
+   919→    fetch('/api/admin/conversations').then((r) => r.json()).then((d) => setConversations(d.conversations || [])).catch(() => {})
+   920→  }, [])
+   921→
+   922→  const aiCount = conversations.filter((c) => c.mode === 'ai').length
+   923→  const humanCount = conversations.filter((c) => c.mode === 'human').length
+   924→
+   925→  const toggleMode = async (conv: Conversation) => {
+   926→    const newMode = conv.mode === 'ai' ? 'human' : 'ai'
+   927→    await fetch('/api/admin/conversations', {
+   928→      method: 'PATCH',
+   929→      headers: { 'Content-Type': 'application/json' },
+   930→      body: JSON.stringify({ conversationId: conv.id, mode: newMode }),
+   931→    })
+   932→    setConversations((prev) => prev.map((c) => (c.id === conv.id ? { ...c, mode: newMode } : c)))
+   933→  }
+   934→
+   935→  return (
+   936→    <div className="space-y-6">
+   937→      <div>
+   938→        <h2 className="font-display text-2xl font-bold tracking-tight">AI Management</h2>
+   939→        <p className="mt-1 text-sm text-muted-foreground">Control how the AI assistant handles client conversations. Take over anytime to reply personally.</p>
+   940→      </div>
+   941→
+   942→      {/* AI status cards */}
+   943→      <div className="grid gap-4 sm:grid-cols-3">
+   944→        <div className="rounded-2xl border border-border/60 bg-card p-5">
+   945→          <div className="flex items-center gap-3">
+   946→            <span className="grid size-10 place-items-center rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"><BotIcon className="size-5" /></span>
+   947→            <div>
+   948→              <p className="font-display text-2xl font-bold">{aiCount}</p>
+   949→              <p className="text-xs text-muted-foreground">AI auto-replying</p>
+   950→            </div>
+   951→          </div>
+   952→        </div>
+   953→        <div className="rounded-2xl border border-border/60 bg-card p-5">
+   954→          <div className="flex items-center gap-3">
+   955→            <span className="grid size-10 place-items-center rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400"><UserCog className="size-5" /></span>
+   956→            <div>
+   957→              <p className="font-display text-2xl font-bold">{humanCount}</p>
+   958→              <p className="text-xs text-muted-foreground">Human-managed</p>
+   959→            </div>
+   960→          </div>
+   961→        </div>
+   962→        <div className="rounded-2xl border border-border/60 bg-card p-5">
+   963→          <div className="flex items-center gap-3">
+   964→            <span className="grid size-10 place-items-center rounded-xl bg-brand-gradient text-white"><Bot className="size-5" /></span>
+   965→            <div>
+   966→              <p className="font-display text-sm font-bold">Vision AI</p>
+   967→              <p className="text-xs text-muted-foreground">Active · 24/7</p>
+   968→            </div>
+   969→          </div>
+   970→        </div>
+   971→      </div>
+   972→
+   973→      {/* How it works */}
+   974→      <div className="rounded-2xl border border-border/60 bg-card p-6">
+   975→        <h3 className="font-display text-lg font-bold">How AI handover works</h3>
+   976→        <div className="mt-4 space-y-3 text-sm text-muted-foreground">
+   977→          <div className="flex gap-3">
+   978→            <span className="grid size-7 shrink-0 place-items-center rounded-full bg-brand-gradient text-xs font-bold text-white">1</span>
+   979→            <p>By default, all new conversations are handled by <strong className="text-foreground">Vision AI</strong> — it answers questions about services, pricing, and process automatically.</p>
+   980→          </div>
+   981→          <div className="flex gap-3">
+   982→            <span className="grid size-7 shrink-0 place-items-center rounded-full bg-brand-gradient text-xs font-bold text-white">2</span>
+   983→            <p>When you want to step in, click <strong className="text-foreground">"Take over"</strong> on any conversation. The AI stops auto-replying, and the visitor is told a team member will respond.</p>
+   984→          </div>
+   985→          <div className="flex gap-3">
+   986→            <span className="grid size-7 shrink-0 place-items-center rounded-full bg-brand-gradient text-xs font-bold text-white">3</span>
+   987→            <p>Your replies appear instantly in the visitor's chat widget. When you're done, click <strong className="text-foreground">"Hand to AI"</strong> to let the assistant take over again.</p>
+   988→          </div>
+   989→        </div>
+   990→      </div>
+   991→
+   992→      {/* Conversation mode management */}
+   993→      <div className="rounded-2xl border border-border/60 bg-card">
+   994→        <div className="border-b border-border/60 p-4">
+   995→          <h3 className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">Active conversations</h3>
+   996→        </div>
+   997→        <div className="divide-y divide-border/40">
+   998→          {conversations.length === 0 ? (
+   999→            <p className="p-6 text-center text-sm text-muted-foreground">No conversations yet.</p>
+  1000→          ) : (
+  1001→            conversations.slice(0, 10).map((conv) => (
+  1002→              <div key={conv.id} className="flex items-center justify-between p-4">
+  1003→                <div className="min-w-0 flex-1">
+  1004→                  <p className="truncate text-sm font-semibold">{conv.email || 'Anonymous visitor'}</p>
+  1005→                  <p className="truncate text-xs text-muted-foreground">{conv.lastMessage || 'No messages'}</p>
+  1006→                </div>
+  1007→                <Button
+  1008→                  size="sm"
+  1009→                  variant={conv.mode === 'ai' ? 'outline' : 'default'}
+  1010→                  onClick={() => toggleMode(conv)}
+  1011→                  className={cn('ml-3 shrink-0 rounded-full text-xs', conv.mode === 'human' && 'bg-amber-500 text-white hover:bg-amber-600')}
+  1012→                >
+  1013→                  {conv.mode === 'ai' ? <><UserCog className="size-3.5" />Take over</> : <><BotIcon className="size-3.5" />Hand to AI</>}
+  1014→                </Button>
+  1015→              </div>
+  1016→            ))
+  1017→          )}
+  1018→        </div>
+  1019→      </div>
+  1020→    </div>
+  1021→  )
+  1022→}
+  1023→
+  1024→/* ============ SEO SETTINGS TAB ============ */
+  1025→import { Textarea } from '@/components/ui/textarea'
+  1026→
+  1027→function SeoTab() {
+  1028→  const [settings, setSettings] = React.useState<Record<string, string>>({})
+  1029→  const [loaded, setLoaded] = React.useState(false)
+  1030→  const [saving, setSaving] = React.useState(false)
+  1031→
+  1032→  React.useEffect(() => {
+  1033→    fetch('/api/admin/seo')
+  1034→      .then((r) => r.json())
+  1035→      .then((data) => {
+  1036→        if (data.ok) setSettings(data.settings)
+  1037→        setLoaded(true)
+  1038→      })
+  1039→      .catch(() => setLoaded(true))
+  1040→  }, [])
+  1041→
+  1042→  const save = async (updates: Record<string, string>) => {
+  1043→    setSaving(true)
+  1044→    try {
+  1045→      await fetch('/api/admin/seo', {
+  1046→        method: 'PUT',
+  1047→        headers: { 'Content-Type': 'application/json' },
+  1048→        body: JSON.stringify(updates),
+  1049→      })
+  1050→      setSettings((prev) => ({ ...prev, ...updates }))
+  1051→      toast.success('SEO settings saved!')
+  1052→    } catch {
+  1053→      toast.error('Failed to save SEO settings')
+  1054→    } finally {
+  1055→      setSaving(false)
+  1056→    }
+  1057→  }
+  1058→
+  1059→  if (!loaded) {
+  1060→    return <div className="flex justify-center py-12"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>
+  1061→  }
+  1062→
+  1063→  return (
+  1064→    <div className="space-y-6">
+  1065→      <div>
+  1066→        <h2 className="font-display text-2xl font-bold tracking-tight">SEO Settings</h2>
+  1067→        <p className="mt-1 text-sm text-muted-foreground">Manage site-wide SEO, sitemap, robots.txt, schema.org, and social metadata.</p>
+  1068→      </div>
+  1069→
+  1070→      {/* General SEO */}
+  1071→      <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-4">
+  1072→        <h3 className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">General SEO</h3>
+  1073→        <div className="grid gap-4 sm:grid-cols-2">
+  1074→          <div>
+  1075→            <label className="mb-1 block text-xs font-semibold">Site Name</label>
+  1076→            <Input value={settings.site_name || ''} onChange={(e) => setSettings((s) => ({ ...s, site_name: e.target.value }))} className="bg-muted/30" />
+  1077→          </div>
+  1078→          <div>
+  1079→            <label className="mb-1 block text-xs font-semibold">Canonical URL</label>
+  1080→            <Input value={settings.canonical_url || ''} onChange={(e) => setSettings((s) => ({ ...s, canonical_url: e.target.value }))} className="bg-muted/30" placeholder="https://preetwebvision.com" />
+  1081→          </div>
+  1082→        </div>
+  1083→        <div>
+  1084→          <label className="mb-1 block text-xs font-semibold">Site Title (meta title)</label>
+  1085→          <Input value={settings.site_title || ''} onChange={(e) => setSettings((s) => ({ ...s, site_title: e.target.value }))} className="bg-muted/30" />
+  1086→        </div>
+  1087→        <div>
+  1088→          <label className="mb-1 block text-xs font-semibold">Meta Description</label>
+  1089→          <Textarea value={settings.site_description || ''} onChange={(e) => setSettings((s) => ({ ...s, site_description: e.target.value }))} rows={2} className="bg-muted/30" />
+  1090→        </div>
+  1091→        <div>
+  1092→          <label className="mb-1 block text-xs font-semibold">Keywords (comma-separated)</label>
+  1093→          <Input value={settings.site_keywords || ''} onChange={(e) => setSettings((s) => ({ ...s, site_keywords: e.target.value }))} className="bg-muted/30" />
+  1094→        </div>
+  1095→      </div>
+  1096→
+  1097→      {/* Open Graph / Social */}
+  1098→      <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-4">
+  1099→        <h3 className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">Open Graph & Social</h3>
+  1100→        <div className="grid gap-4 sm:grid-cols-2">
+  1101→          <div>
+  1102→            <label className="mb-1 block text-xs font-semibold">OG Image URL</label>
+  1103→            <Input value={settings.og_image_url || ''} onChange={(e) => setSettings((s) => ({ ...s, og_image_url: e.target.value }))} className="bg-muted/30" placeholder="/og-image.png" />
+  1104→          </div>
+  1105→          <div>
+  1106→            <label className="mb-1 block text-xs font-semibold">Twitter Handle</label>
+  1107→            <Input value={settings.twitter_handle || ''} onChange={(e) => setSettings((s) => ({ ...s, twitter_handle: e.target.value }))} className="bg-muted/30" placeholder="@preetwebvision" />
+  1108→          </div>
+  1109→        </div>
+  1110→        <div className="grid gap-4 sm:grid-cols-2">
+  1111→          <div>
+  1112→            <label className="mb-1 block text-xs font-semibold">Google Analytics ID</label>
+  1113→            <Input value={settings.google_analytics_id || ''} onChange={(e) => setSettings((s) => ({ ...s, google_analytics_id: e.target.value }))} className="bg-muted/30" placeholder="G-XXXXXXXXXX" />
+  1114→          </div>
+  1115→          <div>
+  1116→            <label className="mb-1 block text-xs font-semibold">Google Search Console (verification code)</label>
+  1117→            <Input value={settings.google_search_console || ''} onChange={(e) => setSettings((s) => ({ ...s, google_search_console: e.target.value }))} className="bg-muted/30" placeholder="google-site-verification code" />
+  1118→          </div>
+  1119→        </div>
+  1120→      </div>
+  1121→
+  1122→      {/* Schema.org */}
+  1123→      <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-4">
+  1124→        <h3 className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">Schema.org Structured Data</h3>
+  1125→        <div className="grid gap-4 sm:grid-cols-2">
+  1126→          <div>
+  1127→            <label className="mb-1 block text-xs font-semibold">Organization Name</label>
+  1128→            <Input value={settings.schema_organization_name || ''} onChange={(e) => setSettings((s) => ({ ...s, schema_organization_name: e.target.value }))} className="bg-muted/30" />
+  1129→          </div>
+  1130→          <div>
+  1131→            <label className="mb-1 block text-xs font-semibold">Organization URL</label>
+  1132→            <Input value={settings.schema_organization_url || ''} onChange={(e) => setSettings((s) => ({ ...s, schema_organization_url: e.target.value }))} className="bg-muted/30" />
+  1133→          </div>
+  1134→          <div>
+  1135→            <label className="mb-1 block text-xs font-semibold">Logo URL</label>
+  1136→            <Input value={settings.schema_organization_logo || ''} onChange={(e) => setSettings((s) => ({ ...s, schema_organization_logo: e.target.value }))} className="bg-muted/30" />
+  1137→          </div>
+  1138→          <div>
+  1139→            <label className="mb-1 block text-xs font-semibold">Email</label>
+  1140→            <Input value={settings.schema_organization_email || ''} onChange={(e) => setSettings((s) => ({ ...s, schema_organization_email: e.target.value }))} className="bg-muted/30" />
+  1141→          </div>
+  1142→          <div>
+  1143→            <label className="mb-1 block text-xs font-semibold">Phone</label>
+  1144→            <Input value={settings.schema_organization_phone || ''} onChange={(e) => setSettings((s) => ({ ...s, schema_organization_phone: e.target.value }))} className="bg-muted/30" />
+  1145→          </div>
+  1146→          <div>
+  1147→            <label className="mb-1 block text-xs font-semibold">Address</label>
+  1148→            <Input value={settings.schema_organization_address || ''} onChange={(e) => setSettings((s) => ({ ...s, schema_organization_address: e.target.value }))} className="bg-muted/30" />
+  1149→          </div>
+  1150→        </div>
+  1151→      </div>
+  1152→
+  1153→      {/* Sitemap Settings */}
+  1154→      <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-4">
+  1155→        <h3 className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">Sitemap Configuration</h3>
+  1156→        <div className="grid gap-4 sm:grid-cols-2">
+  1157→          <div>
+  1158→            <label className="mb-1 block text-xs font-semibold">Home Priority (0.0–1.0)</label>
+  1159→            <Input value={settings.sitemap_priority_home || '1.0'} onChange={(e) => setSettings((s) => ({ ...s, sitemap_priority_home: e.target.value }))} className="bg-muted/30" />
+  1160→          </div>
+  1161→          <div>
+  1162→            <label className="mb-1 block text-xs font-semibold">Services Priority</label>
+  1163→            <Input value={settings.sitemap_priority_services || '0.9'} onChange={(e) => setSettings((s) => ({ ...s, sitemap_priority_services: e.target.value }))} className="bg-muted/30" />
+  1164→          </div>
+  1165→          <div>
+  1166→            <label className="mb-1 block text-xs font-semibold">Blog Priority</label>
+  1167→            <Input value={settings.sitemap_priority_blog || '0.8'} onChange={(e) => setSettings((s) => ({ ...s, sitemap_priority_blog: e.target.value }))} className="bg-muted/30" />
+  1168→          </div>
+  1169→          <div>
+  1170→            <label className="mb-1 block text-xs font-semibold">Other Pages Priority</label>
+  1171→            <Input value={settings.sitemap_priority_other || '0.6'} onChange={(e) => setSettings((s) => ({ ...s, sitemap_priority_other: e.target.value }))} className="bg-muted/30" />
+  1172→          </div>
+  1173→          <div>
+  1174→            <label className="mb-1 block text-xs font-semibold">Home Change Freq</label>
+  1175→            <select value={settings.sitemap_changefreq_home || 'weekly'} onChange={(e) => setSettings((s) => ({ ...s, sitemap_changefreq_home: e.target.value }))} className="h-9 w-full rounded-md border border-border bg-muted/30 px-3 text-sm">
+  1176→              <option value="always">always</option><option value="hourly">hourly</option><option value="daily">daily</option><option value="weekly">weekly</option><option value="monthly">monthly</option><option value="yearly">yearly</option>
+  1177→            </select>
+  1178→          </div>
+  1179→          <div>
+  1180→            <label className="mb-1 block text-xs font-semibold">Blog Change Freq</label>
+  1181→            <select value={settings.sitemap_changefreq_blog || 'weekly'} onChange={(e) => setSettings((s) => ({ ...s, sitemap_changefreq_blog: e.target.value }))} className="h-9 w-full rounded-md border border-border bg-muted/30 px-3 text-sm">
+  1182→              <option value="daily">daily</option><option value="weekly">weekly</option><option value="monthly">monthly</option>
+  1183→            </select>
+  1184→          </div>
+  1185→        </div>
+  1186→        <a href="/sitemap.xml" target="_blank" className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--brand-pink)] hover:underline">
+  1187→          View sitemap.xml <ExternalLink className="size-3.5" />
+  1188→        </a>
+  1189→      </div>
+  1190→
+  1191→      {/* Robots.txt Settings */}
+  1192→      <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-4">
+  1193→        <h3 className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">Robots.txt Configuration</h3>
+  1194→        <div className="space-y-2">
+  1195→          <label className="flex items-center gap-2 text-sm">
+  1196→            <input type="checkbox" checked={settings.robots_allow_all !== 'false'} onChange={(e) => setSettings((s) => ({ ...s, robots_allow_all: String(e.target.checked) }))} className="size-4 rounded" />
+  1197→            Allow all crawlers to index the site
+  1198→          </label>
+  1199→          <label className="flex items-center gap-2 text-sm">
+  1200→            <input type="checkbox" checked={settings.robots_disallow_admin !== 'false'} onChange={(e) => setSettings((s) => ({ ...s, robots_disallow_admin: String(e.target.checked) }))} className="size-4 rounded" />
+  1201→            Disallow /admin (block admin pages from indexing)
+  1202→          </label>
+  1203→          <label className="flex items-center gap-2 text-sm">
+  1204→            <input type="checkbox" checked={settings.robots_disallow_api !== 'false'} onChange={(e) => setSettings((s) => ({ ...s, robots_disallow_api: String(e.target.checked) }))} className="size-4 rounded" />
+  1205→            Disallow /api (block API routes from indexing)
+  1206→          </label>
+  1207→        </div>
+  1208→        <div>
+  1209→          <label className="mb-1 block text-xs font-semibold">Sitemap URL in robots.txt</label>
+  1210→          <Input value={settings.robots_sitemap_url || ''} onChange={(e) => setSettings((s) => ({ ...s, robots_sitemap_url: e.target.value }))} className="bg-muted/30" />
+  1211→        </div>
+  1212→        <a href="/robots.txt" target="_blank" className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--brand-pink)] hover:underline">
+  1213→          View robots.txt <ExternalLink className="size-3.5" />
+  1214→        </a>
+  1215→      </div>
+  1216→
+  1217→      {/* Social Links */}
+  1218→      <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-4">
+  1219→        <h3 className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">Social Links (for schema.org)</h3>
+  1220→        <div className="grid gap-4 sm:grid-cols-2">
+  1221→          <div><label className="mb-1 block text-xs font-semibold">YouTube</label><Input value={settings.social_youtube || ''} onChange={(e) => setSettings((s) => ({ ...s, social_youtube: e.target.value }))} className="bg-muted/30" /></div>
+  1222→          <div><label className="mb-1 block text-xs font-semibold">LinkedIn</label><Input value={settings.social_linkedin || ''} onChange={(e) => setSettings((s) => ({ ...s, social_linkedin: e.target.value }))} className="bg-muted/30" /></div>
+  1223→          <div><label className="mb-1 block text-xs font-semibold">Twitter</label><Input value={settings.social_twitter || ''} onChange={(e) => setSettings((s) => ({ ...s, social_twitter: e.target.value }))} className="bg-muted/30" /></div>
+  1224→          <div><label className="mb-1 block text-xs font-semibold">Instagram</label><Input value={settings.social_instagram || ''} onChange={(e) => setSettings((s) => ({ ...s, social_instagram: e.target.value }))} className="bg-muted/30" /></div>
+  1225→          <div><label className="mb-1 block text-xs font-semibold">GitHub</label><Input value={settings.social_github || ''} onChange={(e) => setSettings((s) => ({ ...s, social_github: e.target.value }))} className="bg-muted/30" /></div>
+  1226→        </div>
+  1227→      </div>
+  1228→
+  1229→      <Button onClick={() => save(settings)} disabled={saving} className="rounded-full bg-brand-gradient text-white">
+  1230→        {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
+  1231→        Save All SEO Settings
+  1232→      </Button>
+  1233→    </div>
+  1234→  )
+  1235→}
+  1236→
+  1237→/* ============ BLOG MANAGEMENT TAB ============ */
+  1238→type BlogPostRow = {
+  1239→  id: string
+  1240→  title: string
+  1241→  slug: string
+  1242→  excerpt: string
+  1243→  content: string
+  1244→  category: string
+  1245→  author: string
+  1246→  authorRole: string
+  1247→  authorInitials: string
+  1248→  authorAccent: string
+  1249→  imageUrl: string | null
+  1250→  featured: boolean
+  1251→  status: string
+  1252→  createdAt: string
+  1253→  updatedAt: string
+  1254→}
+  1255→
+  1256→function BlogTab() {
+  1257→  const [posts, setPosts] = React.useState<BlogPostRow[]>([])
+  1258→  const [loading, setLoading] = React.useState(true)
+  1259→  const [editing, setEditing] = React.useState<BlogPostRow | null>(null)
+  1260→  const [showForm, setShowForm] = React.useState(false)
+  1261→
+  1262→  const fetchPosts = React.useCallback(async () => {
+  1263→    setLoading(true)
+  1264→    try {
+  1265→      const res = await fetch('/api/admin/blog')
+  1266→      const data = await res.json()
+  1267→      setPosts(data.posts || [])
+  1268→    } catch { /* ignore */ } finally { setLoading(false) }
+  1269→  }, [])
+  1270→
+  1271→  React.useEffect(() => { fetchPosts() }, [fetchPosts])
+  1272→
+  1273→  const handleDelete = async (id: string) => {
+  1274→    if (!confirm('Delete this blog post? This cannot be undone.')) return
+  1275→    await fetch('/api/admin/blog', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
+  1276→    setPosts((prev) => prev.filter((p) => p.id !== id))
+  1277→    toast.success('Post deleted')
+  1278→  }
+  1279→
+  1280→  const handleToggleFeatured = async (post: BlogPostRow) => {
+  1281→    await fetch('/api/admin/blog', {
+  1282→      method: 'PUT',
+  1283→      headers: { 'Content-Type': 'application/json' },
+  1284→      body: JSON.stringify({ id: post.id, featured: !post.featured }),
+  1285→    })
+  1286→    setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, featured: !p.featured } : p)))
+  1287→  }
+  1288→
+  1289→  const handleToggleStatus = async (post: BlogPostRow) => {
+  1290→    const newStatus = post.status === 'published' ? 'draft' : 'published'
+  1291→    await fetch('/api/admin/blog', {
+  1292→      method: 'PUT',
+  1293→      headers: { 'Content-Type': 'application/json' },
+  1294→      body: JSON.stringify({ id: post.id, status: newStatus }),
+  1295→    })
+  1296→    setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, status: newStatus } : p)))
+  1297→  }
+  1298→
+  1299→  return (
+  1300→    <div className="space-y-6">
+  1301→      <div className="flex items-center justify-between">
+  1302→        <div>
+  1303→          <h2 className="font-display text-2xl font-bold tracking-tight">Blog Posts</h2>
+  1304→          <p className="mt-1 text-sm text-muted-foreground">Create, edit, and publish blog articles. Changes appear instantly on the website.</p>
+  1305→        </div>
+  1306→        <Button onClick={() => { setEditing(null); setShowForm(true) }} className="rounded-full bg-brand-gradient text-white">
+  1307→          <BookOpen className="size-4" />
+  1308→          New post
+  1309→        </Button>
+  1310→      </div>
+  1311→
+  1312→      {showForm && (
+  1313→        <BlogPostForm
+  1314→          initial={editing}
+  1315→          onClose={() => { setShowForm(false); setEditing(null) }}
+  1316→          onSaved={() => { setShowForm(false); setEditing(null); fetchPosts() }}
+  1317→        />
+  1318→      )}
+  1319→
+  1320→      {loading ? (
+  1321→        <div className="flex justify-center py-12"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>
+  1322→      ) : posts.length === 0 ? (
+  1323→        <div className="flex flex-col items-center rounded-2xl border border-dashed border-border/60 py-16 text-center">
+  1324→          <BookOpen className="size-10 text-muted-foreground/40" />
+  1325→          <p className="mt-3 font-display text-lg font-bold">No blog posts yet</p>
+  1326→          <p className="mt-1 text-sm text-muted-foreground">Write your first article to publish it on the blog.</p>
+  1327→          <Button onClick={() => { setEditing(null); setShowForm(true) }} className="mt-4 rounded-full bg-brand-gradient text-white">
+  1328→            Write first post
+  1329→          </Button>
+  1330→        </div>
+  1331→      ) : (
+  1332→        <div className="space-y-3">
+  1333→          {posts.map((post) => (
+  1334→            <div key={post.id} className="flex items-start gap-4 rounded-2xl border border-border/60 bg-card p-4">
+  1335→              <div className="size-16 shrink-0 overflow-hidden rounded-xl bg-muted">
+  1336→                {post.imageUrl && <img src={post.imageUrl} alt={post.title} className="size-full object-cover" />}
+  1337→              </div>
+  1338→              <div className="min-w-0 flex-1">
+  1339→                <div className="flex items-start justify-between gap-2">
+  1340→                  <div className="min-w-0">
+  1341→                    <p className="truncate font-display text-sm font-bold">{post.title}</p>
+  1342→                    <p className="truncate text-xs text-muted-foreground">{post.excerpt || 'No excerpt'}</p>
+  1343→                  </div>
+  1344→                  <div className="flex shrink-0 gap-1">
+  1345→                    <button onClick={() => handleToggleFeatured(post)} className={cn('rounded-full px-2 py-1 text-[10px] font-bold uppercase', post.featured ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400' : 'bg-muted text-muted-foreground')} title="Toggle featured">
+  1346→                      ★
+  1347→                    </button>
+  1348→                    <button onClick={() => handleToggleStatus(post)} className={cn('rounded-full px-2 py-1 text-[10px] font-bold uppercase', post.status === 'published' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-muted text-muted-foreground')}>
+  1349→                      {post.status}
+  1350→                    </button>
+  1351→                  </div>
+  1352→                </div>
+  1353→                <div className="mt-2 flex items-center gap-3 text-[10px] text-muted-foreground">
+  1354→                  <span>{post.category}</span>
+  1355→                  <span>·</span>
+  1356→                  <span>{post.author}</span>
+  1357→                  <span>·</span>
+  1358→                  <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+  1359→                </div>
+  1360→                <div className="mt-2 flex gap-2">
+  1361→                  <Button size="sm" variant="ghost" onClick={() => { setEditing(post); setShowForm(true) }} className="rounded-full text-xs">
+  1362→                    Edit
+  1363→                  </Button>
+  1364→                  <Button size="sm" variant="ghost" onClick={() => handleDelete(post.id)} className="rounded-full text-xs text-destructive hover:text-destructive">
+  1365→                    Delete
+  1366→                  </Button>
+  1367→                </div>
+  1368→              </div>
+  1369→            </div>
+  1370→          ))}
+  1371→        </div>
+  1372→      )}
+  1373→    </div>
+  1374→  )
+  1375→}
+  1376→
+  1377→/* ============ BLOG POST FORM ============ */
+  1378→function BlogPostForm({ initial, onClose, onSaved }: { initial: BlogPostRow | null; onClose: () => void; onSaved: () => void }) {
+  1379→  const [title, setTitle] = React.useState(initial?.title || '')
+  1380→  const [slug, setSlug] = React.useState(initial?.slug || '')
+  1381→  const [excerpt, setExcerpt] = React.useState(initial?.excerpt || '')
+  1382→  const [content, setContent] = React.useState(initial?.content || '[{"type":"p","text":""}]')
+  1383→  const [category, setCategory] = React.useState(initial?.category || 'Web Design')
+  1384→  const [author, setAuthor] = React.useState(initial?.author || 'Preet Kaur')
+  1385→  const [authorRole, setAuthorRole] = React.useState(initial?.authorRole || 'Founder & Creative Director')
+  1386→  const [authorInitials, setAuthorInitials] = React.useState(initial?.authorInitials || 'PK')
+  1387→  const [authorAccent, setAuthorAccent] = React.useState(initial?.authorAccent || 'from-orange-500 to-pink-500')
+  1388→  const [imageUrl, setImageUrl] = React.useState(initial?.imageUrl || '')
+  1389→  const [featured, setFeatured] = React.useState(initial?.featured || false)
+  1390→  const [status, setStatus] = React.useState(initial?.status || 'published')
+  1391→  const [saving, setSaving] = React.useState(false)
+  1392→  const [contentType, setContentType] = React.useState<'json' | 'plain'>('json')
+  1393→
+  1394→  // Parse content for editing
+  1395→  React.useEffect(() => {
+  1396→    try {
+  1397→      const parsed = JSON.parse(content)
+  1398→      if (Array.isArray(parsed)) {
+  1399→        setContentType('json')
+  1400→      }
+  1401→    } catch {
+  1402→      setContentType('plain')
+  1403→    }
+  1404→  }, [])
+  1405→
+  1406→  const generateSlug = (title: string) => {
+  1407→    return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+  1408→  }
+  1409→
+  1410→  const handleTitleChange = (val: string) => {
+  1411→    setTitle(val)
+  1412→    if (!initial) setSlug(generateSlug(val))
+  1413→  }
+  1414→
+  1415→  const save = async () => {
+  1416→    if (!title || !slug) {
+  1417→      toast.error('Title and slug are required')
+  1418→      return
+  1419→    }
+  1420→    setSaving(true)
+  1421→    try {
+  1422→      const method = initial ? 'PUT' : 'POST'
+  1423→      const body = { id: initial?.id, title, slug, excerpt, content, category, author, authorRole, authorInitials, authorAccent, imageUrl, featured, status }
+  1424→      const res = await fetch('/api/admin/blog', {
+  1425→        method,
+  1426→        headers: { 'Content-Type': 'application/json' },
+  1427→        body: JSON.stringify(body),
+  1428→      })
+  1429→      const data = await res.json()
+  1430→      if (!data.ok) throw new Error(data.error || 'Save failed')
+  1431→      toast.success(initial ? 'Post updated!' : 'Post created!')
+  1432→      onSaved()
+  1433→    } catch (err) {
+  1434→      toast.error(err instanceof Error ? err.message : 'Save failed')
+  1435→    } finally {
+  1436→      setSaving(false)
+  1437→    }
+  1438→  }
+  1439→
+  1440→  const parseContentToPlainText = () => {
+  1441→    try {
+  1442→      const blocks = JSON.parse(content)
+  1443→      return blocks.map((b: { text?: string }) => b.text || '').join('\n\n')
+  1444→    } catch {
+  1445→      return content
+  1446→    }
+  1447→  }
+  1448→
+  1449→  const plainToContent = (plain: string) => {
+  1450→    const paragraphs = plain.split(/\n\n+/).filter(Boolean)
+  1451→    const blocks = paragraphs.map((text) => ({ type: 'p', text: text.trim() }))
+  1452→    return JSON.stringify(blocks)
+  1453→  }
+  1454→
+  1455→  return (
+  1456→    <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-4">
+  1457→      <div className="flex items-center justify-between">
+  1458→        <h3 className="font-display text-lg font-bold">{initial ? 'Edit Post' : 'New Blog Post'}</h3>
+  1459→        <Button size="sm" variant="ghost" onClick={onClose} className="rounded-full">✕</Button>
+  1460→      </div>
+  1461→
+  1462→      <div className="grid gap-4 sm:grid-cols-2">
+  1463→        <div>
+  1464→          <label className="mb-1 block text-xs font-semibold">Title *</label>
+  1465→          <Input value={title} onChange={(e) => handleTitleChange(e.target.value)} className="bg-muted/30" placeholder="How to scale your ecommerce store..." />
+  1466→        </div>
+  1467→        <div>
+  1468→          <label className="mb-1 block text-xs font-semibold">Slug *</label>
+  1469→          <Input value={slug} onChange={(e) => setSlug(e.target.value)} className="bg-muted/30 font-mono text-xs" placeholder="how-to-scale-ecommerce" />
+  1470→        </div>
+  1471→      </div>
+  1472→
+  1473→      <div>
+  1474→        <label className="mb-1 block text-xs font-semibold">Excerpt (summary shown in card)</label>
+  1475→        <Textarea value={excerpt} onChange={(e) => setExcerpt(e.target.value)} rows={2} className="bg-muted/30" placeholder="A short summary of the article..." />
+  1476→      </div>
+  1477→
+  1478→      <div>
+  1479→        <div className="mb-1 flex items-center justify-between">
+  1480→          <label className="text-xs font-semibold">Content</label>
+  1481→          <div className="flex gap-1">
+  1482→            <button onClick={() => { setContent(plainToContent(parseContentToPlainText())); setContentType('plain') }} className={cn('rounded px-2 py-0.5 text-[10px] font-bold', contentType === 'plain' ? 'bg-brand-gradient text-white' : 'bg-muted text-muted-foreground')}>
+  1483→              Plain text
+  1484→            </button>
+  1485→            <button onClick={() => setContentType('json')} className={cn('rounded px-2 py-0.5 text-[10px] font-bold', contentType === 'json' ? 'bg-brand-gradient text-white' : 'bg-muted text-muted-foreground')}>
+  1486→              JSON blocks
+  1487→            </button>
+  1488→          </div>
+  1489→        </div>
+  1490→        {contentType === 'plain' ? (
+  1491→          <Textarea
+  1492→            value={parseContentToPlainText()}
+  1493→            onChange={(e) => setContent(plainToContent(e.target.value))}
+  1494→            rows={10}
+  1495→            className="bg-muted/30 font-mono text-xs"
+  1496→            placeholder="Write your article here. Separate paragraphs with a blank line."
+  1497→          />
+  1498→        ) : (
+  1499→          <Textarea
+  1500→            value={content}
+  1501→            onChange={(e) => setContent(e.target.value)}
+  1502→            rows={10}
+  1503→            className="bg-muted/30 font-mono text-xs"
+  1504→            placeholder='[{"type":"p","text":"Your paragraph"},{"type":"h2","text":"Heading"},{"type":"ul","items":["Item 1","Item 2"]}]'
+  1505→          />
+  1506→        )}
+  1507→        <p className="mt-1 text-[10px] text-muted-foreground">
+  1508→          {contentType === 'plain' ? 'Separate paragraphs with blank lines. Each becomes a <p> block.' : 'JSON array of content blocks: {type, text} or {type:"ul", items:[]}'}
+  1509→        </p>
+  1510→      </div>
+  1511→
+  1512→      <div className="grid gap-4 sm:grid-cols-3">
+  1513→        <div>
+  1514→          <label className="mb-1 block text-xs font-semibold">Category</label>
+  1515→          <select value={category} onChange={(e) => setCategory(e.target.value)} className="h-9 w-full rounded-md border border-border bg-muted/30 px-3 text-sm">
+  1516→            <option>Web Design</option><option>AI</option><option>SEO</option><option>Ecommerce</option><option>Growth</option>
+  1517→          </select>
+  1518→        </div>
+  1519→        <div>
+  1520→          <label className="mb-1 block text-xs font-semibold">Image URL</label>
+  1521→          <Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} className="bg-muted/30" placeholder="/blog/b1.png" />
+  1522→        </div>
+  1523→        <div>
+  1524→          <label className="mb-1 block text-xs font-semibold">Status</label>
+  1525→          <select value={status} onChange={(e) => setStatus(e.target.value)} className="h-9 w-full rounded-md border border-border bg-muted/30 px-3 text-sm">
+  1526→            <option value="published">Published</option><option value="draft">Draft</option>
+  1527→          </select>
+  1528→        </div>
+  1529→      </div>
+  1530→
+  1531→      <div className="grid gap-4 sm:grid-cols-4">
+  1532→        <div>
+  1533→          <label className="mb-1 block text-xs font-semibold">Author</label>
+  1534→          <Input value={author} onChange={(e) => setAuthor(e.target.value)} className="bg-muted/30" />
+  1535→        </div>
+  1536→        <div>
+  1537→          <label className="mb-1 block text-xs font-semibold">Author Role</label>
+  1538→          <Input value={authorRole} onChange={(e) => setAuthorRole(e.target.value)} className="bg-muted/30" />
+  1539→        </div>
+  1540→        <div>
+  1541→          <label className="mb-1 block text-xs font-semibold">Initials</label>
+  1542→          <Input value={authorInitials} onChange={(e) => setAuthorInitials(e.target.value)} className="bg-muted/30" maxLength={3} />
+  1543→        </div>
+  1544→        <div>
+  1545→          <label className="mb-1 block text-xs font-semibold">Accent (tailwind)</label>
+  1546→          <Input value={authorAccent} onChange={(e) => setAuthorAccent(e.target.value)} className="bg-muted/30 text-xs" />
+  1547→        </div>
+  1548→      </div>
+  1549→
+  1550→      <label className="flex items-center gap-2 text-sm">
+  1551→        <input type="checkbox" checked={featured} onChange={(e) => setFeatured(e.target.checked)} className="size-4 rounded" />
+  1552→        Featured post (shown as the large highlighted card)
+  1553→      </label>
+  1554→
+  1555→      <div className="flex gap-2">
+  1556→        <Button onClick={save} disabled={saving} className="rounded-full bg-brand-gradient text-white">
+  1557→          {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
+  1558→          {initial ? 'Update post' : 'Create post'}
+  1559→        </Button>
+  1560→        <Button variant="outline" onClick={onClose} className="rounded-full">Cancel</Button>
+  1561→      </div>
+  1562→    </div>
+  1563→  )
+  1564→}
+  1565→

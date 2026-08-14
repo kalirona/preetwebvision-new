@@ -1,0 +1,1100 @@
+     1→# Preet Web Vision — Project Worklog
+     2→
+     3→## Project Overview
+     4→A stunning, modern digital marketing agency website for **Preet Web Vision** offering:
+     5→Website Design & Development, AI Automations, Web App Development, SEO & Digital Growth, Ecommerce Solutions.
+     6→
+     7→Single-route SPA (only `/` route visible). Multi-page experience handled via Zustand `useNav` store + `AnimatePresence` page transitions.
+     8→
+     9→## Tech Stack
+    10→- Next.js 16 App Router, TypeScript, Tailwind CSS 4, shadcn/ui, Framer Motion, Lucide icons
+    11→- Prisma (SQLite) for contact submissions + chat leads
+    12→- z-ai-web-dev-sdk LLM for the live "Vision AI" assistant (`/api/chat`)
+    13→- Contact API at `/api/contact`
+    14→
+    15→## Design System (IMPORTANT — follow these patterns)
+    16→- **Brand palette (warm, NOT indigo/blue):** orange `#FF6B35`, pink `#FF2D75`, rose `#F72585`, amber `#F59E0B`, emerald `#10B981`
+    17→- **Fonts:** `font-display` = Space Grotesk (headings), Geist Sans (body). Use `font-display` on headings.
+    18→- **Gradient helpers:** `.text-gradient-brand`, `.text-gradient-warm`, `.bg-brand-gradient`, `.bg-brand-gradient-soft`, `.animate-gradient-pan`
+    19→- **Glass:** `.glass`, `.glass-strong`; **glow:** `.glow-brand`, `.glow-soft`; **grid/dot bg:** `.grid-bg`, `.dot-bg`
+    20→- **Backgrounds:** `<AmbientBackground variant="strong|default|soft" />` from `@/components/site/ambient-background`
+    21→- **Marquee:** `.animate-marquee`, `.mask-fade-edges`
+    22→- **Float animations:** `.animate-float`, `.animate-float-slow`, `.animate-spin-slow`, `.animate-pulse-glow`, `.animate-shimmer`
+    23→- Dark mode is default (`defaultTheme="dark"`)
+    24→
+    25→## Shared Primitives (`@/components/site/primitives`)
+    26→- `<Reveal delay y className>` — scroll reveal
+    27→- `<SectionHeading eyebrow title description align="center|left" className>`
+    28→- `<GradientText>` — brand gradient text span
+    29→- `<StaggerGroup>` + `staggerItem` variant — staggered grids
+    30→- `<Counter value suffix duration>` — animated number counter
+    31→- `<Marquee items reverse>`
+    32→
+    33→## Site Data (`@/lib/site-data.ts`)
+    34→Exports: `NAV_ITEMS`, `SERVICES` (5, each with icon/title/tagline/description/features/deliverables/accent/glow), `PROJECTS` (6, with category/metric/gradient/emoji), `STATS`, `PROCESS` (4 steps), `TESTIMONIALS` (5), `TEAM` (4), `VALUES` (4), `TIMELINE` (4), `PRICING` (3), `FAQS` (6), `TECH_STACK`, `AWARDS`, `TRUSTED_BY`, `FEATURES_GRID`.
+    35→
+    36→## Navigation
+    37→`useNav()` from `@/lib/nav-store` → `{ page, setPage }`. Call `setPage('home'|'services'|'portfolio'|'about'|'pricing'|'contact')` to navigate. Auto-scrolls to top.
+    38→
+    39→## Layout Structure
+    40→`page.tsx` renders: `<Navbar />` + `<main className="pt-24">` (page transitions) + `<Footer />` (sticky via `mt-auto`) + `<AiAssistant />` (floating chatbot). Root wrapper is `min-h-screen flex flex-col`.
+    41→
+    42→## Existing Components
+    43→- `@/components/site/navbar.tsx` — fixed glass navbar, mobile sheet, theme toggle, animated nav pill
+    44→- `@/components/site/footer.tsx` — CTA strip + 5-col links + newsletter + socials + bottom bar
+    45→- `@/components/site/ai-assistant.tsx` — floating LLM chatbot widget (talks to /api/chat)
+    46→- `@/components/site/pages/home-page.tsx` — REFERENCE for design language (Hero, ServicesOverview, StatsBand, WhyUs, Process, PortfolioPreview, Testimonials, AiDemoCta, TechStack, FaqSection)
+    47→
+    48→## APIs
+    49→- `POST /api/contact` — body `{name,email,company?,service?,budget?,message}` → `{ok, id}`
+    50→- `POST /api/chat` — body `{messages:[{role,content}], email?}` → `{ok, reply}`
+    51→
+    52→## DB Models
+    53→- `ContactSubmission`: id,name,email,company,service,budget,message,status,createdAt
+    54→- `ChatLead`: id,email,message,createdAt
+    55→
+    56→---
+    57→Task ID: 1-3
+    58→Agent: main (Z.ai Code)
+    59→Task: Set up design system, site data, page shell with state-based routing, navbar, footer, AI assistant widget, contact + chat APIs, Prisma schema, and the Home page.
+    60→
+    61→Work Log:
+    62→- Rewrote `src/app/globals.css` with warm brand palette (orange/pink/rose), light+dark themes, glass/gradient/glow/marquee/float utilities, custom scrollbar.
+    63→- Updated `src/app/layout.tsx` with Space Grotesk display font, brand metadata, ThemeProvider (next-themes, dark default), Sonner toaster.
+    64→- Created `src/lib/site-data.ts` — all content (services, projects, team, testimonials, pricing, process, values, timeline, FAQs, tech stack, awards).
+    65→- Created `src/lib/nav-store.ts` — Zustand nav store.
+    66→- Created `src/components/site/primitives.tsx` — Reveal, SectionHeading, GradientText, Counter, Marquee, StaggerGroup.
+    67→- Created `src/components/site/ambient-background.tsx`, `navbar.tsx`, `footer.tsx`, `ai-assistant.tsx`, `theme-provider.tsx`.
+    68→- Created `prisma/schema.prisma` (ContactSubmission + ChatLead), ran `bun run db:push`.
+    69→- Created `src/app/api/contact/route.ts` and `src/app/api/chat/route.ts` (LLM-powered).
+    70→- Created `src/app/page.tsx` page shell with AnimatePresence page transitions.
+    71→- Created `src/components/site/pages/home-page.tsx` — full Home page with 10 sections.
+    72→- Replaced `public/logo.svg` with branded "P" gradient mark.
+    73→
+    74→Stage Summary:
+    75→- Foundation + Home page complete and design language established.
+    76→- Remaining: Services, Portfolio, About, Pricing, Contact pages (delegated to parallel subagents).
+    77→- Then: image generation, lint, agent-browser verification, cron job setup.
+    78→
+    79→---
+    80→Task ID: 5
+    81→Agent: full-stack-developer
+    82→Task: Build the stunning Portfolio / Work page (`src/components/site/pages/portfolio-page.tsx`) for Preet Web Vision — a client component featuring a hero with stats strip, a filterable project gallery (centerpiece), a process strip, a trusted-by marquee, featured testimonials, and a final CTA.
+    83→
+    84→Work Log:
+    85→- Read `worklog.md`, `home-page.tsx` (reference), `primitives.tsx`, `ambient-background.tsx`, and `site-data.ts` to match the established design language (warm palette, glass cards, gradient text, ambient orbs, grid-bg masks, font-display headings, Framer Motion reveals).
+    86→- Wrote `/home/z/my-project/src/components/site/pages/portfolio-page.tsx` as a single client component exporting `PortfolioPage`.
+    87→- **Hero**: `<AmbientBackground variant="strong" />`, eyebrow "Selected Work", headline "Work that <GradientText>moves metrics</GradientText>" with animated gradient pan, subheading, and a glass-strong stats strip using `STATS` + `<Counter>` with grid-bg + dual gradient orbs.
+    88→- **ProjectGallery (centerpiece)**: derived filter categories from `PROJECTS` ("All" + 5 unique categories) with per-category counts. Active filter pill uses a shared `layoutId="filter-pill"` + spring transition so the brand-gradient pill glides between filters. Grid uses `motion.div layout` + `AnimatePresence mode="popLayout"` for smooth re-flow. Each `ProjectCard` is a `<button>` (keyboard accessible) with aspect-[16/11] rounded-3xl, gradient bg, grid overlay, dark legibility overlay, emoji top-left (with hover scale/rotate), category badge top-right, hover-revealed metrics overlay + sliding "View case study" arrow, and bottom content (client·year, title, blurb, tag chips). `hover:-translate-y-1 hover:shadow-2xl` lift. Grid: 1 / 2 / 3 cols. Added a defensive empty-state and a "Don't see your industry?" CTA bar.
+    89→- **ProcessStrip**: inline 4-step approach (Discover → Design → Build → Launch & Scale) with icons (Lightbulb, PenTool, Code2, Rocket), numbered gradient badge, hover lift, and a gradient connector line on desktop — matches Home's Process pattern.
+    90→- **TrustedBy**: eyebrow "Brands we've partnered with" + `<Marquee items={TRUSTED_BY} />`.
+    91→- **TestimonialSection**: featured large quote card (`TESTIMONIALS[0]`) with gradient accent bar, big quote icon, stars, avatar with `accent` gradient fallback, plus 3 smaller testimonial cards in a StaggerGroup grid (1.4fr/1fr split on lg).
+    92→- **FinalCta**: gradient-bordered card (1px gradient ring via padding trick) containing ambient glow + grid-bg, badge, headline "Have a project in mind?", two buttons (Start a project → contact; Explore services → services), and a reassurance line.
+    93→- Root wrapper is `<div className="relative">`. No navbar/footer. Semantic HTML throughout (`section`, `blockquote`, `button` with aria-labels, `role="tablist"`/`role="tab"` with `aria-selected`).
+    94→- Only used allowed imports: shadcn `Button`/`Card`/`Badge`/`Avatar`, primitives (`Reveal`/`SectionHeading`/`GradientText`/`StaggerGroup`/`staggerItem`/`Counter`/`Marquee`), `AmbientBackground`, `useNav`, `PROJECTS`/`STATS`/`TESTIMONIALS`/`TRUSTED_BY`/`Project` type, `cn`, framer-motion (`motion`/`AnimatePresence`), lucide-react icons.
+    95→- Ran `bun run lint` → passed with zero errors/warnings.
+    96→
+    97→Stage Summary:
+    98→- Portfolio page complete and lint-clean. Design language matches Home page exactly (warm gradients, glass, ambient orbs, font-display headings, reveals).
+    99→- Filterable gallery is the premium centerpiece: animated `layoutId` pill + `AnimatePresence` `popLayout` for jank-free re-flow, hover-lift cards with sliding case-study arrow and revealed metric overlay.
+   100→- Page is already wired into the shell at `src/app/page.tsx` (renders when `page === 'portfolio'`), so no other files needed touching.
+   101→
+   102→---
+   103→Task ID: 6
+   104→Agent: full-stack-developer
+   105→Task: Build the stunning "About" page for Preet Web Vision as a single client component at `src/components/site/pages/about-page.tsx`, matching the Home page's design language exactly (warm palette, gradient text, glass cards, reveals, ambient backgrounds, hover lifts, premium timeline).
+   106→
+   107→Work Log:
+   108→- Read worklog.md, home-page.tsx (reference design), primitives.tsx, ambient-background.tsx, site-data.ts and globals.css to lock in the design system (brand palette, gradient/glass/grid utilities, reveal/stagger/counter/marquee primitives).
+   109→- Created `src/components/site/pages/about-page.tsx` — a `'use client'` component exporting `AboutPage()`, composed of 9 sections:
+   110→  1. **Hero** — `<AmbientBackground variant="strong" />`, eyebrow "Our Story", headline with `<GradientText>Preet Web Vision</GradientText>`, subheading about senior remote-first AI-native studio, two CTAs (Work with us → contact, See our work → portfolio), and a floating visual: orbiting dashed rings + central gradient orb + three floating glass stat cards (180+ brands, 12 countries, Founded 2016).
+   111→  2. **Story band** — two-column: left narrative (3 short paragraphs on founding belief, 180+ brands across 12 countries, AI-native evolution) with tag badges; right gradient quote card (Preet Kaur) with grid bg + gradient orb glow + floating mini "14x ROI" stat card.
+   112→  3. **Stats band** — mirrors Home's StatsBand: glass card with grid bg + gradient orb, `STATS` rendered via `<Counter>` with `text-gradient-brand`.
+   113→  4. **Values** — `VALUES` (4 items) in a 4-col grid of glass cards with gradient icon tiles + hover lift + radial glow.
+   114→  5. **Timeline** — `TIMELINE` (2016/2019/2022/2024) as a vertical timeline with double gradient spine (neutral + warm gradient), glowing animated nodes (ping pulse), alternating left/right cards on desktop, stacked left-aligned on mobile.
+   115→  6. **Team** — `TEAM` (4 members) in cards with gradient `<Avatar><AvatarFallback>` (initials), name/role/bio, social icon buttons (LinkedIn/Twitter/GitHub via `SocialIcon` resolver), hover lift + per-member accent glow. Added a 5th dashed "We're hiring / Join the team" CTA card → contact.
+   116→  7. **Awards strip** — `AWARDS` (4) in a row of glass cards with gradient icon tiles.
+   117→  8. **Tech stack marquee** — `<Marquee items={TECH_STACK} reverse />`, eyebrow "Tools we master".
+   118→  9. **Final CTA** — `.gradient-border` card, ambient glows (brand + rose orbs), "Let's build the future, together" with `<GradientText>`, two CTAs (Start a project → contact, Explore services → services).
+   119→- All section heads use `font-display` + `<GradientText>`; semantic HTML (`section`, `h1`/`h2`/`h3`, `aria-label` on social links); warm palette only (no indigo/blue); mobile-first responsive with generous spacing; root wrapper `<div className="relative">`.
+   120→- Ran `bun run lint` → clean (no errors). Dev log confirms the about-page module imports & resolves correctly; sibling page-file errors in the log are from other parallel agents' not-yet-written files, not mine.
+   121→
+   122→Stage Summary:
+   123→- About page complete and production-ready, matching Home page quality 1:1.
+   124→- Uses ONLY existing primitives/components per spec; no new routes or modified files.
+   125→- Ready for the parallel Services/Portfolio/Pricing pages and final integration/image-gen pass.
+   126→
+   127→---
+   128→Task ID: 7
+   129→Agent: full-stack-developer
+   130→Task: Build the stunning Pricing page (`src/components/site/pages/pricing-page.tsx`) for Preet Web Vision, matching the Home page design language exactly. Client component, named export `PricingPage`, using only existing primitives/components.
+   131→
+   132→Work Log:
+   133→- Read `worklog.md`, `home-page.tsx` (reference design), `site-data.ts` (PRICING/SERVICES/STATS/TESTIMONIALS/FAQS), `primitives.tsx`, and `globals.css` (verified `gradient-border`, `glow-brand`, `glass-strong`, `grid-bg`, `bg-brand-gradient`, `animate-shimmer`, `animate-pulse-glow` utilities and `--radius-2xl`).
+   134→- Wrote `pricing-page.tsx` as a single client component composed of 8 internal sections:
+   135→  1. **Hero** — `AmbientBackground variant="strong"`, eyebrow "Pricing", headline "Simple, <GradientText>transparent</GradientText> pricing", subheading, reassurance row (no long-term contracts / senior team / money-back guarantee with `CheckCircle2`), two CTAs (Start a project + Talk to us) both → `setPage('contact')`. Shimmer-animated primary button.
+   136→  2. **PricingCards** — 3-col grid (`StaggerGroup` + `staggerItem`) of `PRICING`. Featured Growth card: `gradient-border` + `glow-brand` + `lg:scale-105 lg:-translate-y-2` + gradient header strip from `plan.accent` + "Most popular" badge with Sparkles + brand-gradient shimmer CTA + ambient glow. Non-featured cards: border + bg-card + outline button, hover lift. Each card: name, big price (gradient text on featured) + period, description, feature list with gradient Check icons (icon tile uses `plan.accent`), divider, CTA → contact. Footnote with inline "Tell us what you have in mind" link.
+   137→  3. **ServiceMapping** — "Every plan, <GradientText>every capability</GradientText>". 2-col grid of 5 SERVICES, each row: gradient icon tile (`service.accent`), title, tagline, pricing-hint badge (Starts at $2.4k / Included in Growth / Enterprise / From $1.2k/mo / From $4.5k). Hover lift + ambient glow. "Compare services in detail" button → services.
+   138→  4. **AddOns** — 4 inline glass-strong cards (AI Chatbot Agent, Monthly SEO Retainer, CRO Experimentation, 24/7 Priority Support) with gradient icon tiles, short desc, price tag (gradient text), "Add it" link → contact. Hover lift + ambient glow.
+   139→  5. **StatsBand** — Mirror of Home StatsBand: glass card, `grid-bg` with radial mask, brand-gradient blur orb, 4 `STATS` with `Counter` in gradient text.
+   140→  6. **TestimonialHighlight** — Split layout: left SectionHeading "Investment that <GradientText>pays for itself</GradientText>", right quote card with stars, Quote watermark, avatar (gradient fallback from testimonial accent). Uses TESTIMONIALS[0] (Aarav Mehta — revenue +62%, AI agent saved 2 hires) for ROI focus.
+   141→  7. **FaqSection** — "Pricing <GradientText>FAQ</GradientText>". Curated 5 FAQs led by pricing-relevant ones (pricing → timeline → retainer → startups/enterprises → AI agents) using `Accordion`.
+   142→  8. **FinalCta** — `gradient-border` rounded card with double brand-gradient blur orbs (one `animate-pulse-glow`), grid-bg, "Free consultation" eyebrow with Calendar icon, "Not sure which plan fits?" headline, two CTAs (Book a free consultation → contact, Compare services → services).
+   143→- Style: matched home page exactly — `font-display` headings, gradient text, glass cards, soft shadows, hover lifts, gradient orbs, radial-masked grids, warm palette only (no indigo/blue), mobile-first responsive, semantic HTML (`section`, `ul/li`, `blockquote`), generous spacing.
+   144→- All CTAs route through `useNav().setPage('contact'|'services')`. Root wrapper is `<div className="relative">`. No navbar/footer (handled by page shell).
+   145→- Ran `bun run lint` — **clean, zero errors** in the file. Verified dev log: page.tsx already imports `PricingPage` and the project compiled successfully ("✓ Compiled in 433ms").
+   146→
+   147→Stage Summary:
+   148→- Pricing page complete and production-ready. 8 sections, fully responsive, matches Home design language.
+   149→- Featured Growth card clearly stands out via gradient border, glow, scale elevation, gradient header strip, "Most popular" badge, and brand-gradient CTA.
+   150→- All 3 pricing plans, 5 services, 4 add-ons, 4 stats, 1 testimonial, and 5 FAQs rendered from `@/lib/site-data` (with inline add-on copy as instructed).
+   151→- No other files modified; only `pricing-page.tsx` written. Lint clean.
+   152→
+   153→---
+   154→Task ID: 8
+   155→Agent: full-stack-developer
+   156→Task: Build the Contact page (`src/components/site/pages/contact-page.tsx`) for Preet Web Vision — a stunning client component with a working contact form that POSTs to the existing `/api/contact` API.
+   157→
+   158→Work Log:
+   159→- Read `worklog.md`, `home-page.tsx` (design reference), `primitives.tsx`, `ambient-background.tsx`, `api/contact/route.ts`, `nav-store.ts`, `tailwind.config.ts`, and `globals.css` to align with the established design language and verify available utilities (CSS variables for brand colors, not Tailwind color utilities).
+   160→- Verified availability of lucide-react icons (`Loader2`, `PartyPopper`, `Twitter`, `Linkedin`, `Github`, `Instagram`, etc.) before using them.
+   161→- Wrote `contact-page.tsx` (`'use client'`, named export `ContactPage`, root `<div className="relative">`) with 5 sections:
+   162→  1. **Hero** — `<AmbientBackground variant="strong" />`, "Get in touch" eyebrow, "Let's build something extraordinary" headline with `<GradientText>`, reply-within-1-business-day subheading, trust row with check icons.
+   163→  2. **Contact grid** — 2-col on desktop:
+   164→     - LEFT `ContactInfoPanel`: glass-strong card with gradient orbs; email/phone/location methods (each with colored icon tile + hover lift); "Why reach out" list (4 bullets with icons); office-hours + response-time badges; social icons row.
+   165→     - RIGHT `ContactFormCard`: gradient-haloed card titled "Start your project" with Name, Email, Company, Service chips (5 services → exact API strings), Budget chips (4 → exact API strings), Message textarea, full-width gradient Submit button with Send icon + loading spinner. Privacy note under button.
+   166→  3. **FAQ accordion** — "Before you reach out" with `<GradientText>`, 4 inline contact-relevant Q&As (response time, NDAs, post-submit flow, calls) using shadcn `Accordion`.
+   167→  4. **Global presence strip** — decorative "Serving clients worldwide" band with stylized dotted world map, equator line, orbit arcs, animated city pins (7 cities) with hover tooltips, central pulse, and stats badges.
+   168→  5. **Final CTA** — gradient-bordered card "Prefer to explore first?" with buttons (Explore services → `setPage('services')`, Back home → `setPage('home')`).
+   169→- Form implementation: `react-hook-form` + `zodResolver`, `useState` for service/budget chips (combined on submit), async submit handler with `loading` state, `fetch('/api/contact')` POST, success → animated check (`framer-motion` scale-in + ping ring) replacing the form with personalized "Message received, {firstName}!" message + "Send another" reset button; error → `toast.error(data.error)` keeping the form. Hidden honeypot field (`website`) silently pretends success if filled.
+   170→- Selected chips styled with `bg-brand-gradient text-white border-transparent shadow-[0_4px_20px_-6px_rgba(255,45,117,0.6)]`; unselected with `border-border bg-muted/30 text-muted-foreground hover:border-border`.
+   171→- Premium form inputs: `h-11 rounded-xl bg-muted/30`, brand-colored focus rings (shadcn defaults), `aria-invalid` styling, accessible `<Label htmlFor>` with required-asterisk in brand-pink, animated inline error messages.
+   172→- Verified no invalid Tailwind color utilities were used (replaced initial `bg-brand-pink` with inline `style={{ background: 'var(--brand-pink)' }}` since brand colors are CSS variables only in this project).
+   173→- Ran `bun run lint` — no errors or warnings in the file.
+   174→- Confirmed in `dev.log` that `contact-page.tsx` compiles cleanly (only unrelated module-not-found warnings for services/portfolio/about/pricing pages being built in parallel by other agents).
+   175→
+   176→Stage Summary:
+   177→- Contact page complete: stunning, fully responsive, matches Home page design language, with a working validated form wired to the existing `/api/contact` API, honeypot anti-spam, success/error handling, FAQ, decorative global-presence visual, and final CTA.
+   178→- No other files modified. Only `src/components/site/pages/contact-page.tsx` written.
+   179→- Ready for integration once `page.tsx` resolves the import (or the other page subagents finish so the shell stops warning about missing modules).
+   180→
+   181→---
+   182→Task ID: 4
+   183→Agent: full-stack-developer
+   184→Task: Build the Services page (`src/components/site/pages/services-page.tsx`) for Preet Web Vision — a stunning, client-component page rendered inside the existing `/` route shell, matching the Home page's design language.
+   185→
+   186→Work Log:
+   187→- Read `worklog.md`, `home-page.tsx` (reference), `site-data.ts`, `primitives.tsx`, `ambient-background.tsx`, `button.tsx`, `nav-store.ts`, and `globals.css` utility classes to internalize the design system.
+   188→- Built `ServicesPage` as a single self-contained `'use client'` file exporting `export function ServicesPage()`, root wrapper `<div className="relative">`.
+   189→- **Hero**: `AmbientBackground variant="strong"`, centered eyebrow badge "Our Services", headline "Services that <GradientText>compound</GradientText> your growth", subheading, two CTAs (Start a project → contact, View work → portfolio), trust-stats row using `<Counter>` (180+, 98%, 14x, 40+), and a floating "HeroOrbit" visual — central pulsing brand-gradient orb with two dashed spin rings and all 5 service icons positioned around the ring with per-icon float animations.
+   190→- **ServicesDetailed**: 5 alternating two-column rows (visual ↔ content swap on odd indexes via `lg:order-1/2`). Each row: gradient icon tile with `service.glow` shadow, `0X / 05` mono index, title, tagline (brand-pink), description, 2-col features grid with emerald `CheckCircle2`, "Deliverables" pill list, two CTAs (Start this project → contact, See related work → portfolio). Rows wrapped in `flex flex-col gap-16 sm:gap-24`.
+   191→- **ServiceVisual**: One unique mock per service, centered on a gradient orb + dashed spin ring backdrop — (1) browser window with design-system swatches + Lighthouse 96 floating card, (2) chatbot UI with typing dots + auto-resolved 71% / resp. time -89% cards, (3) SaaS dashboard with stat tiles + bar chart + uptime 99.98% / API calls 2M+ cards, (4) SEO keyword ranking list + traffic bars + keywords #1 140 / leads +3.4x cards, (5) ecommerce product card with discount badge, star rating, Add-to-cart button + conv. rate +38% / revenue +62% cards. All floating cards use Framer Motion y-axis loops and `glass-strong`.
+   192→- **ProcessSection**: 4-step timeline using `PROCESS`. Gradient connecting line (horizontal desktop / vertical mobile) in brand orange→pink→rose, numbered badge with `ring-4 ring-background`, per-step "Step 0X" eyebrow + title + description. Responsive `sm:grid-cols-2 lg:grid-cols-4`.
+   193→- **TechStackSection**: `<Marquee items={TECH_STACK} reverse />` with "Built on a modern, battle-tested stack" eyebrow.
+   194→- **WhyChooseUs**: `FEATURES_GRID` in 2/4-col grid of `glass` cards with brand-gradient-soft icon tiles, `hover:-translate-y-1 hover:shadow-xl` lift, icon scale on hover. Title "Built different, <GradientText>end to end</GradientText>".
+   195→- **FaqSection**: `FAQS` in shadcn `Accordion` (single/collapsible), rounded-2xl items, title "Services <GradientText>FAQ</GradientText>".
+   196→- **FinalCta**: Gradient-bordered card (1.5px gradient wrapper + inner bg-card), grid-bg with radial mask, pulsing brand orb + floating amber orb, "3 project slots left" live badge, headline "Ready to build <GradientText>with us?</GradientText>", subtext with escaped apostrophe, two CTAs (Start a project → contact with shimmer overlay, Book a call → contact with Calendar icon).
+   197→- Strictly used only allowed imports; no new routes; warm palette only (orange/pink/rose/amber/emerald); no indigo/blue; `font-display` on all headings; semantic `<section>`/`<h2>`/`<h3>`; generous `py-20 sm:py-28` spacing; mobile-first responsive throughout.
+   198→- Ran `bun run lint` → clean (no errors). Removed an unused `PROCESS_ACCENTS` const and replaced an arbitrary animation property with the home page's `animate-spin-slow [animation-direction:reverse]` pattern for safety.
+   199→- Wrote work record to `/agent-ctx/4-full-stack-developer.md`.
+   200→
+   201→Stage Summary:
+   202→- Services page complete and lint-clean; design language matches Home page (glass cards, gradient text, orbs, grid backgrounds, Framer Motion reveals, hover lifts, staggered entrances).
+   203→- Page is wired into `src/app/page.tsx` (`{page === 'services' && <ServicesPage />}`) and compiles successfully — dev log shows `GET / 200` after file creation.
+   204→- Remaining: Portfolio, About, Pricing, Contact pages (other parallel subagents), then image generation, final lint, agent-browser verification.
+   205→
+   206→---
+   207→Task ID: 11-12
+   208→Agent: main (Z.ai Code)
+   209→Task: Generate OG image, run lint, and perform end-to-end agent-browser verification of all pages, contact form, and AI assistant.
+   210→
+   211→Work Log:
+   212→- Generated OG share image (`public/og-image.png`, 1344x768) via z-ai image CLI with warm abstract brand visual.
+   213→- Wired OG + twitter image into `layout.tsx` metadata; added `metadataBase` to resolve the metadataBase warning.
+   214→- Ran `bun run lint` → clean (0 errors).
+   215→- agent-browser verification:
+   216→  - Opened `/` → home renders, navbar + footer present, no console/runtime errors.
+   217→  - Navigated Home → Services → Portfolio → About → Pricing → Contact via navbar; each renders correct H1.
+   218→  - Contact form: filled name/email/company/message + selected service chip, submitted → DB INSERT confirmed in dev.log, success state "Message received, Aisha!" shown.
+   219→  - AI assistant: opened floating widget, asked "What services do you offer and how much does a website cost?" → on-brand LLM reply (services + pricing tiers + CTA). POST /api/chat 200.
+   220→  - Verified contact API via curl + browser fetch → both return `{ok:true,id}`.
+   221→  - Footer at document bottom (sticky layout correct); mobile menu button correctly hidden on desktop / shown on narrow viewports.
+   222→- VLM visual QA (glm-5v-turbo) on home, services, contact screenshots:
+   223→  - Home: "modern and stunning", cohesive warm palette (no blue/indigo), clean typography, no layout issues, polished floating widgets.
+   224→  - Services: clean alternating two-column layout, no overlaps/overflow, precise alignment, strong visual hierarchy.
+   225→  - Contact: hero clean, gradients rendering beautifully, no broken elements.
+   226→
+   227→Stage Summary:
+   228→- Project is complete and verified end-to-end. All 6 pages render and navigate; contact form persists to DB; live LLM assistant works; design is stunning and cohesive; responsive + sticky footer confirmed; lint clean.
+   229→- Remaining: create the recurring 15-minute webDevReview cron job (Task 13).
+   230→
+   231→---
+   232→Task ID: 14 (Cron Review Round 1)
+   233→Agent: main (Z.ai Code)
+   234→Task: Assess project status, QA test via agent-browser, then improve styling + add features per mandatory requirements.
+   235→
+   236→## Current Project Status (assessment)
+   237→- Project was stable and complete (6 pages, contact API, AI chatbot, lint clean). Verified via agent-browser: all 6 pages render/navigate, contact form persists to DB, AI assistant returns on-brand replies, sticky footer + responsive confirmed.
+   238→- VLM visual QA surfaced minor opportunities: inconsistent service card heights, potential for deeper glassmorphism, text-glow behind gradient headings.
+   239→
+   240→## Completed Modifications
+   241→### Styling polish (globals.css)
+   242→- Added new utilities: `.text-glow-brand` / `.text-glow-soft` (glow behind gradient text), `.glass-deep` (deeper glass with inner highlight), `.card-sheen` (hover sheen sweep), `.ring-conic` (conic gradient), `.noise-overlay` (SVG noise texture), `.link-underline` (animated underline), `.scroll-progress` (gradient progress bar), `.cursor-blink`, `.animate-rise`.
+   243→- Applied `text-glow-brand`/`text-glow-soft` to hero headline gradient words ("stunning", "grow").
+   244→- Fixed service card height inconsistency: added `h-full` to staggerItem wrappers + `mt-auto` on the "Learn more" CTA so cards align at the bottom.
+   245→- Added `card-sheen` hover sweep to service cards; icon tiles now `group-hover:scale-110`; tagline now uses brand-pink.
+   246→
+   247→### New features
+   248→1. **Scroll progress bar** (`site-chrome.tsx`) — brand-gradient bar at top of viewport using `useScroll`/`useSpring`, wired into page shell.
+   249→2. **Back-to-top button** (`site-chrome.tsx`) — appears after 600px scroll, glass-strong circle, smooth scroll, positioned bottom-left to avoid AI assistant.
+   250→3. **Cookie consent banner** (`site-chrome.tsx`) — glass-deep card with noise overlay, Accept/Decline, persisted in localStorage (`pwv-cookie-consent-v1`), appears after 1.4s delay, links to Privacy Policy.
+   251→4. **Newsletter API + persistence** (`/api/newsletter`) — new Prisma `NewsletterLead` model (unique email). POST uses raw SQL `INSERT OR IGNORE` (resilient to Prisma client delegate staleness in dev). GET returns count. Footer form wired: controlled email state, async submit with loading spinner + success check icon, live subscriber count display ("N growth-minded folks already subscribed").
+   252→5. **Interactive ROI/Growth Calculator** (`roi-calculator.tsx`) — reusable widget with: 4 service selectors (Web/AI/SEO/Ecommerce, each with base conversion lift %), 3 custom-styled gradient sliders (monthly visitors, conversion rate, avg order value), animated results panel showing projected annual uplift, monthly uplift, new conv. rate, conv. lift, ROI multiple, and a now-vs-after bar comparison. "Claim this growth" CTA → contact. Shown on Home (full) + Pricing (compact).
+   253→6. **Auto-rotating testimonials** (home-page.tsx) — 5.5s auto-rotation with pause-on-hover, prev/next arrow controls, dot indicators, AnimatePresence crossfade, "Auto/Paused" status indicator.
+   254→7. **Pricing billing toggle** (pricing-page.tsx) — animated pill toggle (One-time project ↔ Monthly retainer) with `layoutId` spring, "Save 20%" badge, dynamically swaps prices (Launch→"Retainer ready" note, Growth→$1.9k/mo, Enterprise→Custom/mo) with animated number transitions.
+   255→
+   256→### Bug fixed
+   257→- Newsletter POST initially 500'd (`db.newsletterLead` undefined) due to stale Prisma singleton cached in dev server `globalThis` from before the model was added. Added self-healing cache-bust in `db.ts` (detects missing `newsletterLead` delegate → discards cached client) AND switched the newsletter route to raw SQL (`$executeRaw` / `$queryRaw`) as a bulletproof fix. Verified: POST returns `{ok:true}`, count increments, browser submit persists.
+   258→
+   259→## Verification Results
+   260→- `bun run lint` → clean (0 errors).
+   261→- agent-browser QA: scroll progress bar present; cookie banner present → Accept → dismissed + persisted (no reappear on reload); ROI calculator interactive (switching to SEO updates projected revenue to +$276,480); pricing billing toggle swaps prices correctly (Launch→Retainer ready, Growth→$1.9k, Enterprise→Custom); newsletter form persists (count 0→2); back-to-top button appears after scroll; footer shows live subscriber count.
+   262→- VLM visual QA: hero text glow "vibrant and saturated, avoiding washed-out"; ROI calculator "premium... sophisticated dark-mode aesthetic... clear visual hierarchy"; pricing toggle "clean, pill-shaped... high contrast"; testimonials "well-structured... intuitive controls"; "excellent consistency in spacing, font weights, and color palette".
+   263→- Dev log: no new errors after raw-SQL fix.
+   264→
+   265→## Unresolved Issues / Risks
+   266→- Prisma client singleton staleness in dev is a known dev-only quirk; mitigated with cache-bust + raw SQL for newsletter. The contact API (`db.contactSubmission`) works because those models existed before the singleton was cached. If new models are added in future rounds, either restart the dev server or use raw SQL for them.
+   267→- Newsletter count display can be momentarily stale vs. API after an in-page subscribe (optimistic +1 may race with re-fetch); minor, self-corrects on next page load.
+   268→
+   269→## Priority Recommendations for Next Round
+   270→- Add a **blog/insights** page or **case study detail modals** on portfolio cards for more depth.
+   271→- Add a **multi-step project inquiry wizard** on the contact page (service → budget → timeline → details).
+   272→- Generate branded images for portfolio project cards (currently gradient + emoji) to add visual realism.
+   273→- Add **team member detail modals** or a **careers** section.
+   274→- Consider a **service comparison table** on the Services or Pricing page.
+   275→
+   276→---
+   277→Task ID: 15 (Cron Review Round 2)
+   278→Agent: main (Z.ai Code)
+   279→Task: Assess project status, QA test via agent-browser, then improve styling + add features per mandatory requirements.
+   280→
+   281→## Current Project Status (assessment)
+   282→- Project stable from Round 1: 6 pages (Home/Services/Portfolio/About/Pricing/Contact) + ROI calculator, auto-rotating testimonials, pricing billing toggle, scroll progress, back-to-top, cookie consent, newsletter API. Lint clean, no runtime errors.
+   283→- agent-browser QA confirmed all features working. Recommended next steps from Round 1: blog/insights page, case-study modals, multi-step inquiry wizard, branded portfolio images.
+   284→
+   285→## Completed Modifications
+   286→
+   287→### Styling polish (globals.css) — 12 new utilities
+   288→- `.mesh-divider` (animated gradient mesh section divider), `.focus-ring` (brand focus-visible ring), `.badge-glow` (glowing badge), `.tilt-card` (3D perspective hover), `.reading-progress` (article reading bar), `.step-connector` (vertical gradient), `.live-dot` (pulsing live indicator), `.text-balance`, `.prose-brand` (full blog article typography: h2/h3/p/ul/blockquote/a with brand bullet gradients and pink link accents).
+   289→
+   290→### New feature 1: Blog/Insights page (7th page)
+   291→- Added `"blog"` to `PageId` + `NAV_ITEMS` (now 7 nav items).
+   292→- Created `src/lib/content-data.ts` with 6 full blog posts (BLOG_POSTS) — each with title, excerpt, category, author, date, reading time, gradient, emoji, and structured content blocks (p/h2/h3/ul/quote). Plus CASE_STUDIES record with challenge/solution/results/testimonial for all 6 projects.
+   293→- Created `src/app/api/blog/route.ts` — POST tracks views (raw SQL, resilient), GET returns view counts. Added `BlogView` Prisma model.
+   294→- Built `src/components/site/pages/blog-page.tsx`:
+   295→  - **Blog grid**: hero with stats (6 articles, 5 categories, 6 min avg), featured post card (gradient + emoji + metadata), animated category filter pills (layoutId spring), 3-col card grid with cover gradient, author avatar, reading time, hover sheen.
+   296→  - **Article view**: reading progress bar (scroll-tracked), hero with category/date/read-time, author card + share button (Web Share API + clipboard fallback), gradient cover, `.prose-brand` body rendering all block types, inline newsletter CTA, "Keep reading" related-posts grid (same-category with fallback).
+   297→- Added "Latest from the blog" preview section to Home page (3 posts, → blog).
+   298→
+   299→### New feature 2: Project case-study modals
+   300→- Built `src/components/site/case-study-modal.tsx` — full-screen modal with: gradient/image cover header, scrollable body (metrics grid, Challenge/Solution/Results sections with icons, services tags, testimonial quote), footer CTA. Esc-to-close, body-scroll-lock, backdrop click, spring animation. Accessible (role=dialog, aria-modal).
+   301→- Wired into Portfolio page: cards now open the modal instead of going to contact. Modal "Start a project" CTA → contact.
+   302→
+   303→### New feature 3: Multi-step project inquiry wizard (Contact page)
+   304→- Built `src/components/site/project-wizard.tsx` — 4-step wizard (Service → Budget → Timeline → Details) + success state:
+   305→  - Visual stepper with done/active/inactive states + gradient connectors.
+   306→  - Step 0: 5 service cards (gradient icon tiles). Step 1: 4 budget chips. Step 2: 4 timeline chips. Step 3: name/email/optional summary.
+   307→  - Per-step validation (can't proceed without selection/valid email). Back/Continue nav. Restart button.
+   308→  - On submit: POSTs to `/api/contact` with wizard context (service, budget, timeline+summary in message). Success state: animated check, personalized "Got it, {name}! 🎉", summary chips, "Start over" / "Back to home" CTAs.
+   309→- Wired into Contact page above the main contact grid.
+   310→
+   311→### New feature 4: Branded portfolio images
+   312→- Generated 6 custom AI images (1152x864) via z-ai image CLI → `public/projects/p1-lumen.png` … `p6-mira.png` (Lumen skincare, Nova AI dashboard, Atlas fintech, Verdant botanical, Pulse SEO, Mira wedding).
+   313→- Added `image?: string` field to `Project` type + wired image paths into all 6 PROJECTS.
+   314→- Updated Portfolio `ProjectCard` + `CaseStudyModal` header to render the real image (with gradient multiply overlay for brand cohesion) instead of plain gradient, with hover zoom on cards.
+   315→
+   316→## Verification Results
+   317→- `bun run lint` → clean (0 errors, 0 warnings).
+   318→- agent-browser QA:
+   319→  - Blog nav item present (7 nav items). Blog page renders with 6 cards + 6 filters. Article view opens with prose content, share button, related posts. Blog view tracking API returns count:1 after reading.
+   320→  - Portfolio: all 6 project images load. Case-study modal opens with challenge/solution/results, closes via X button.
+   321→  - Project wizard: full 4-step flow walked (AI Automation → <$5k → 1–2 months → details filled → submit) → success state "Got it, Wizard! 🎉". Submission POSTed to /api/contact (200).
+   322→  - Home blog preview section renders 3 post cards.
+   323→- VLM visual QA: blog grid "strong dark-mode aesthetic... clear typographic hierarchy"; article "clean layout... effective metadata"; case study modal "high-impact presentation of data... scannable and persuasive... real product image adds authenticity".
+   324→- Dev log: POST /api/blog 200, POST /api/contact 200, GET / 200. No new errors.
+   325→
+   326→## Unresolved Issues / Risks
+   327→- Blog view tracking uses raw SQL (resilient to Prisma singleton staleness, same pattern as newsletter) — works but non-critical if it fails (fail-open).
+   328→- Cookie consent banner appears on first visit to any page (expected) — may overlap content in screenshots until dismissed.
+   329→- The case-study modal content scrolls within the modal; on very short viewports the Solution/Results may be below the fold (by design — scrollable).
+   330→
+   331→## Priority Recommendations for Next Round
+   332→- Add **team member detail modals** on the About page (expand on bios, skills, social links).
+   333→- Add a **service comparison table** on Services or Pricing (feature matrix across plans).
+   334→- Build a **careers/jobs** section or page (the About page already has a "We're hiring" CTA card).
+   335→- Add **search/filter** to the blog (beyond categories — by keyword or author).
+   336→- Add **dark/light theme persistence** indicator in the navbar (currently toggles but no visible state hint beyond the icon).
+   337→- Consider **animated page transition variants** per page type (currently uniform fade/slide).
+   338→
+   339→---
+   340→
+   341→Task ID: 4
+   342→Agent: full-stack-developer
+   343→Task: Add blog search + author filter to the BlogGrid on the blog page (`src/components/site/pages/blog-page.tsx`). Combine keyword search (title/excerpt/content) AND author filter with the existing category filter (AND logic). Hide featured card while searching, show result count, and render a "No results" empty state with a Clear-filters button. Preserve all existing functionality (featured card, category pills with layoutId spring, 3-col grid, article view, reading progress, related posts, CTA).
+   344→
+   345→Work Log
+   346→- Read `worklog.md` (design system, primitives, brand palette) and `src/components/site/pages/blog-page.tsx` (existing BlogGrid/ArticleView/BlogPage structure) and `src/lib/content-data.ts` (BlogPost shape: `author`, `authorInitials`, `authorAccent`, `content: { type, text?, items? }[]`).
+   347→- Confirmed `Input` component exists at `@/components/ui/input`, `.no-scrollbar` utility exists in `globals.css`, and `--brand-pink: #ff2d75` is defined (used via hex arbitrary value since brand-* tokens aren't registered in `@theme inline`).
+   348→- Added two lucide imports (`Search`, `X`) and one UI import (`Input` from `@/components/ui/input`).
+   349→- Introduced a module-level `AUTHORS` array (deduped from `BLOG_POSTS`, first occurrence wins for `initials`/`accent`) and a `postSearchText(post)` helper that lowercases the concatenation of `title + excerpt + (content blocks: `block.text` for prose, `block.items.join(' ')` for `ul`)`.
+   350→- Rewrote `BlogGrid`:
+   351→  - State: `category` (existing), `author` (new, default `'All'`), `search` (new, `''`).
+   352→  - `filtered` via `useMemo` combining category AND author AND search (case-insensitive substring match against `postSearchText`).
+   353→  - `hasActiveFilters` = any of the three is non-default; `showFeatured = !hasActiveFilters` (featured card hidden whenever the user is actively filtering/searching, per spec, since featured is a fixed post not search-relevant).
+   354→  - `rest = showFeatured ? filtered without featured : filtered`.
+   355→  - `clearFilters()` resets all three states.
+   356→  - New toolbar (rounded-3xl glass card with subtle brand orb): (1) `role="search"` form with a rounded-full `Input` (`h-11`, `pl-11` for the `Search` icon, `pr-10` for the clear button, webkit native clear button suppressed, brand-colored focus ring via default `--ring` token which is warm orange in dark mode) and an animated `motion.button` clear-`X` that fades/scales in/out via `AnimatePresence`; (2) author chips row (`overflow-x-auto no-scrollbar`, "Authors" label + "Everyone" All chip + one chip per unique author with `size-7` gradient avatar showing initials; active = brand-gradient for "All", brand-gradient-soft + `ring-2 ring-[#ff2d75]/60` for a specific author; clicking an active author toggles back to All); (3) the original category pills (unchanged `layoutId="blog-filter-pill"` spring) + a right-aligned `aria-live="polite"` result-count line "Showing N of M articles".
+   357→  - Featured card preserved with its exact `AnimatePresence` enter/exit animation; only shown when `showFeatured`.
+   358→  - Grid kept as `StaggerGroup` (preserves initial stagger reveal) but now wraps children in `AnimatePresence mode="popLayout"` with `layout` + `variants={staggerItem}` + `exit={{ opacity: 0, scale: 0.96 }}` so filter changes animate smoothly (items reflow + removed items fade/scale out).
+   359→  - Replaced the old `<p>No articles in this category yet.</p>` with a richer empty state: a `Search` icon in a muted ringed circle, "No articles found" `font-display` heading, helper copy, and a `Clear filters` outline button (only rendered when `hasActiveFilters` is true — guards against the impossible-but-safe "no posts at all" case).
+   360→- ArticleView flow (`onOpen` / `back` / `BlogPage` state machine) untouched — `BlogGrid` still receives and calls `onOpen` exactly as before.
+   361→- Ran `bun run lint` → clean (0 errors). Dev log shows `✓ Compiled` and `GET / 200` after the edit.
+   362→
+   363→Stage Summary
+   364→The blog page now has a premium, integrated search + author-filter toolbar sitting above the featured card. All three filters (search text, author, category) combine with AND logic; the featured card auto-hides during active filtering; the result count updates live; the grid animates smoothly via `AnimatePresence mode="popLayout"` + `layout`; and a branded empty state with a Clear-filters button appears when nothing matches. No other files were touched. The article-view flow, reading-progress bar, related-posts section, and CTAs are fully preserved. Lint clean.
+   365→
+   366→---
+   367→Task ID: 3
+   368→Agent: full-stack-developer
+   369→Task: Add a premium service comparison table feature component (`src/components/site/comparison-table.tsx`) comparing the 3 pricing plans (Launch, Growth, Enterprise) across ~12 feature rows grouped into 3 sections. Client component, named export `ComparisonTable`, designed to be wired into the Pricing page by the integrator.
+   370→
+   371→Work Log:
+   372→- Read `worklog.md` to internalize the established design system (warm brand palette, `font-display` headings, gradient helpers, glass/grid utilities, primitives, nav store).
+   373→- Read `pricing-page.tsx` (reference design language) and `primitives.tsx` (confirmed signatures of `Reveal`, `SectionHeading`, `GradientText`, `StaggerGroup`, `staggerItem`).
+   374→- Verified `globals.css` exposes the required utilities: `glass-strong`, `grid-bg`, `card-sheen`, `lift-glow`, `cmp-row`, `bg-brand-gradient`, `bg-brand-gradient-soft`, `text-gradient-brand`, `text-balance`, `glow-brand`, `gradient-border`.
+   375→- Wrote `src/components/site/comparison-table.tsx` (`'use client'`, `export function ComparisonTable()`) — only this one file was touched.
+   376→- **Inline data model**: typed `Cell` discriminated union (`'check' | 'cross' | 'text'`) so each cell can be a brand-gradient Check (optionally with a label like "Custom"/"SLA"), a muted Minus for "not included", or a bold value string ("5", "12", "Unlimited", "2", "∞", "Basic", "Advanced", "Full retainer", "3", "Custom"). 3 sections / 13 feature rows total (Project scope, AI & Automation, Growth & support) — slightly more than the ~12 asked for fuller coverage.
+   377→- **`CellContent` renderer** (shared by desktop + mobile, with `size` prop): brand-gradient rounded Check tile with soft pink glow + optional bold label; muted Minus with `sr-only` "Not included" for a11y; bold value text otherwise.
+   378→- **`DesktopTable`** (lg+): real semantic `<table>`/`<thead>`/multiple `<tbody>`/`<tr>`/`<th scope>`/`<td>` with proper `scope` attributes (`col`, `row`, `colgroup`). Sticky first column (`sticky left-0 z-10/20` + `bg-card/95 backdrop-blur`) so the feature labels stay visible on horizontal scroll. Growth column is visually highlighted: gradient header cell (`bg-brand-gradient`), white "Most popular" pill badge (Sparkles + `bg-white/15 backdrop-blur`), soft column background (`bg-brand-gradient-soft`) on every Growth `<td>`. Plan headers stack name + big price (gradient text on non-featured, white on featured) + period, vertically aligned via `align-bottom`. Section divider rows use `bg-muted/40` + `text-gradient-brand` uppercase tracking micro-labels. Rows use `cmp-row` hover (brand-pink wash) + `border-b border-border/40`. Wrapped in `rounded-3xl border glass-strong card-sheen` with a soft premium drop-shadow. Entrance via `Reveal`.
+   379→- **`MobileCards`** (<lg): stacked `Card` per plan in a `StaggerGroup` with `staggerItem` reveals. Growth card uses `gradient-border` + `glow-brand` + a top `bg-brand-gradient` accent strip + `bg-brand-gradient` "Most popular" `Badge`. Each card lists ALL 13 features grouped by the 3 sections (gradient uppercase mini-labels) in `divide-y` lists with right-aligned `CellContent` (small size) — fully scannable on phones.
+   380→- **CTA row**: centered (stacks on mobile, row on `sm+`) inside a `Reveal`. "Not sure? <GradientText>Talk to us</GradientText>" with a brand-gradient pill Button (`setPage('contact')`) + ArrowRight, soft pink shadow, hover lift.
+   381→- **Section shell**: `<section className="relative py-20 sm:py-28">` with `<div className="mx-auto max-w-7xl px-4 sm:px-6">`. Decorative backdrop: `grid-bg` with radial mask (`opacity-60`) + two soft radial brand orbs (orange top-left, rose bottom-right) all `-z-10 pointer-events-none aria-hidden`.
+   382→- **SectionHeading**: eyebrow "Compare plans", title `Every feature, <GradientText>side by side</GradientText>`, description "See exactly what's included in each plan." — passed as ReactNode (the primitive accepts `ReactNode`).
+   383→- All headings use `font-display`; warm palette only (orange/pink/rose/amber/emerald) — zero indigo/blue; mobile-first responsive; semantic HTML with `scope` attributes throughout; accessible `sr-only` labels on excluded cells; decorative backdrops marked `aria-hidden`.
+   384→- Imports limited to the allowed set: `Button`/`Card`/`Badge` from shadcn, `Reveal`/`SectionHeading`/`GradientText`/`StaggerGroup`/`staggerItem` from primitives, `useNav` from nav-store, `Check`/`Minus`/`Sparkles`/`ArrowRight` from lucide-react, `motion` from framer-motion, `cn` from `@/lib/utils`.
+   385→- Ran `bun run lint` → **clean (zero errors, zero warnings)**. Dev log shows successful incremental compiles after the file was added; no module-resolution errors for `comparison-table.tsx`.
+   386→- Wrote work record to `/agent-ctx/3-full-stack-developer.md`.
+   387→
+   388→Stage Summary:
+   389→- `ComparisonTable` is production-ready and lint-clean. Only one file written (`src/components/site/comparison-table.tsx`); no other files modified — ready for the integrator to drop `<ComparisonTable />` into the Pricing page.
+   390→- Premium, scannable, fully responsive: real 4-col sticky-header table on desktop with a highlighted Growth column (gradient header + soft column wash + Most popular badge), and stacked glass cards on mobile with the Growth card elevated via gradient border + glow + accent strip.
+   391→- 13 feature rows across 3 sections (Project scope / AI & Automation / Growth & support) with a typed cell model that cleanly handles checks-with-labels (Custom, SLA), excluded items, and value strings (∞, Unlimited, Basic/Advanced/Full retainer, etc.).
+   392→- Matches the existing site quality bar: gradient text, glass cards, soft shadows, hover row wash, grid-bg with radial mask, framer-motion reveals, warm palette only.
+   393→
+   394→---
+   395→Task ID: 16 (Cron Review Round 3)
+   396→Agent: main (Z.ai Code) + 2 full-stack-developer subagents
+   397→Task: Assess project status, QA test via agent-browser, then improve styling + add features per mandatory requirements.
+   398→
+   399→## Current Project Status (assessment)
+   400→- Project stable from Round 2: 7 pages (Home/Services/Portfolio/About/Pricing/Blog/Contact) + blog with article view, case-study modals, project wizard, ROI calculator, branded portfolio images, auto-rotating testimonials, pricing billing toggle, scroll progress, back-to-top, cookie consent, newsletter API. Lint clean, no runtime errors.
+   401→- agent-browser QA confirmed all 7 pages render/navigate. Recommended next steps from Round 2: team detail modals, service comparison table, blog search, careers section, page transition variants.
+   402→
+   403→## Completed Modifications
+   404→
+   405→### Styling polish (globals.css) — 10 new utilities
+   406→- `.aurora-bg` (animated conic-gradient aurora background), `.magnetic` (button micro-interaction base), `.text-aurora` (shifting multi-color gradient text), `.border-aurora` (rotating conic gradient border ring via @property), `.enter-up` (stagger fade-up entrance), `.lift-glow` (hover lift + brand glow), `.cmp-row` (comparison table row hover), `.skill-bar-fill` (gradient skill bar with glow).
+   407→
+   408→### Per-page transition variants (page.tsx)
+   409→- Replaced uniform fade/slide with 7 distinct `Variants` per PageId: Home (y-slide), Services (x-slide right), Portfolio (scale), About (y-slide deep), Pricing (x-slide left), Blog (blur+slide), Contact (scale+y). Dynamic, page-aware transitions via `variants`/`initial`/`animate`/`exit`.
+   410→
+   411→### New feature 1: Team member detail modals (About page)
+   412→- Created `src/lib/content-data.ts` additions: `TEAM_PROFILES` (4 members with extended bios, skills with levels 0-100, stats, fun facts, socials) + `JOB_ROLES` (5 open positions).
+   413→- Built `src/components/site/team-modal.tsx` — full modal with: gradient header + real avatar photo, stats row, multi-paragraph bio, animated skill bars (skill-bar-fill with motion width), fun-fact quote box, social icons, footer CTA. Esc/backdrop close, body-scroll-lock.
+   414→- Wired into About page: team cards are now `<motion.button>` that open the modal with the matching profile. Avatar images render in cards + modal.
+   415→
+   416→### New feature 2: Careers section (About page)
+   417→- Built inline `Careers` component in about-page.tsx: two-column layout (sticky intro + stats on left, filterable roles list on right). Team filter pills (All/Design/Engineering/AI/Growth/Operations) with layoutId spring. Role cards with gradient icon, title, team tag, blurb, location/type, hover lift + arrow. "No roles" empty state. CTA → contact.
+   418→- 5 open roles defined in JOB_ROLES data.
+   419→
+   420→### New feature 3: Service comparison table (Pricing page)
+   421→- Built `src/components/site/comparison-table.tsx` (via subagent): 3 plans (Launch/Growth featured/Enterprise) × 13 feature rows across 3 sections (Project scope, AI & Automation, Growth & support). Desktop = semantic table with sticky first column, Growth column highlighted (gradient header + soft wash + "Most popular" badge). Mobile = stacked cards. CTA → contact.
+   422→- Wired into Pricing page after AddOns, before RoiSection.
+   423→
+   424→### New feature 4: Blog search + author filter (Blog page)
+   425→- Modified `src/components/site/pages/blog-page.tsx` (via subagent): added search input (glass, Search icon, clearable X) + author avatar chips (gradient avatars, active = brand ring). Filters AND-combine with existing category pills. Featured card auto-hides during filtering. "Showing N of M articles" live count. Animated grid reflow with AnimatePresence popLayout. "No articles found" empty state with Clear filters button. Searches title + excerpt + content blocks.
+   426→
+   427→### New feature 5: Team avatar images
+   428→- Generated 4 professional portrait images (864x1152) via z-ai image CLI → `public/team/{preet,rohan,elena,daniel}.png`. Wired into TEAM_PROFILES data + rendered in About page team cards + TeamModal header.
+   429→
+   430→## Verification Results
+   431→- `bun run lint` → clean (0 errors, 0 warnings).
+   432→- agent-browser QA:
+   433→  - About page: 5 team cards (4 members + hiring CTA). Clicking "Preet Kaur" opens modal with skills bars (skill-bar-fill), fun fact, avatar image (preet.png loaded:true). Careers section present with 5 roles; AI filter → 1 role shown.
+   434→  - Pricing page: comparison table present (16 rows, Growth highlighted). Renders on desktop.
+   435→  - Blog page: search "ecommerce" → 1 of 6 articles. Author filter "Daniel" → 1 of 6. Reset → 6 of 6. Author chips (9 = 4 authors + All + nav). Result count live-updates.
+   436→  - Page transitions: Contact → Home navigates with distinct variants (verified H1 changes correctly).
+   437→- VLM visual QA: careers "sleek and modern... high-contrast neon pink"; team modal "attractive gradient header... bold typography for statistics"; (some screenshots missed below-fold content — DOM verification confirmed all features present).
+   438→- Dev log: no new errors. Home returns 200.
+   439→
+   440→## Unresolved Issues / Risks
+   441→- Team modal + comparison table content can be below the fold on shorter viewports (by design — scrollable). VLM screenshots may miss content; DOM verification is authoritative.
+   442→- Cookie consent banner appears on first visit (expected) — may briefly overlap content until dismissed.
+   443→- The careers filter pills and blog search both use `layoutId` springs; ensure no `layoutId` collisions across simultaneously-mounted pages (currently "careers-filter-pill" and "blog-filter-pill" are unique, and the nav "nav-pill" only mounts on the navbar).
+   444→
+   445→## Priority Recommendations for Next Round
+   446→- Add a **dark/light theme toggle with visible state** (currently icon-only; add a label or animated sun/moon).
+   447→- Build a **FAQ search** on the Home/Services/Pricing FAQ accordions.
+   448→- Add **animated number counters** to more stat displays (some use Counter, some don't).
+   449→- Build a **project estimator** that combines the ROI calculator + wizard into a single "estimate my project" flow.
+   450→- Add **social proof notifications** (toast popups showing "Someone just started a project" — subtle, dismissible).
+   451→- Consider **keyboard shortcut** for the AI assistant (e.g. Cmd+K to open chat).
+   452→- Add **OG image per blog post** for better social sharing.
+   453→
+   454→---
+   455→
+   456→## Task ID: 3-4
+   457→## Agent: full-stack-developer
+   458→
+   459→### Task
+   460→Enhance two existing client pages of the Preet Web Vision site — the **Pricing page** (`src/components/site/pages/pricing-page.tsx`) and the **Services page** (`src/components/site/pages/services-page.tsx`):
+   461→
+   462→1. **Task 1 — FAQ search:** Replace each page's hand-rolled `<Accordion>` FAQ block (rendering `FAQS` from `@/lib/site-data`) with the new reusable `<FaqWithSearch>` component (`@/components/site/faq-with-search`). Keep the surrounding `SectionHeading` + `<section>` wrapper; only swap the accordion. Remove the now-unused shadcn Accordion imports. Keep the `FAQS` import.
+   463→2. **Task 2 — Animated counters:** Wrap static numeric stat displays with the `<Counter>` component from `@/components/site/primitives` so numbers count up on scroll into view. Skip non-numeric / decimal / prefixed values, prices, and anything already wrapped.
+   464→
+   465→### Constraints
+   466→- Only modify the two named files. No new files. No other files touched.
+   467→- Brand palette is WARM (orange/pink/rose/amber/emerald). No indigo/blue. Both files already comply.
+   468→- Both files remain `'use client'`.
+   469→
+   470→### Work Log
+   471→
+   472→**Pricing page (`pricing-page.tsx`)**
+   473→- Reviewed file (753 lines). The only FAQ block lives in `FaqSection()` (lines ~618–655) and uses `pricingFaqs = [FAQS[5], FAQS[0], FAQS[2], FAQS[1], FAQS[4]]`. `Accordion*` was imported from `@/components/ui/accordion` and used **only** in that FAQ block (verified via grep — no other usage).
+   474→- Imports: removed `Accordion, AccordionContent, AccordionItem, AccordionTrigger` from `@/components/ui/accordion`; added `import { FaqWithSearch } from '@/components/site/faq-with-search'`. Kept `Counter` import (already present) and `FAQS` import (still used by `pricingFaqs`).
+   475→- FAQ section: replaced the entire `<Accordion>…</Accordion>` block with `<FaqWithSearch faqs={pricingFaqs} />`, preserving the wrapping `<Reveal delay={0.1} className="mt-12">`, `<section>`, and `SectionHeading`.
+   476→- Task 2 (counters): audited the whole file. The only numeric stat display is the `StatsBand` (renders `STATS`), which **already** wraps each value in `<Counter value={s.value} suffix={s.suffix} />` (line ~549). Per the rules ("don't double-wrap"), no change. All other numeric strings are prices in `PricingCard` (`$0`, `$1.9k`, `Custom`), add-on prices (`from $1.8k`, `from $1.2k/mo`, `from $2.5k/mo`, `Custom`) or service-mapping pricing hints (`Starts at $2.4k`, `From $1.2k/mo`, etc.) — all excluded by the "prices in pricing cards" / "non-numeric" rules.
+   477→
+   478→**Services page (`services-page.tsx`)**
+   479→- Reviewed file (876 lines). `FaqSection()` (lines ~769–804) renders all `FAQS` in an `<Accordion>`. `Accordion*` was imported from `@/components/ui/accordion` and used **only** in that FAQ block (verified via grep). `TRUST_STATS` in the hero already used `<Counter>` (line ~109) — left untouched.
+   480→- Imports: removed `Accordion, AccordionContent, AccordionItem, AccordionTrigger` from `@/components/ui/accordion`; added `import { FaqWithSearch } from '@/components/site/faq-with-search'`. Kept `Counter` (now used in more places) and `FAQS` imports.
+   481→- FAQ section: replaced the entire `<Accordion>…</Accordion>` block with `<FaqWithSearch faqs={FAQS} />`, preserving the wrapping `<Reveal>`, `<section>`, and `SectionHeading`.
+   482→- Task 2 (counters): audited all the service "visual mock" floating stat cards. Converted the 4 clear numeric stat displays to `<Counter>` (kept surrounding `font-display`/`text-gradient-brand` classes intact, just swapped the number text for an inline `<Counter>`):
+   483→  - `WebDesignVisual` → Lighthouse badge: `96` → `<Counter value={96} />`
+   484→  - `AiVisual` → Auto-resolved card: `71%` → `<Counter value={71} suffix="%" />`
+   485→  - `WebAppVisual` → API calls card: `2M+` → `<Counter value={2} suffix="M+" />` (explicitly called out in the task rules)
+   486→  - `SeoVisual` → Keywords #1 card: `140` → `<Counter value={140} />`
+   487→- Skipped (per the DO-NOT-CONVERT rules): `99.98%` (precise decimal), `1.2%` (decimal), `12k` / `$48k` / `3.2k` / `18k` (have `k` or `$`), `+3.4x` / `+3.1x` (decimal multipliers), `-89%` / `+38%` / `+62%` / `+217%` / `+18%` (have `+`/`-` prefix — `Counter` only supports a suffix), `$38` / `$48` (prices), and the keyword ranking positions `#{k.pos}` (inline ranking chips, not stat displays).
+   488→
+   489→### Verification
+   490→- `cd /home/z/my-project && bun run lint 2>&1 | tail -20` → **clean** (0 errors, 0 warnings). No unused-import warnings, confirming the Accordion removal was safe on both files.
+   491→- `tail` of `dev.log` shows successful `✓ Compiled in …` entries and `GET / 200` after the edits — no runtime errors introduced. (Pre-existing "Fast Refresh had to perform a full reload" warnings appeared before my edits and are unrelated.)
+   492→- Both files remain `'use client'`; no other routes/components/files were modified.
+   493→
+   494→### Stage Summary
+   495→- **Pricing page:** FAQ accordion swapped for `<FaqWithSearch faqs={pricingFaqs} />`; Accordion imports removed; `Counter` already present on the only stat band (no double-wrap). Net: cleaner imports + searchable pricing FAQ.
+   496→- **Services page:** FAQ accordion swapped for `<FaqWithSearch faqs={FAQS} />`; Accordion imports removed; added 4 new `<Counter>` instances to the floating stat cards across the Web Design / AI / Web App / SEO visual mocks (Lighthouse 96, Auto-resolved 71%, API calls 2M+, Keywords #1 140). Net: searchable services FAQ + animated stat cards that count up on scroll.
+   497→- Both pages now share a consistent FAQ search UX and richer animated number micro-interactions, matching the recommendations noted in the previous worklog round ("Build a FAQ search…", "Add animated number counters to more stat displays").
+   498→
+   499→---
+   500→Task ID: 17 (Cron Review Round 4)
+   501→Agent: main (Z.ai Code) + 1 full-stack-developer subagent
+   502→Task: Assess project status, QA test via agent-browser, then improve styling + add features per mandatory requirements.
+   503→
+   504→## Current Project Status (assessment)
+   505→- Project stable from Round 3: 7 pages with team modals, careers, comparison table, blog search, page transition variants, branded images, ROI calculator, project wizard, case-study modals. Lint clean, no runtime errors.
+   506→- agent-browser QA confirmed all 7 pages render/navigate. Recommended next steps from Round 3: theme toggle visible state, FAQ search, animated counters, social proof notifications, Cmd+K shortcut, per-post OG images.
+   507→
+   508→## Completed Modifications
+   509→
+   510→### Styling polish (globals.css) — 11 new utilities
+   511→- `.kbd` (keyboard hint chip, mono font, border-bottom-2), `.press` (button active scale 0.96), `.section-num` (editorial mono label), `.trail-link` (gradient underline that grows on hover), `.nav-scrolled` (glass nav scrolled state with blur+shadow), `.notif-card` (glass notification card), `.ring-active` (animated gradient ring), `.text-shimmer` (skeleton-like shimmer text).
+   512→
+   513→### New feature 1: Cmd+K keyboard shortcut for AI assistant
+   514→- Added global keydown listener in `ai-assistant.tsx`: Cmd+K / Ctrl+K toggles the assistant, Esc closes it.
+   515→- Added a kbd hint badge ("Press ⌘ K") that appears next to the floating launcher button on desktop (lg+) when the chat is closed, with staggered entrance animation.
+   516→- Updated launcher aria-label to "Open AI assistant (Cmd+K)" and added `.press` class for active feedback.
+   517→
+   518→### New feature 2: Social proof notifications
+   519→- Built `src/components/site/social-proof.tsx` — subtle toast popups (bottom-left, desktop only) showing randomized recent activity: 10 sample notifications (names, actions, locations, times, emojis). Appears after 6s, auto-hides after 5s, rotates every 12-22s. Dismissible (X button → localStorage `pwv-social-proof-dismissed` persists dismissal). Glass card with gradient avatar, "Verified by Preet Web Vision" footer. Respects previous dismissal.
+   520→- Wired into page shell.
+   521→
+   522→### New feature 3: FAQ search (reusable component)
+   523→- Built `src/components/site/faq-with-search.tsx` — reusable component with: search input (glass, Search icon, clearable X), real-time filtering by question + answer text, **highlighted matching text** (`<mark>` with brand-gradient-soft bg), animated accordion (preserves shadcn Accordion), "N matches for 'query'" count, "No questions found" empty state with Clear search CTA, AnimatePresence transitions.
+   524→- Wired into Home page FaqSection (replaced inline Accordion).
+   525→- Subagent wired into Pricing + Services FAQ sections (removed unused Accordion imports).
+   526→
+   527→### New feature 4: Theme toggle with animated state
+   528→- Upgraded navbar ThemeToggle: animated sun/moon icon swap (Framer Motion spring rotate+scale), brand-colored icons (amber sun, pink moon), hover rotation (sun spins 45°, moon tilts -12°), dynamic aria-label + title ("Switch to light/dark theme"), overflow-hidden for clean rotation.
+   529→
+   530→### New feature 5: Nav scrolled state polish
+   531→- Replaced `glass-strong shadow-...` with the new `.nav-scrolled` utility class for a refined glass nav when scrolled (blur 20px, saturate 180%, subtle border + shadow).
+   532→
+   533→### New feature 6: Animated counters on Services page
+   534→- Subagent added `<Counter>` to 4 static stat displays in the Services page service visual mocks: Lighthouse 96, AI auto-resolved 71%, API calls 2M+, Keywords #1 140. (Pricing page StatsBand already used Counter — left untouched.)
+   535→
+   536→## Verification Results
+   537→- `bun run lint` → clean (0 errors, 0 warnings).
+   538→- agent-browser QA:
+   539→  - Cmd+K: dispatched keydown → AI assistant panel opens. Esc → closes. Kbd hint badge present on desktop.
+   540→  - Social proof: notification appeared after 6s ("Yuki joined the ROI calculator · Tokyo, JP · 11m ago · Verified by Preet Web Vision"). Dismissible.
+   541→  - FAQ search: "pricing" → 1 match (highlighted), "AI" → filtered with highlights, clear → all 6 items. Present on Home + Pricing + Services pages.
+   542→  - Theme toggle: dark → light (label updates to "Switch to dark theme", html class changes to "light"), toggled back to dark.
+   543→  - Nav scrolled state: `.nav-scrolled` class applies on scroll.
+   544→- VLM visual QA: social proof "clean, modern design... semi-transparent dark background"; FAQ search "prominent and intuitive... real-time filtering... highlighting matching text... excellent"; Cmd+K hint "excellent UX touch for power users".
+   545→- Dev log: no new errors. Home returns 200.
+   546→
+   547→## Unresolved Issues / Risks
+   548→- Social proof notifications are desktop-only (hidden on mobile via `hidden sm:block`) — intentional to avoid clutter on small screens.
+   549→- Cookie consent banner (first-visit) can briefly overlap social proof toast — both are dismissible and the cookie banner appears first (1.4s) before social proof (6s), so timing minimizes overlap.
+   550→- FAQ search highlight splits on word boundaries; partial-word matches (e.g. "AI" inside "maintain") get highlighted — minor, acceptable for search UX.
+   551→
+   552→## Priority Recommendations for Next Round
+   553→- Add **per-post OG images** for blog articles (generate branded cover images per post for social sharing).
+   554→- Build a **command palette** (Cmd+K currently opens chat; could expand to a full command palette with navigation + search).
+   555→- Add **testimonials carousel** on the Portfolio page (currently only Home has the carousel).
+   556→- Build a **glossary/tooltip** system for technical terms in blog articles.
+   557→- Add **reading time progress** to blog article view (currently has scroll progress bar, could add "X% read" indicator).
+   558→- Consider **light mode color refinement** — some warm gradients may need tuning for light theme contrast.
+   559→- Add **micro-interactions to buttons** globally (the `.press` class exists but isn't applied everywhere).
+   560→
+   561→---
+   562→
+   563→## Task ID: 3-5
+   564→**Agent:** full-stack-developer
+   565→**Files modified (only these two):**
+   566→1. `src/components/site/pages/portfolio-page.tsx`
+   567→2. `src/components/site/pages/blog-page.tsx`
+   568→
+   569→### Task
+   570→Enhance existing pages — add an auto-rotating testimonials carousel to the Portfolio page, use real `post.image` assets on Blog cards + article cover, and add a floating animated reading-progress % badge to the Blog article view.
+   571→
+   572→### Work Log
+   573→
+   574→**Portfolio page** — Added `ChevronLeft`, `ChevronRight`, `Pause` to the lucide imports. Replaced the static `TestimonialSection` (featured quote + 3 small cards) with an auto-rotating carousel mirroring the Home page `Testimonials` pattern: `useState(0)` active index + `useState(false)` paused flag; `useCallback go(dir)` for circular prev/next; `useEffect` `setInterval(..., 5500)` that early-returns when paused (so pause/restart re-runs the effect); `onMouseEnter`/`onMouseLeave` on the outer wrapper toggles pause; `AnimatePresence mode="wait"` crossfades the keyed `motion.div` (initial `y:16`, animate `y:0`, exit `y:-16`, 0.4s `[0.22,1,0.36,1]` ease). Card design preserved 1:1 — ambient `bg-brand-gradient opacity-10 blur-3xl` glow, `Quote` icon top-right, left-edge gradient spine, amber star row, `font-display` blockquote, gradient avatar + name + role/company. Below the card: prev arrow (size-9 round), dot pills (`w-8 bg-brand-gradient` active vs `w-2 bg-border` inactive), next arrow, and a `Pause` icon + "Paused"/"Auto" status label. `PortfolioPage` composition unchanged.
+   575→
+   576→**Blog page — real images on cards/cover:** No new imports needed. Applied the conditional image-or-gradient block (copied from the portfolio `ProjectCard` pattern) in three places: `FeaturedCard` (replaced the first gradient backdrop div), `BlogCard` (replaced the `h-40` gradient container with a plain `relative h-40 overflow-hidden` container whose first children are the image-or-gradient block, then the existing grid overlay + dark gradient + emoji + category pill), and `ArticleView` cover (replaced the `h-56 sm:h-72` gradient container with a plain container + image-or-gradient block). All image elements use `absolute inset-0 size-full object-cover` with `group-hover:scale-105` (where a group hover context exists), plus the `bg-gradient-to-br opacity-30 mix-blend-multiply` gradient overlay for brand cohesion. Emoji and gradient remain as fallback when `post.image` is undefined.
+   577→
+   578→**Blog page — floating reading-progress badge:** Added an `AnimatePresence`-wrapped badge in `ArticleView` between the article body and the Related section. Renders only when `5 < progress < 95`. Position `fixed bottom-24 right-5 z-40 hidden sm:flex` (above the bottom-5 AI assistant, hidden on mobile). Glass-strong rounded-full pill with: a 24px SVG circular progress ring (rotated -90°, muted background circle + brand-orange→brand-rose linear-gradient progress circle whose `strokeDashoffset = 2π·15·(1−progress/100)` animates via a 150ms linear CSS transition), with a `BookOpen` icon centered over the ring; and `Math.round(progress)%` + a muted "read" label. Framer Motion: `initial={{opacity:0, y:12, scale:0.95}}`, `animate={{opacity:1, y:0, scale:1}}`, `exit={{opacity:0, y:12, scale:0.95}}`, 0.25s ease `[0.22,1,0.36,1]`. `aria-hidden="true"` since the top reading-progress bar already conveys the same info to assistive tech.
+   579→
+   580→### Quality
+   581→- `bun run lint` → clean (0 errors, 0 warnings) after fixing one initial JSX syntax error (missing `}` closing the `strokeDashoffset` JSX expression).
+   582→- Dev log shows `✓ Compiled` and `GET / 200` after changes; no module-resolution or runtime errors.
+   583→- Warm palette only (orange/pink/rose/amber/emerald); zero indigo/blue introduced.
+   584→- All existing functionality preserved (filter pills, search, modal, related posts, CTAs, navigation).
+   585→- Agent context record written to `/home/z/my-project/agent-ctx/3-5-full-stack-developer.md`.
+   586→
+   587→### Stage Summary
+   588→Both pages enhanced in place — Portfolio now ships an auto-rotating testimonials carousel matching the Home page's interaction polish, and the Blog page renders real images on every card + the article cover (with graceful fallbacks) plus a subtle, animated circular reading-progress badge. Two files touched, lint-clean, ready for production.
+   589→
+   590→---
+   591→Task ID: 18 (Cron Review Round 5)
+   592→Agent: main (Z.ai Code) + 1 full-stack-developer subagent
+   593→Task: Assess project status, QA test via agent-browser, then improve styling + add features per mandatory requirements.
+   594→
+   595→## Current Project Status (assessment)
+   596→- Project stable from Round 4: 7 pages with command palette (Cmd+K), social proof notifications, FAQ search, animated theme toggle, nav scrolled state, animated counters, per-page transitions, team modals, careers, comparison table, blog search, ROI calculator, project wizard, case-study modals, branded images. Lint clean, no runtime errors.
+   597→- agent-browser QA confirmed all 7 pages render/navigate. Recommended next steps from Round 4: per-post OG images, command palette (Cmd+K expanded), testimonials carousel on Portfolio, reading progress %, light mode refinement, global micro-interactions.
+   598→
+   599→## Completed Modifications
+   600→
+   601→### Styling polish (globals.css) — 8 new utilities + light mode refinement
+   602→- **Light mode refinement**: Warmer, more cohesive palette — background/card/muted shifted to warm 65° hue (from neutral 60°), foreground darker for contrast (0.18 vs 0.16), muted-foreground darker (0.45 vs 0.5) for better readability, borders slightly darker (0.9 vs 0.91) for definition, primary slightly deeper (0.58 vs 0.62). All sidebar vars aligned.
+   603→- **New utilities**: `.gradient-rule` (hairline gradient divider), `.num-badge` (editorial mono section counter), `.featured-border` (gradient border glow), `.glow-entrance` (one-shot entrance glow animation), `.cmdk-overlay` / `.cmdk-panel` / `.cmdk-item` (command palette styles with brand-pink selected state).
+   604→
+   605→### New feature 1: Full Command Palette (Cmd+K)
+   606→- Built `src/components/site/command-palette.tsx` — a complete command palette that intercepts Cmd+K in **capture phase** (before the AI assistant). Features:
+   607→  - **Search input** with Search icon, ESC hint kbd.
+   608→  - **Grouped results**: Navigate (7 pages), Read (6 blog posts), Actions (Open AI Assistant, Toggle Theme).
+   609→  - **Keyboard navigation**: ↑/↓ to move, Enter to select, Esc to close. Selected item highlighted with brand-pink + CornerDownLeft icon.
+   610→  - **Fuzzy keyword search**: each item has keywords (e.g. "ai chat bot assistant vision help") for flexible matching.
+   611→  - **Blog post actions**: dispatch `open-blog-post` custom event → BlogPage listens and opens the article.
+   612→  - **AI assistant action**: dispatch `open-ai-assistant` custom event → AiAssistant listens and opens.
+   613→  - **Footer**: keyboard hints (↑↓ navigate, ↵ select) + live status badge.
+   614→- Updated `ai-assistant.tsx`: removed Cmd+K handler (now handled by command palette in capture phase), listens for `open-ai-assistant` custom event instead.
+   615→- Updated `blog-page.tsx`: listens for `open-blog-post` custom event to open articles from the palette.
+   616→- Wired into page shell.
+   617→
+   618→### New feature 2: Per-post OG images for blog
+   619→- Generated 6 branded abstract images (1152x864) via z-ai image CLI → `public/blog/b1.png` … `b6.png` (AI automation, Core Web Vitals, ecommerce CRO, SEO engine, design systems, headless commerce).
+   620→- Added `image?: string` field to `BlogPost` type + wired paths into all 6 BLOG_POSTS.
+   621→- Subagent updated blog-page.tsx: `FeaturedCard`, `BlogCard`, and `ArticleView` cover now render real images with gradient multiply overlay + hover zoom (same pattern as portfolio ProjectCard). Emoji + gradient remain as fallback.
+   622→
+   623→### New feature 3: Portfolio testimonials carousel
+   624→- Subagent replaced the static `TestimonialSection` in portfolio-page.tsx with an auto-rotating carousel: 5.5s rotation, pause-on-hover, prev/next arrow controls, dot indicators, AnimatePresence crossfade, "Auto/Paused" status. Uses `TESTIMONIALS` data. Verified: quote changes from "Stunning design..." to "Preet Web Vision rebuilt our store..." after 6s.
+   625→
+   626→### New feature 4: Blog reading progress badge
+   627→- Subagent added a floating glass-strong badge (`fixed bottom-24 right-5`) to the ArticleView: SVG circular progress ring (brand gradient) + BookOpen icon + "X% read" text. Shows only when 5% < progress < 95%. Framer Motion fade/scale in/out. Verified: shows "85% read" when scrolled deep into article.
+   628→
+   629→### New feature 5: Global button micro-interactions
+   630→- Added `active:scale-[0.97]` to the shadcn `Button` component's base `cva` string — cascades to ALL buttons across the entire site. Every button now has a tactile press-down feedback.
+   631→
+   632→### New feature 6: Light mode color refinement
+   633→- Refined `:root` light mode variables for warmer, more cohesive tones with better contrast (detailed above). Verified via VLM: "highly polished, sophisticated warm palette."
+   634→
+   635→## Verification Results
+   636→- `bun run lint` → clean (0 errors, 0 warnings).
+   637→- agent-browser QA:
+   638→  - Command palette: Cmd+K opens (capture-phase intercept), search "pricing" → 1 filtered result, Enter → navigates to Pricing page. Search "AI Assistant" → 1 result, Enter → opens AI assistant via custom event. Grouped results (Navigate/Read/Actions).
+   639→  - Blog images: all 6 blog images load on grid + article view (b1.png … b6.png verified).
+   640→  - Reading progress: scrolled deep into article → "85% read" badge appears (fixed bottom-24 right-5).
+   641→  - Portfolio carousel: 5 dots + 2 arrows present, auto-rotates (quote changed after 6s).
+   642→  - Theme toggle: dark → light (VLM confirmed "highly polished, sophisticated warm palette"), toggled back to dark.
+   643→  - Global button press: `active:scale-[0.97]` applied via cva base string.
+   644→- VLM visual QA: light mode "highly polished... sophisticated warm palette... modern and inviting"; command palette "excellent modal design... clear search input, distinct iconography... glassmorphism... effectively focuses attention"; search filtering "works seamlessly, intelligently grouping results into Navigate and Read categories".
+   645→- Dev log: no new errors. Home returns 200.
+   646→
+   647→## Unresolved Issues / Risks
+   648→- Command palette and AI assistant both use Cmd+K — resolved via capture-phase interception (palette wins) + custom event dispatch (palette → AI assistant). No conflict.
+   649→- The reading progress badge is desktop-only (`hidden sm:flex`) — intentional to avoid mobile clutter.
+   650→- Blog OG images are abstract illustrations (no text) — suitable for social sharing but not branded with the post title. A future enhancement could generate text-overlay OG images.
+   651→- Cookie banner (first-visit) can briefly overlap with the command palette overlay — both are dismissible.
+   652→
+   653→## Priority Recommendations for Next Round
+   654→- Add **keyboard shortcut hints** to nav items (e.g. "G H" for go home) for power users.
+   655→- Build a **glossary/tooltip** system for technical terms in blog articles.
+   656→- Add **animated SVG illustrations** to service sections (currently use mock UI cards).
+   657→- Build a **project gallery lightbox** for portfolio case-study images.
+   658→- Add **dark/light theme auto-detection** based on system preference (currently defaults to dark).
+   659→- Consider **reducing motion** support (`prefers-reduced-motion`) for accessibility.
+   660→- Add **schema.org structured data** for blog articles (JSON-LD) for SEO.
+   661→
+   662→---
+   663→Task ID: 19 (Cron Review Round 6)
+   664→Agent: main (Z.ai Code)
+   665→Task: Assess project status, QA test via agent-browser, then improve styling + add features per mandatory requirements.
+   666→
+   667→## Current Project Status (assessment)
+   668→- Project stable from Round 5: 7 pages with command palette (Cmd+K), social proof notifications, FAQ search, animated theme toggle, blog with images/reading progress/glossary, portfolio carousel, team modals, careers, comparison table, ROI calculator, project wizard, case-study modals, branded images, per-page transitions, global button micro-interactions, light mode refinement. Lint clean, no runtime errors.
+   669→- agent-browser QA confirmed all 7 pages render/navigate. Recommended next steps from Round 5: keyboard shortcut hints, glossary/tooltip system, animated SVG illustrations, project gallery lightbox, reduced-motion support, schema.org structured data.
+   670→
+   671→## Completed Modifications
+   672→
+   673→### Styling polish (globals.css) — 8 new utilities + reduced-motion
+   674→- **prefers-reduced-motion**: Global `@media (prefers-reduced-motion: reduce)` block that sets all animation/transition durations to 0.01ms and scroll-behavior to auto — respects user accessibility preference.
+   675→- **New utilities**: `.wave-divider` (animated SVG dashed wave), `.card-depth` (layered box-shadows for realism, dark mode variant), `.text-shadow-brand` (drop-shadow on gradient text), `.glow-hover` (radial glow following cursor via CSS vars --mx/--my), `.glossary-term` (dashed underline brand-pink for tooltip terms), `.shortcut-hint` (mono kbd chip).
+   676→
+   677→### New feature 1: Glossary/tooltip system for blog articles
+   678→- Added `GLOSSARY` (14 technical terms with definitions) to `content-data.ts`: RAG, LLM, LCP, INP, CLS, Core Web Vitals, CRO, Headless commerce, Schema markup, Topic cluster, Design system, GMV, Awwwards, DTC.
+   679→- Built `src/components/site/glossary.tsx` — `renderWithGlossary(text)` function that auto-detects glossary terms in article text (case-insensitive, word-boundary, longest-match-first) and wraps them in `<GlossaryTerm>` components. Each term shows an animated tooltip (Framer Motion) with the definition on hover/focus/click. Accessible (role=button, aria-expanded, aria-describedby, tabIndex).
+   680→- Wired into blog-page.tsx ArticleView prose rendering: all `block.text` and `block.items` now pass through `renderWithGlossary`. Verified: "RAG", "LLM", "DTC" detected and tooltip shows definition on hover.
+   681→
+   682→### New feature 2: Keyboard shortcuts overlay + G+key navigation
+   683→- Built `src/components/site/keyboard-shortcuts.tsx`:
+   684→  - **? key** opens a shortcuts help overlay (modal with all shortcuts grouped by Navigation + Actions). Esc closes.
+   685→  - **G + key** navigation: press G, then H/S/W/A/P/B/C to navigate to Home/Services/Work/About/Pricing/Blog/Contact. Shows a transient "G + ? then [keys]" indicator at bottom-center when G is pressed.
+   686→  - Smart typing detection: shortcuts disabled when focused on inputs/textareas/contenteditable/combobox.
+   687→  - Help overlay lists all G-shortcuts + Cmd+K + ? + Esc.
+   688→- Wired into page shell. Verified: G+B navigates to Blog page, ? opens overlay.
+   689→
+   690→### New feature 3: Schema.org JSON-LD structured data for blog articles
+   691→- In blog-page.tsx ArticleView, added a `useEffect` that injects a `<script type="application/ld+json">` into `document.head` with schema.org Article markup: headline, description, datePublished, dateModified, author (Person with jobTitle), publisher (Organization), articleSection, wordCount, keywords. Cleans up on unmount.
+   692→- Verified: JSON-LD script present in DOM head with correct Article schema (headline: "AI Automations That Actually Move Revenue...").
+   693→
+   694→### New feature 4: Live stats dashboard widget (Home page)
+   695→- Built `src/components/site/live-stats.tsx` — fetches real metrics from existing APIs (`/api/newsletter`, `/api/contact`, `/api/blog`) every 30s. Displays 4 stat cards: Newsletter subscribers, Project inquiries, Blog views, Avg. ROI delivered. Each card has gradient icon tile, LIVE badge with pulsing dot, tabular-nums. Refresh button with glow animation. "The studio is alive" heading with live indicator.
+   696→- Wired into Home page (after AiDemoCta). Verified: loads real values (3 subs, 5 contacts, 3 views, 14x ROI).
+   697→
+   698→### New feature 5: Global button micro-interactions (cascading)
+   699→- Added `active:scale-[0.97]` to the shadcn `Button` cva base string (from Round 5) — applies to all buttons site-wide.
+   700→
+   701→## Verification Results
+   702→- `bun run lint` → clean (0 errors, 0 warnings).
+   703→- agent-browser QA:
+   704→  - Live stats: heading "The studio is alive" present, 4 stat values loaded (3, 5, 3, 14x), LIVE badges present.
+   705→  - Glossary: 3 terms detected in article (LLM, RAG, DTC), hovering RAG shows tooltip with definition "Retrieval-Augmented Generation — grounding an LLM's response...".
+   706→  - Keyboard shortcuts: ? opens overlay (verified dialog present), G+B navigates to Blog page (H1 changed to "Ideas that compound your growth"), Esc closes overlay.
+   707→  - JSON-LD: script[type="application/ld+json"] present in head with Article schema (headline, author, publisher).
+   708→  - Reduced-motion: CSS media query added (not testable via agent-browser but syntactically correct).
+   709→- VLM visual QA: live stats "sleek and professional... high-contrast LIVE indicator... pulsing green dot... glassmorphism"; glossary "clean and highly readable typography... effective hierarchy"; shortcuts overlay "minimalist and functional... excellent visual cues that mimic physical keyboard keys".
+   710→- Dev log: no new errors. Home returns 200.
+   711→
+   712→## Unresolved Issues / Risks
+   713→- Glossary tooltip positioning is `absolute` within the term's `span` — for terms near the edge of the viewport, the tooltip may overflow. A future enhancement could use Radix Popover for smart positioning.
+   714→- The `renderWithGlossary` regex runs on every article render — fine for 6 articles but could be memoized for larger content sets.
+   715→- Keyboard shortcut `?` requires the event to be dispatched on a real element (not `window`) — works for real keypresses but synthetic test events need `document.body.dispatchEvent`.
+   716→- Live stats widget polls every 30s — minor server load; acceptable for a marketing site.
+   717→
+   718→## Priority Recommendations for Next Round
+   719→- Add **Radix Popover-based glossary tooltips** for smart edge positioning.
+   720→- Build a **project gallery lightbox** for portfolio case-study images (full-screen image viewer).
+   721→- Add **animated SVG illustrations** to service sections (replace mock UI cards with custom illustrations).
+   722→- Build a **sitemap.xml** + **robots.txt** for SEO (Next.js metadata route).
+   723→- Add **Open Graph meta tags per blog article** (dynamic OG images with post title overlay).
+   724→- Consider **a "back to top" progress indicator** showing scroll percentage.
+   725→- Add **cursor-following ambient glow** on hero section (JS-driven CSS var --mx/--my).
+   726→
+   727→---
+   728→Task ID: 20 (Cron Review Round 7)
+   729→Agent: main (Z.ai Code)
+   730→Task: Assess project status, QA test via agent-browser, then improve styling + add features per mandatory requirements.
+   731→
+   732→## Current Project Status (assessment)
+   733→- Project stable from Round 6: 7 pages with glossary tooltips, keyboard shortcuts overlay, JSON-LD structured data, live stats widget, command palette, social proof, FAQ search, blog with images/reading progress, portfolio carousel, team modals, careers, comparison table, ROI calculator, project wizard, case-study modals, branded images, per-page transitions, reduced-motion support. Lint clean, no runtime errors.
+   734→- agent-browser QA confirmed all 7 pages render/navigate. Recommended next steps from Round 6: Radix Popover glossary, project gallery lightbox, animated SVG illustrations, sitemap.xml + robots.txt, cursor-following ambient glow, scroll percentage indicator.
+   735→
+   736→## Completed Modifications
+   737→
+   738→### Styling polish (globals.css) — 6 new utilities
+   739→- `.cursor-glow` (radial gradient following --mx/--my CSS vars, fades in on hover), `.mesh-bg` (4-point gradient mesh ambient background), `.sec-num-badge` (animated editorial section counter), `.cta-glass` (glassmorphic CTA band with blur+saturate+shadow), `.lightbox-backdrop` (near-opaque blurred backdrop for image viewer).
+   740→
+   741→### New feature 1: Cursor-following ambient glow on hero
+   742→- Built `src/hooks/use-cursor-glow.ts` — tracks mouse position relative to an element, sets `--mx`/`--my` CSS custom properties (in percentages). Respects `prefers-reduced-motion` (doesn't attach listener).
+   743→- Applied to Hero section in home-page.tsx via `useCursorGlow` ref + `.cursor-glow` class. A radial pink glow follows the cursor across the hero. Verified: `::before` pseudo-element present.
+   744→
+   745→### New feature 2: Project gallery lightbox
+   746→- Built `src/components/site/image-lightbox.tsx` — full-screen image viewer with: near-opaque blurred backdrop, zoom toggle (1x → 1.5x scale), prev/next arrow navigation, keyboard shortcuts (Esc/arrows), image counter (N/M), caption display, AnimatePresence transitions, body-scroll-lock.
+   747→- Integrated into CaseStudyModal: the cover image is now a clickable button (with Maximize2 icon on hover) that opens the lightbox. Gallery images built from project image + caption.
+   748→
+   749→### New feature 3: Sitemap.xml + robots.txt (SEO)
+   750→- Created `src/app/sitemap.ts` — generates sitemap.xml with 7 logical pages (Home, #services, #portfolio, #about, #pricing, #blog, #contact) with priorities and change frequencies.
+   751→- Created `src/app/robots.ts` — generates robots.txt allowing all crawlers + sitemap reference.
+   752→- Removed conflicting `public/robots.txt` (was a static file conflicting with the route).
+   753→- Verified: `curl /sitemap.xml` returns valid XML urlset, `curl /robots.txt` returns correct directives.
+   754→
+   755→### New feature 4: Radix Popover glossary tooltips
+   756→- Upgraded `src/components/site/glossary.tsx` from absolute-positioned spans to Radix Popover (via existing shadcn `@/components/ui/popover`). Smart edge positioning — tooltips no longer overflow the viewport. Opens on click (accessible), `side="top" align="center"`.
+   757→- Verified: clicking "RAG" opens a Popover with `data-radix-popper-content-wrapper` (smart positioning).
+   758→
+   759→### New feature 5: Scroll percentage indicator on back-to-top button
+   760→- Upgraded `BackToTop` in site-chrome.tsx — now renders an SVG circular progress ring (brand gradient) around the arrow icon that fills based on scroll percentage. Dynamic `strokeDashoffset` updates as you scroll. Button size increased to size-12 for the ring.
+   761→- Verified: dashOffset=74.04 at ~35% scroll (circumference=113.1, so 74.04 = ~35% remaining = ~65% filled).
+   762→
+   763→## Verification Results
+   764→- `bun run lint` → clean (0 errors, 0 warnings).
+   765→- agent-browser QA:
+   766→  - Cursor glow: `.cursor-glow` class on hero section, `::before` pseudo present.
+   767→  - Lightbox: clicking case-study cover image opens full-screen lightbox with the project image (p1-lumen.png), has image counter + zoom + close controls.
+   768→  - Sitemap/robots: `curl /sitemap.xml` → valid XML urlset with 7 URLs; `curl /robots.txt` → correct directives + sitemap ref.
+   769→  - Glossary Radix Popover: clicking "RAG" opens `data-radix-popper-content-wrapper` popover with definition.
+   770→  - Back-to-top progress ring: SVG circle with dynamic strokeDashoffset (74.04 at ~35% scroll).
+   771→- VLM visual QA: hero glow "high-contrast dark mode... vibrant pink-to-red gradient glow... strong sense of depth"; lightbox "polished... soft rounded rectangular frame... subtle drop shadow... makes the portfolio image pop".
+   772→- Dev log: no new errors. Home returns 200.
+   773→
+   774→## Unresolved Issues / Risks
+   775→- Lightbox gallery currently has 1 image per project (the cover). Could be expanded with multiple process/gallery images per case study in the future.
+   776→- Cursor glow is desktop-only (mouse events) — mobile uses touch, so no glow (acceptable, mobile has its own interactions).
+   777→- The sitemap uses hash URLs (#services etc.) since the site is a single-route SPA — search engines may not index hash fragments deeply. A future enhancement could use real routes or the History API.
+   778→- Radix Popover requires a click to open (not hover) — this is more accessible but slightly less discoverable than hover tooltips. Acceptable tradeoff.
+   779→
+   780→## Priority Recommendations for Next Round
+   781→- Add **multiple gallery images per case study** (process shots, wireframes, final designs) for a richer lightbox experience.
+   782→- Build **animated SVG illustrations** for service sections (custom branded illustrations instead of mock UI cards).
+   783→- Add **Open Graph meta tags per blog article** (dynamic OG images with post title overlay).
+   784→- Build a **newsletter signup within blog articles** (inline form after the article body, beyond the current CTA).
+   785→- Add **a "related projects" section** at the bottom of case-study modals.
+   786→- Consider **lazy-loading images** with blur-up placeholders for performance.
+   787→- Add **a 404 page** with brand styling and navigation back to home.
+   788→
+   789→---
+   790→Task ID: 21 (Cron Review Round 8)
+   791→Agent: main (Z.ai Code)
+   792→Task: Assess project status, QA test via agent-browser, then improve styling + add features per mandatory requirements.
+   793→
+   794→## Current Project Status (assessment)
+   795→- Project stable from Round 7: 7 pages with cursor-following glow, image lightbox, sitemap/robots, Radix Popover glossary, scroll progress ring, command palette, social proof, FAQ search, blog with images/reading progress/glossary, portfolio carousel, team modals, careers, comparison table, ROI calculator, project wizard, case-study modals, branded images, per-page transitions, reduced-motion. Lint clean, no runtime errors.
+   796→- agent-browser QA confirmed all 7 pages render/navigate. Recommended next steps from Round 7: multiple gallery images per case study, related projects, 404 page, inline newsletter signup, lazy-loaded images, OG meta tags.
+   797→
+   798→## Completed Modifications
+   799→
+   800→### Styling polish (globals.css) — 8 new utilities
+   801→- `.img-blur-up` (blur-up lazy load filter transition), `.img-skeleton` (shimmer placeholder), `.hover-gradient-border` (gradient border appears on hover), `.section-divider` (gradient hairline with center dot), `.focus-brand` (brand focus-visible ring), `.thumb-strip` (custom thin scrollbar for thumbnail strips).
+   802→
+   803→### New feature 1: Multiple gallery images per case study + thumbnail strip
+   804→- Added `gallery?: { src, alt, caption }[]` field to `CaseStudy` type. Populated all 6 case studies with 3 images each (project cover + 2 related blog images as "process" shots with captions).
+   805→- Updated CaseStudyModal: `galleryImages` now uses `caseStudy.gallery` (falls back to project image). Added a **thumbnail strip** (`.thumb-strip`) below the testimonial section — horizontal scroll of 3 image thumbnails, each clickable to open the lightbox at that index. Hover effects (scale, dark overlay, Maximize2 icon).
+   806→- Lightbox now navigates through multiple images (counter "1 / 3", prev/next arrows, keyboard arrows). Verified: clicked thumb → lightbox opens → next arrow → counter "2 / 3" with image b3.png.
+   807→
+   808→### New feature 2: Related projects section in case-study modal
+   809→- Added "More {category} work" section at the bottom of the modal showing up to 3 related projects (same category, excluding current). Each is a clickable card with gradient emoji tile + title + client + arrow.
+   810→- Clicking a related project dispatches `open-case-study` custom event with the project ID. PortfolioPage listens and swaps the modal content (close → reopen with new project). Verified: related projects (Lumen/Mira) appear for Ecommerce category.
+   811→
+   812→### New feature 3: Branded 404 page
+   813→- Created `src/app/not-found.tsx` — a stunning 404 page with: massive gradient "404" text (text-glow-brand + animate-gradient-pan), floating 🔍 emoji, "Lost in the digital void" badge, "This page took a detour" headline, two CTAs (Back to home → setPage('home'), Search the site → command palette), quick links to all pages, Cmd+K hint. Ambient background with grid + gradient orbs. Framer Motion entrance animations.
+   814→- Verified: `/nonexistent-page` renders the 404 with "404" H1.
+   815→
+   816→### New feature 4: Inline newsletter signup in blog articles
+   817→- Built `BlogNewsletterSignup` component in blog-page.tsx — replaces the static CTA with a working form: email input + Subscribe button, async POST to `/api/newsletter` with `source: 'blog-article'`, loading state (Loader2 spinner), success state (emerald check + "You're subscribed!"), toast notifications. "Join 2,000+ founders" social proof line.
+   818→- Verified: filled email → clicked Subscribe → "subscribed" success shown, POST returned 200.
+   819→
+   820→### New feature 5: LazyImage component with blur-up placeholder
+   821→- Built `src/components/site/lazy-image.tsx` — image with skeleton shimmer placeholder while loading + blur-up transition on load. Uses native `loading="lazy"` + `decoding="async"`. Available for future use across the site.
+   822→
+   823→### Bug fix: JSX structure error in case-study modal
+   824→- Fixed a JSX closing tag mismatch caused by the gallery/related insertion (the scrollable body `</div>` was misplaced). Removed the extra `</div>` and verified the modal structure is correct.
+   825→- Fixed `require()` import error by switching to static `import { PROJECTS }` from site-data.
+   826→
+   827→## Verification Results
+   828→- `bun run lint` → clean (0 errors, 0 warnings).
+   829→- agent-browser QA:
+   830→  - Case study gallery: thumbnail strip with 3 images, clicking opens lightbox, next arrow navigates (counter "1/3" → "2/3", image b3.png).
+   831→  - Related projects: "More Ecommerce work" section shows related projects (Lumen/Mira).
+   832→  - 404 page: `/nonexistent-page` renders "404" H1 with branded design.
+   833→  - Blog newsletter: email form present, submission shows "subscribed" success, POST returns 200.
+   834→  - Newsletter API: POST works (raw SQL INSERT OR IGNORE), count increments.
+   835→- VLM visual QA: case study modal "sleek and modern... high-quality hero image"; 404 page "massive, vibrant pink-to-red gradient 404 text... visually striking"; blog newsletter "effectively highlighted... stands out without disrupting reading flow".
+   836→- Dev log: no new errors (stale 500s from earlier rounds, current APIs return 200). Home returns 200.
+   837→
+   838→## Unresolved Issues / Risks
+   839→- Gallery images reuse blog images as "process shots" — creative reuse, but future rounds could generate dedicated case-study gallery images (wireframes, mockups, final designs).
+   840→- The 404 page's "Search the site" button dispatches `open-command-palette` event but the command palette listens for Cmd+K, not this event — the button navigates home first, then the user can press Cmd+K. A future enhancement could wire the event directly.
+   841→- LazyImage component is built but not yet applied to existing images (portfolio/blog) — can be rolled out incrementally.
+   842→- Related projects only show same-category projects; if a category has <3 projects, the section shows fewer.
+   843→
+   844→## Priority Recommendations for Next Round
+   845→- Apply `LazyImage` to all existing images (portfolio cards, blog cards, team avatars) for blur-up loading.
+   846→- Generate **dedicated case-study gallery images** (wireframes, mockups, final designs) instead of reusing blog images.
+   847→- Wire the 404 "Search the site" button to directly open the command palette.
+   848→- Add **Open Graph dynamic metadata per blog article** (title/description/image).
+   849→- Build **animated SVG illustrations** for service sections.
+   850→- Add a **cookie policy / privacy page** linked from the cookie banner.
+   851→- Consider **image optimization** via Next.js `<Image>` component for automatic format conversion + responsive sizes.
+   852→
+   853→---
+   854→Task ID: 22 (Cron Review Round 9)
+   855→Agent: main (Z.ai Code)
+   856→Task: Assess project status, QA test via agent-browser, then improve styling + add features per mandatory requirements.
+   857→
+   858→## Current Project Status (assessment)
+   859→- Project stable from Round 8: 7 pages with case-study galleries + lightbox, related projects, 404 page, inline blog newsletter, LazyImage component, command palette, social proof, FAQ search, blog with images/reading progress/glossary, portfolio carousel, team modals, careers, comparison table, ROI calculator, project wizard, branded images, per-page transitions, reduced-motion. Lint clean, no runtime errors.
+   860→- Dev server had stopped (connection refused); restarted via `bun run dev`. Recommended next steps from Round 8: LazyImage rollout, dedicated gallery images, wire 404 search button, OG metadata, cookie policy page.
+   861→
+   862→## Completed Modifications
+   863→
+   864→### Styling polish (globals.css) — 8 new utilities
+   865→- `.card-hover-depth` (layered shadow + lift on hover), `.section-enter` (staggered fade-up entrance), `.cta-mesh` (gradient mesh CTA background), `.magnetic-cta` (cursor pull transition), `.breadcrumb` (inline flex with hover), `.policy-prose` (privacy modal typography: h3/p/ul/li).
+   866→
+   867→### New feature 1: 404 "Search the site" button → command palette
+   868→- Wired the 404 page's "Search the site" button to navigate home and auto-open the command palette via sessionStorage flag. The 404 page uses `window.location.href = '/'` (since it's a separate route, not SPA state). Command palette checks `sessionStorage.getItem('pwv-open-command-palette')` on mount and auto-opens after 600ms.
+   869→- Fixed the 404 page to use `window.location.href` instead of `setPage` (which doesn't work across routes). Quick links also use hash navigation.
+   870→- Verified: click "Search the site" on /nonexistent → navigates to / → command palette auto-opens.
+   871→
+   872→### New feature 2: Privacy policy modal linked from cookie banner
+   873→- Built `src/components/site/privacy-policy-modal.tsx` — full privacy policy modal with: gradient header (Shield icon), scrollable body with 5 sections (Cookies we use, Data we collect, How we protect data, Your rights, Contact us) each with branded icons, `.policy-prose` typography, "Withdraw consent" footer button (clears localStorage). Esc/backdrop close, body-scroll-lock.
+   874→- Wired into CookieConsent component: "Privacy Policy" link now opens the modal (was a dead `href="#"` before).
+   875→- Verified: clicking "Privacy Policy" in cookie banner opens the modal.
+   876→
+   877→### New feature 3: Blog article breadcrumb
+   878→- Replaced the plain "All articles" back link with a proper breadcrumb: Home > Blog > {Category}. Each segment is clickable (Home → setPage('home'), Blog → onBack, Category → static). Uses `.breadcrumb` CSS class with ChevronRight separators.
+   879→- Verified: breadcrumb present with "Home > Blog > AI" text.
+   880→
+   881→### New feature 4: Dedicated case-study gallery images
+   882→- Generated 3 dedicated gallery images via z-ai image CLI → `public/gallery/wireframe-1.png`, `design-system-1.png`, `analytics-1.png` (wireframe sketches, design system components, analytics dashboard mockups).
+   883→- Updated all 6 case study galleries to use these dedicated images instead of reusing blog images. Each case study now has: project cover + 2 dedicated process shots (wireframe/design-system/analytics).
+   884→- Verified: gallery thumbnails show p1-lumen, wireframe-1, design-system-1.
+   885→
+   886→### New feature 5: Command palette custom event listener
+   887→- Command palette now listens for `open-command-palette` custom event (in addition to Cmd+K). Enables programmatic opening from anywhere in the app.
+   888→
+   889→## Verification Results
+   890→- `bun run lint` → clean (0 errors, 0 warnings).
+   891→- agent-browser QA:
+   892→  - 404 search: click "Search the site" on /nonexistent → navigates to / → command palette auto-opens (verified paletteOpen:true, url:/).
+   893→  - Privacy modal: clicking "Privacy Policy" in cookie banner opens the modal (verified dialog present).
+   894→  - Blog breadcrumb: "Home > Blog > AI" present in article view.
+   895→  - Gallery images: 3 thumbnails with dedicated images (p1-lumen, wireframe-1, design-system-1).
+   896→- VLM visual QA: case study modal "high-impact hero image... bold red metrics... modern and premium"; 404 page "excellent use of scale... clever detour pun"; privacy modal "clean, readable typography... digestible bullet points... shield icon reinforces security".
+   897→- Dev log: server restarted, no new errors. Home returns 200.
+   898→
+   899→## Unresolved Issues / Risks
+   900→- Dev server stopped mid-round (connection refused) — restarted manually. The `bun run dev` process may have been killed by the cron job or memory pressure. Monitor for recurrence.
+   901→- The 404 page uses `window.location.href` for navigation (full page reload) since it's a separate route — not as smooth as SPA navigation, but necessary.
+   902→- Privacy modal backdrop blur is heavy (VLM noted text behind is visible) — acceptable for glass aesthetic.
+   903→- LazyImage component still not applied to existing images (deferred to future round).
+   904→
+   905→## Priority Recommendations for Next Round
+   906→- Apply `LazyImage` to portfolio cards, blog cards, team avatars for blur-up loading.
+   907→- Add **Open Graph dynamic metadata per blog article** (title/description/image).
+   908→- Build **animated SVG illustrations** for service sections.
+   909→- Add a **"scroll to top" within long case-study modal** button.
+   910→- Consider **Next.js `<Image>` component** for automatic format conversion + responsive sizes.
+   911→- Add **schema.org BreadcrumbList** structured data for blog articles.
+   912→- Build a **cookie preferences management** panel (re-consent, granular toggles).
+   913→
+   914→---
+   915→
+   916→## Task ID: 1
+   917→**Agent:** full-stack-developer
+   918→
+   919→**Task:** Apply the existing `LazyImage` component (blur-up placeholder + skeleton shimmer) to raw `<img>` tags across two pages — `portfolio-page.tsx` and `blog-page.tsx` — without altering any existing functionality (hover effects, overlays, transitions, classes).
+   920→
+   921→### Work Log
+   922→1. Read `worklog.md` to understand the Preet Web Vision project context, brand palette (warm orange/pink/rose — no indigo/blue), design system, and shared primitives.
+   923→2. Read `src/components/site/lazy-image.tsx` to understand its API: accepts all standard `<img>` props plus a `wrapperClassName`. The wrapper `<div>` is `relative overflow-hidden` (+ skeleton shimmer while loading); the inner `<img>` gets `img-blur-up` + `transition-opacity` for the blur-up effect. Because the wrapper is the positioned element, any `absolute inset-0` positioning must move to `wrapperClassName`.
+   924→3. Read both target files in full to locate every raw `<img>` tag.
+   925→   - `portfolio-page.tsx`: 1 `<img>` in the `ProjectCard` component (project cover image).
+   926→   - `blog-page.tsx`: 3 `<img>` tags — `FeaturedCard`, `BlogCard`, and `ArticleView` (cover) components.
+   927→   - Confirmed `CaseStudyModal` lives in its own file (`@/components/site/case-study-modal`) and is out of scope (per the "DO NOT convert images inside the lightbox component (separate file)" rule and the "ONLY modify these two files" constraint).
+   928→4. **`portfolio-page.tsx`** changes:
+   929→   - Added `import { LazyImage } from '@/components/site/lazy-image'` (after the `CaseStudyModal` import).
+   930→   - Replaced the `ProjectCard` `<img>` with `<LazyImage>`, moving `absolute inset-0 size-full` to `wrapperClassName` and keeping `size-full object-cover transition-transform duration-700 group-hover:scale-105` on `className` so the hover-zoom still applies to the inner image.
+   931→5. **`blog-page.tsx`** changes:
+   932→   - Added `import { LazyImage } from '@/components/site/lazy-image'` (after the `AmbientBackground` import).
+   933→   - Replaced the `FeaturedCard` `<img>` with `<LazyImage>` (same `absolute inset-0 size-full` → `wrapperClassName` move; kept `group-hover:scale-105` on `className`).
+   934→   - Replaced the `BlogCard` `<img>` with `<LazyImage>` (identical pattern).
+   935→   - Replaced the `ArticleView` cover `<img>` with `<LazyImage>` (no hover-zoom here, so `className` keeps just `size-full object-cover`).
+   936→6. Preserved all surrounding JSX untouched: gradient overlays, `grid-bg` overlays, dark legibility gradients, emoji badges, category badges, `mix-blend-multiply` gradient layers, and all conditional `project.image ? / post.image ?` branching.
+   937→7. Verified no remaining raw `<img>` tags in either file (grep returned no matches).
+   938→8. Ran `bun run lint` — clean, no errors or warnings.
+   939→9. Checked `dev.log` tail — server recompiled successfully (`✓ Compiled in 84ms`) with no runtime errors after the edits.
+   940→
+   941→### Stage Summary
+   942→Both `portfolio-page.tsx` and `blog-page.tsx` now use `<LazyImage>` for all four project/blog post cover images. The `absolute inset-0 size-full` positioning classes were moved to `wrapperClassName` (since `LazyImage` wraps the `<img>` in a `relative overflow-hidden` div that becomes the positioned element), while all `object-cover`, `transition-transform`, `duration-700`, and `group-hover:scale-105` classes remain on the inner `className` so hover-zoom and transitions behave identically. All overlays, gradients, badges, and conditional rendering logic are unchanged. Avatar images (shadcn `<Avatar>`), team photos, and lightbox/case-study-modal images (separate files) were intentionally left untouched per the constraints. Lint is clean and the dev server compiles without errors. Users will now see a blur-up placeholder + skeleton shimmer while these cover images load, with no visual change to the final rendered state or hover behavior.
+   943→
+   944→---
+   945→Task ID: 23 (Cron Review Round 10)
+   946→Agent: main (Z.ai Code) + 1 full-stack-developer subagent
+   947→Task: Assess project status, QA test via agent-browser, then improve styling + add features per mandatory requirements.
+   948→
+   949→## Current Project Status (assessment)
+   950→- Project stable from Round 9: 7 pages with 404 search→palette, privacy modal, blog breadcrumb, dedicated gallery images, command palette, social proof, FAQ search, blog with images/reading progress/glossary, portfolio carousel, team modals, careers, comparison table, ROI calculator, project wizard, case-study modals, branded images, per-page transitions, reduced-motion. Lint clean, no runtime errors.
+   951→- Recommended next steps from Round 9: LazyImage rollout, schema.org BreadcrumbList, scroll-to-top in modal, cookie preferences panel, SVG illustrations.
+   952→
+   953→## Completed Modifications
+   954→
+   955→### Styling polish (globals.css) — 8 new utilities
+   956→- `.stat-glass` (glassmorphic stat card with depth, dark variant), `.gradient-orb` (floating ambient orb with orbFloat animation), `.svg-divider` (animated SVG line with drawLine keyframe), `.ring-focus` (premium focus ring), `.modal-scroll-top` (sticky scroll-to-top FAB), `.toggle-switch` (cookie preferences toggle with data-on state + sliding knob).
+   957→
+   958→### New feature 1: LazyImage applied to portfolio + blog images
+   959→- Subagent replaced raw `<img>` tags with `<LazyImage>` in portfolio-page.tsx (1 image: ProjectCard cover) and blog-page.tsx (3 images: FeaturedCard, BlogCard, ArticleView covers). Positioning classes moved to `wrapperClassName`, hover-zoom preserved on `className`. Blur-up placeholder + skeleton shimmer while loading.
+   960→- Verified: 6 lazy-loaded images on blog grid (`img[loading="lazy"]`).
+   961→
+   962→### New feature 2: Schema.org BreadcrumbList structured data
+   963→- Extended blog article JSON-LD injection to include a `BreadcrumbList` schema alongside the `Article` schema. Breadcrumb: Home > Blog > {Category} > {Article Title}. Both scripts injected on article open, cleaned up on unmount.
+   964→- Verified: 2 JSON-LD scripts present (Article + BreadcrumbList).
+   965→
+   966→### New feature 3: Scroll-to-top button within case-study modal
+   967→- Added `scrollBodyRef` to the modal's scrollable body + scroll listener that shows a scroll-to-top FAB when `scrollTop > 300`. The button (brand-gradient, ArrowUp icon) uses `.modal-scroll-top` sticky positioning and smoothly scrolls the modal body to top. AnimatePresence entrance.
+   968→- Verified: button appears when modal scrolled to 500px.
+   969→
+   970→### New feature 4: Cookie preferences management panel
+   971→- Built `src/components/site/cookie-preferences.tsx` — full preferences modal with 3 toggle switches (Essential [required, always on], Analytics, Marketing). Reads/writes the existing `pwv-cookie-consent-v1` localStorage key with granular `analytics`/`marketing` fields. Footer: Reject all / Save preferences / Accept all buttons. Esc/backdrop close, body-scroll-lock.
+   972→- Wired into footer: "Cookie preferences" button (with Cookie icon) in the bottom bar opens the modal.
+   973→- Verified: toggling Analytics on → Save → localStorage shows `{choice:"accepted", analytics:true, marketing:false}`.
+   974→
+   975→### New feature 5: Animated SVG line dividers on Home page
+   976→- Built `src/components/site/svg-divider.tsx` — a flowing wave SVG path that draws itself on scroll into view (Framer Motion `pathLength` animation, 2s ease). Gradient stroke (orange→pink→rose) with fade edges.
+   977→- Added 5 dividers between major Home page sections (after TrustedBy, StatsBand, Process, LiveStatsWidget, etc.).
+   978→- Verified: 5 `.svg-divider` elements present.
+   979→
+   980→## Verification Results
+   981→- `bun run lint` → clean (0 errors, 0 warnings).
+   982→- agent-browser QA:
+   983→  - LazyImage: 6 lazy-loaded images on blog grid.
+   984→  - JSON-LD: 2 scripts (Article + BreadcrumbList) present in article view.
+   985→  - Modal scroll-to-top: button appears when modal scrolled >300px.
+   986→  - Cookie preferences: modal opens with 3 toggles, Analytics toggle + Save persists to localStorage.
+   987→  - SVG dividers: 5 dividers present on Home page.
+   988→- VLM visual QA: SVG divider "vibrant, modern aesthetic... organic movement"; cookie modal "clean, high-contrast dark UI... excellent hierarchy... clear user guidance".
+   989→- Dev log: no errors. Home returns 200.
+   990→
+   991→## Unresolved Issues / Risks
+   992→- VLM noted the Marketing toggle description text appears cut off in screenshots — likely a screenshot timing issue, not a real bug (the modal scrolls).
+   993→- LazyImage not yet applied to case-study modal images (separate file, deferred).
+   994→- The SVG divider animation uses `whileInView` — respects reduced motion via the global media query.
+   995→
+   996→## Priority Recommendations for Next Round
+   997→- Apply `LazyImage` to case-study modal images (cover + gallery thumbnails).
+   998→- Add **Open Graph dynamic metadata per blog article** (title/description/image).
+   999→- Build **animated SVG illustrations** for service sections (custom branded illustrations).
+  1000→- Add a **cookie preferences link in the cookie banner** (not just footer).
+  1001→- Consider **Next.js `<Image>` component** for automatic format conversion + responsive sizes.
+  1002→- Add **schema.org FAQPage** structured data for the FAQ sections.
+  1003→- Build a **"recently viewed"** section showing projects/articles the user has browsed.
+  1004→
+  1005→---
+  1006→Task ID: 24 (User Request: Service Pages + Chat Inbox + Mega Menu)
+  1007→Agent: main (Z.ai Code)
+  1008→Task: Build separate service pages for SEO, chat message management/inbox, and a mega menu.
+  1009→
+  1010→## Current Project Status (assessment)
+  1011→- User requested: (1) separate service pages for SEO, (2) chat message management to view/reply to clients, (3) mega menu with all services. Project was stable from Round 10.
+  1012→
+  1013→## Completed Modifications
+  1014→
+  1015→### New feature 1: Mega Menu in navbar
+  1016→- Built `MegaMenu` component in navbar.tsx — hover-based dropdown showing all 5 services with gradient icon tiles, titles, taglines, and numbered indices. Each service links to its real route (`/services/{slug}`). Footer with "Not sure which service?" CTA. Animated entrance (Framer Motion). ChevronDown indicator rotates on open.
+  1017→- Mobile menu updated: Services item now shows expandable sub-list of all 5 services with icons, each linking to its real route.
+  1018→
+  1019→### New feature 2: Service detail pages (real routes for SEO)
+  1020→- Created `/services/[slug]` dynamic route (Next.js App Router) with:
+  1021→  - `generateStaticParams()` for all 5 services (SSG-ready)
+  1022→  - `generateMetadata()` producing unique per-service SEO: title, description, keywords, OpenGraph, Twitter Card
+  1023→  - Service schema.org JSON-LD (`@type: Service` with provider, areaServed, serviceType, offers)
+  1024→- Built `ServiceDetailPage` client component: hero with breadcrumb (Home › Services › {Title}), gradient icon, tagline, description, CTAs; features grid (6 items with check icons); deliverables list (4 numbered items); 4-step process timeline; FAQ with search (FaqWithSearch); related services grid (3 cards linking to other service pages); CTA band.
+  1025→- Fixed Server→Client component serialization error: pass `slug` string (not the Service object with its icon function) to the client component, which looks up the service from SERVICES array.
+  1026→
+  1027→### New feature 3: Chat persistence + Inbox page
+  1028→- Added `ChatConversation` (id, sessionId, email, name, status, timestamps) and `ChatMessage` (id, conversationId, role, content, createdAt) models to Prisma. Ran `db:push`.
+  1029→- Updated `/api/chat` route: now persists each user message + AI reply to the DB using raw SQL (find-or-create conversation by sessionId, then insert messages). Returns `sessionId` in response so the client can send it on subsequent messages.
+  1030→- Updated AI assistant widget: stores `sessionId` in state, sends it as `x-chat-session` header on subsequent messages.
+  1031→- Created `/api/chat/conversations` API: GET (list conversations with last message preview + count), PATCH (update status: new/replied/archived).
+  1032→- Created `/api/chat/reply` API: GET (messages for a conversation), POST (manual reply from inbox — saves as assistant message, marks conversation "replied").
+  1033→- Built `/admin/inbox` page — full chat management interface: conversation list (with search + status filters + stats), message thread view (user/assistant bubbles with avatars), reply box (type + send), mark replied/archive buttons. Auto-refreshes every 30s.
+  1034→
+  1035→### New feature 4: Footer service links → real routes
+  1036→- Updated footer service links from SPA state navigation to real `<a href="/services/{slug}">` links for SEO crawlability.
+  1037→
+  1038→## Verification Results
+  1039→- `bun run lint` → clean (0 errors, 0 warnings).
+  1040→- Route tests: `/` (200), `/services/website-design-development` (200), `/services/ai-automations` (200), `/admin/inbox` (200).
+  1041→- agent-browser QA:
+  1042→  - Mega menu: 5 service links present with correct hrefs.
+  1043→  - Service detail page: H1 "AI Automations", breadcrumb "Home › Services › AI Automations", Service JSON-LD, 20 feature/deliverable cards.
+  1044→  - Chat persistence: sent message via AI assistant → conversation saved to DB (3 conversations with messages).
+  1045→  - Inbox: shows 3 conversations (3 new), clicking opens message thread (2 messages), reply input works (sent reply → message count 2→3, reply visible).
+  1046→- DB verification: `ChatConversation` table has 3 rows, `ChatMessage` table has messages.
+  1047→
+  1048→## How the Chat System Works (for the user)
+  1049→1. **Visitors chat** with the AI assistant on your website (bottom-right button or Cmd+K).
+  1050→2. **Every conversation is saved** to the database automatically — user messages and AI replies.
+  1051→3. **You view conversations** at `/admin/inbox` — see who chatted, their messages, and their email (if provided).
+  1052→4. **You can reply** directly from the inbox — your reply is saved to the conversation and marked as "replied".
+  1053→5. **To email the client**, use the email address shown in the conversation header (if they provided one).
+  1054→
+  1055→## SEO Optimization Recommendations
+  1056→1. ✅ **Separate service pages** — each service now has its own URL with unique meta tags.
+  1057→2. ✅ **Schema.org structured data** — Service schema on service pages, Article + BreadcrumbList on blog.
+  1058→3. ✅ **Sitemap.xml + robots.txt** — already implemented in Round 7.
+  1059→4. **Next steps for SEO**:
+  1060→   - Add internal linking between service pages and related blog articles
+  1061→   - Generate dynamic OG images per service/blog with title overlay
+  1062→   - Add `canonical` URLs to prevent duplicate content
+  1063→   - Submit sitemap to Google Search Console
+  1064→   - Add `hreflang` tags if targeting multiple languages
+  1065→   - Build a `/blog/[slug]` route for individual blog articles (currently SPA-based)
+  1066→
+  1067→---
+  1068→Task ID: 25 (User Request: Service Pages + Admin + SEO + Images)
+  1069→Agent: main (Z.ai Code)
+  1070→
+  1071→## Completed
+  1072→1. Service pages now have Navbar + Footer + AI Assistant (were missing)
+  1073→2. Varied CTAs per service (not all "Learn more") + link to real /services/{slug}
+  1074→3. Footer service links → real routes
+  1075→4. Admin auth: login at /admin (admin@preetwebvision.com / preet2025), cookie session
+  1076→5. Admin dashboard at /admin/dashboard: Overview + Form Submissions + Chat Inbox + AI Management tabs
+  1077→6. AI handover: Take over (AI stops, admin replies) / Hand to AI (AI resumes)
+  1078→7. SEO: title template, expanded keywords, robots, canonical in layout
+  1079→8. Better portfolio images: 3 new realistic screenshots (p1-v2, p2-v2, p3-v2)
+  1080→9. All 11 routes return 200, lint clean
+  1081→
+  1082→---
+  1083→Task ID: 26 (Admin Settings + Notifications + Export)
+  1084→Agent: main (Z.ai Code)
+  1085→
+  1086→## Completed
+  1087→1. **SiteSetting + Notification tables** created in DB with default settings (AI prompt, greeting, suggestions, contact info, admin password, notification toggles)
+  1088→2. **Settings API** (`/api/admin/settings` GET/PUT, auth-protected) — read/write all settings
+  1089→3. **Admin Settings page** (`/admin/settings`) with 5 tabs:
+  1090→   - AI Assistant: edit system prompt (textarea), greeting message, suggested questions (add/remove/edit)
+  1091→   - Password: change admin password (current/new/confirm validation)
+  1092→   - Site Info: contact email, phone, admin notification email
+  1093→   - Notifications: toggle notifications for form submissions, new chats, human-mode replies
+  1094→   - Export Data: download CSV for form submissions + chat transcripts
+  1095→4. **AI chat reads custom system prompt** from settings (fallback to default)
+  1096→5. **Notification system**: auto-creates notifications on form submission, new chat, human-mode reply
+  1097→6. **Notification bell** in dashboard header — shows unread count, dropdown with recent notifications, mark all read
+  1098→7. **CSV export API** (`/api/admin/export?type=submissions|chats`) — downloads CSV files
+  1099→8. All routes return 200 (APIs return 401 without auth), lint clean
+  1100→

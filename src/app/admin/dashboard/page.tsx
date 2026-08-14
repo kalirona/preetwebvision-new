@@ -34,9 +34,23 @@ import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 
 // Icons used across tabs
-import { Save, BookOpen } from 'lucide-react'
+import { Save, BookOpen, Star, Palette } from 'lucide-react'
+// Markdown editor toolbar icons
+import {
+  Bold,
+  Italic,
+  Heading2,
+  Heading3,
+  List,
+  Quote,
+  Link2,
+  Eye,
+  Pencil,
+  Code2,
+} from 'lucide-react'
+import { markdownToHtml } from '@/lib/markdown'
 
-type Tab = 'overview' | 'submissions' | 'chats' | 'ai' | 'affiliates' | 'seo' | 'blog'
+type Tab = 'overview' | 'submissions' | 'chats' | 'ai' | 'affiliates' | 'seo' | 'blog' | 'testimonials' | 'services'
 
 /* ============ Notification Bell ============ */
 function NotificationBell() {
@@ -250,6 +264,8 @@ export default function AdminDashboard() {
             { id: 'affiliates', label: 'Affiliates', icon: ExternalLink },
             { id: 'seo', label: 'SEO Settings', icon: Search },
             { id: 'blog', label: 'Blog Posts', icon: BookOpen },
+            { id: 'testimonials', label: 'Testimonials', icon: Star },
+            { id: 'services', label: 'Services', icon: Palette },
           ] as { id: Tab; label: string; icon: typeof Mail }[]).map((t) => {
             const Icon = t.icon
             return (
@@ -280,6 +296,8 @@ export default function AdminDashboard() {
         {tab === 'affiliates' && <AffiliatesTab />}
         {tab === 'seo' && <SeoTab />}
         {tab === 'blog' && <BlogTab />}
+        {tab === 'testimonials' && <TestimonialsTab />}
+        {tab === 'services' && <ServicesTab />}
       </div>
     </div>
   )
@@ -1375,11 +1393,61 @@ function BlogTab() {
 }
 
 /* ============ BLOG POST FORM ============ */
+
+// Convert legacy JSON content blocks into markdown text so the markdown
+// editor can open posts created with the old block-based editor.
+function jsonBlocksToMarkdown(raw: string): string {
+  try {
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return raw
+    const out: string[] = []
+    for (const b of parsed as Array<{ type?: string; text?: string; items?: string[] }>) {
+      switch (b.type) {
+        case 'h2':
+          out.push(`## ${b.text || ''}`)
+          break
+        case 'h3':
+          out.push(`### ${b.text || ''}`)
+          break
+        case 'quote':
+          out.push(`> ${b.text || ''}`)
+          break
+        case 'ul':
+          out.push((b.items || []).map((it) => `- ${it}`).join('\n'))
+          break
+        case 'p':
+        default:
+          if (b.text) out.push(b.text)
+          break
+      }
+      out.push('')
+    }
+    return out.join('\n').replace(/\n{3,}/g, '\n\n').trim()
+  } catch {
+    return raw
+  }
+}
+
+// Normalize whatever is in `initial.content` into a markdown string for editing.
+function initialContentToMarkdown(initial: BlogPostRow | null): string {
+  if (!initial?.content) return ''
+  // If it already looks like markdown (not JSON), keep as-is.
+  const c = initial.content
+  try {
+    const parsed = JSON.parse(c)
+    if (Array.isArray(parsed)) return jsonBlocksToMarkdown(c)
+    return c
+  } catch {
+    return c
+  }
+}
+
 function BlogPostForm({ initial, onClose, onSaved }: { initial: BlogPostRow | null; onClose: () => void; onSaved: () => void }) {
   const [title, setTitle] = React.useState(initial?.title || '')
   const [slug, setSlug] = React.useState(initial?.slug || '')
   const [excerpt, setExcerpt] = React.useState(initial?.excerpt || '')
-  const [content, setContent] = React.useState(initial?.content || '[{"type":"p","text":""}]')
+  // Content is stored as markdown text.
+  const [content, setContent] = React.useState<string>(() => initialContentToMarkdown(initial))
   const [category, setCategory] = React.useState(initial?.category || 'Web Design')
   const [author, setAuthor] = React.useState(initial?.author || 'Preet Kaur')
   const [authorRole, setAuthorRole] = React.useState(initial?.authorRole || 'Founder & Creative Director')
@@ -1389,19 +1457,13 @@ function BlogPostForm({ initial, onClose, onSaved }: { initial: BlogPostRow | nu
   const [featured, setFeatured] = React.useState(initial?.featured || false)
   const [status, setStatus] = React.useState(initial?.status || 'published')
   const [saving, setSaving] = React.useState(false)
-  const [contentType, setContentType] = React.useState<'json' | 'plain'>('json')
-
-  // Parse content for editing
-  React.useEffect(() => {
-    try {
-      const parsed = JSON.parse(content)
-      if (Array.isArray(parsed)) {
-        setContentType('json')
-      }
-    } catch {
-      setContentType('plain')
-    }
-  }, [])
+  const [showPreview, setShowPreview] = React.useState(false)
+  const [showMarkdownHelp, setShowMarkdownHelp] = React.useState(false)
+  // Hold the textarea DOM node in state (rather than a ref) so the toolbar
+  // click handlers can read the current selection without the linter
+  // flagging "Cannot access ref value during render". State reads during
+  // render are fine; only ref reads are flagged.
+  const [textareaEl, setTextareaEl] = React.useState<HTMLTextAreaElement | null>(null)
 
   const generateSlug = (title: string) => {
     return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
@@ -1420,6 +1482,8 @@ function BlogPostForm({ initial, onClose, onSaved }: { initial: BlogPostRow | nu
     setSaving(true)
     try {
       const method = initial ? 'PUT' : 'POST'
+      // Content is sent as raw markdown text. The article route renders it
+      // via markdownToHtml (and falls back to legacy JSON blocks for old posts).
       const body = { id: initial?.id, title, slug, excerpt, content, category, author, authorRole, authorInitials, authorAccent, imageUrl, featured, status }
       const res = await fetch('/api/admin/blog', {
         method,
@@ -1437,20 +1501,91 @@ function BlogPostForm({ initial, onClose, onSaved }: { initial: BlogPostRow | nu
     }
   }
 
-  const parseContentToPlainText = () => {
-    try {
-      const blocks = JSON.parse(content)
-      return blocks.map((b: { text?: string }) => b.text || '').join('\n\n')
-    } catch {
-      return content
-    }
+  /* ---- Markdown toolbar helpers ---- */
+
+  // Wrap the current selection with `prefix` + `suffix` (inline formatting).
+  // If nothing is selected, inserts prefix + suffix and places the caret between.
+  const wrapSelection = (prefix: string, suffix: string, placeholder = 'text') => {
+    const ta = textareaEl
+    if (!ta) return
+    const start = ta.selectionStart
+    const end = ta.selectionEnd
+    const value = ta.value
+    const selected = value.slice(start, end) || placeholder
+    const next = value.slice(0, start) + prefix + selected + suffix + value.slice(end)
+    setContent(next)
+    // Restore focus + selection on next tick (after React re-render).
+    requestAnimationFrame(() => {
+      ta.focus()
+      const selStart = start + prefix.length
+      ta.setSelectionRange(selStart, selStart + selected.length)
+    })
   }
 
-  const plainToContent = (plain: string) => {
-    const paragraphs = plain.split(/\n\n+/).filter(Boolean)
-    const blocks = paragraphs.map((text) => ({ type: 'p', text: text.trim() }))
-    return JSON.stringify(blocks)
+  // Prefix each line in the current selection (or the current line) with `prefix`.
+  // Used for block-level formatting: headings, lists, quotes.
+  const prefixLines = (prefix: string) => {
+    const ta = textareaEl
+    if (!ta) return
+    const start = ta.selectionStart
+    const end = ta.selectionEnd
+    const value = ta.value
+    // Find the start of the first selected line.
+    const lineStart = value.lastIndexOf('\n', start - 1) + 1
+    // Find the end of the last selected line.
+    let lineEnd = value.indexOf('\n', end)
+    if (lineEnd === -1) lineEnd = value.length
+    const block = value.slice(lineStart, lineEnd)
+    // Strip any existing block-prefix on each line so toggling works for headings.
+    const stripped = block.replace(/^(#{1,6}\s+|>\s*|[-*+]\s+)/, '')
+    const newBlock = stripped
+      .split('\n')
+      .map((line) => (line.trim() === '' ? line : prefix + line))
+      .join('\n')
+    const next = value.slice(0, lineStart) + newBlock + value.slice(lineEnd)
+    setContent(next)
+    requestAnimationFrame(() => {
+      ta.focus()
+      ta.setSelectionRange(lineStart, lineStart + newBlock.length)
+    })
   }
+
+  // Insert a markdown link: [selected text](https://)
+  const insertLink = () => {
+    const ta = textareaEl
+    if (!ta) return
+    const start = ta.selectionStart
+    const end = ta.selectionEnd
+    const value = ta.value
+    const selected = value.slice(start, end) || 'link text'
+    const insertion = `[${selected}](https://)`
+    const next = value.slice(0, start) + insertion + value.slice(end)
+    setContent(next)
+    requestAnimationFrame(() => {
+      ta.focus()
+      // Place caret inside the URL parentheses.
+      const urlPos = start + selected.length + 3 // `[` + selected + `](`
+      ta.setSelectionRange(urlPos, urlPos + 8) // select `https://`
+    })
+  }
+
+  const previewHtml = React.useMemo(() => markdownToHtml(content || '*Nothing to preview yet.*'), [content])
+
+  // ---- Toolbar button config (kept inline so labels stay near handlers) ----
+  const toolbarButtons: Array<{
+    label: string
+    icon: React.ComponentType<{ className?: string }>
+    title: string
+    onClick: () => void
+  }> = [
+    { label: 'Bold', icon: Bold, title: 'Bold (**text**)', onClick: () => wrapSelection('**', '**', 'bold text') },
+    { label: 'Italic', icon: Italic, title: 'Italic (*text*)', onClick: () => wrapSelection('*', '*', 'italic text') },
+    { label: 'H2', icon: Heading2, title: 'Heading 2 (## )', onClick: () => prefixLines('## ') },
+    { label: 'H3', icon: Heading3, title: 'Heading 3 (### )', onClick: () => prefixLines('### ') },
+    { label: 'List', icon: List, title: 'Bullet list (- )', onClick: () => prefixLines('- ') },
+    { label: 'Quote', icon: Quote, title: 'Blockquote (> )', onClick: () => prefixLines('> ') },
+    { label: 'Link', icon: Link2, title: 'Link ([text](url))', onClick: insertLink },
+  ]
 
   return (
     <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-4">
@@ -1475,37 +1610,92 @@ function BlogPostForm({ initial, onClose, onSaved }: { initial: BlogPostRow | nu
         <Textarea value={excerpt} onChange={(e) => setExcerpt(e.target.value)} rows={2} className="bg-muted/30" placeholder="A short summary of the article..." />
       </div>
 
+      {/* ============ Markdown editor ============ */}
       <div>
-        <div className="mb-1 flex items-center justify-between">
-          <label className="text-xs font-semibold">Content</label>
-          <div className="flex gap-1">
-            <button onClick={() => { setContent(plainToContent(parseContentToPlainText())); setContentType('plain') }} className={cn('rounded px-2 py-0.5 text-[10px] font-bold', contentType === 'plain' ? 'bg-brand-gradient text-white' : 'bg-muted text-muted-foreground')}>
-              Plain text
+        <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+          <label className="text-xs font-semibold">Content (Markdown)</label>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setShowMarkdownHelp((v) => !v)}
+              className="flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-bold text-muted-foreground hover:bg-muted hover:text-foreground"
+              title="Markdown cheat sheet"
+            >
+              <Code2 className="size-3" />
+              Markdown
             </button>
-            <button onClick={() => setContentType('json')} className={cn('rounded px-2 py-0.5 text-[10px] font-bold', contentType === 'json' ? 'bg-brand-gradient text-white' : 'bg-muted text-muted-foreground')}>
-              JSON blocks
+            <button
+              type="button"
+              onClick={() => setShowPreview((v) => !v)}
+              className={cn(
+                'flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-bold',
+                showPreview ? 'bg-brand-gradient text-white' : 'bg-muted text-muted-foreground hover:text-foreground',
+              )}
+              title="Toggle live preview"
+            >
+              {showPreview ? <Eye className="size-3" /> : <Pencil className="size-3" />}
+              {showPreview ? 'Preview' : 'Edit'}
             </button>
           </div>
         </div>
-        {contentType === 'plain' ? (
-          <Textarea
-            value={parseContentToPlainText()}
-            onChange={(e) => setContent(plainToContent(e.target.value))}
-            rows={10}
-            className="bg-muted/30 font-mono text-xs"
-            placeholder="Write your article here. Separate paragraphs with a blank line."
-          />
+
+        {/* Toolbar */}
+        <div className="mb-2 flex flex-wrap items-center gap-1 rounded-lg border border-border/60 bg-muted/20 p-1.5">
+          {toolbarButtons.map((b) => {
+            const Icon = b.icon
+            return (
+              <button
+                key={b.label}
+                type="button"
+                onClick={b.onClick}
+                title={b.title}
+                aria-label={b.label}
+                className="grid size-8 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
+              >
+                <Icon className="size-4" />
+              </button>
+            )
+          })}
+          <div className="mx-1 h-5 w-px bg-border/60" />
+          <span className="px-2 text-[10px] font-medium text-muted-foreground">
+            {content.trim() ? `${content.trim().split(/\s+/).length} words` : 'Empty'}
+          </span>
+        </div>
+
+        {/* Editor / Preview */}
+        {showPreview ? (
+          <div className="min-h-[16rem] rounded-md border border-border/60 bg-background p-4">
+            <div className="prose-brand" dangerouslySetInnerHTML={{ __html: previewHtml }} />
+          </div>
         ) : (
           <Textarea
+            ref={setTextareaEl}
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            rows={10}
-            className="bg-muted/30 font-mono text-xs"
-            placeholder='[{"type":"p","text":"Your paragraph"},{"type":"h2","text":"Heading"},{"type":"ul","items":["Item 1","Item 2"]}]'
+            rows={14}
+            className="bg-muted/30 font-mono text-xs leading-relaxed"
+            placeholder={`Write your article in Markdown.\n\n## A heading\n\nA paragraph with **bold** and *italic* text.\n\n- A bullet\n- Another bullet\n\n> A blockquote\n\n[Link text](https://example.com)`}
           />
         )}
+
+        {/* Markdown cheat sheet */}
+        {showMarkdownHelp && (
+          <div className="mt-2 rounded-md border border-border/60 bg-muted/20 p-3 text-[11px] text-muted-foreground">
+            <p className="mb-1.5 font-semibold text-foreground">Markdown cheat sheet</p>
+            <div className="grid gap-x-6 gap-y-1 sm:grid-cols-2">
+              <span><code className="rounded bg-muted px-1">**bold**</code> → <strong>bold</strong></span>
+              <span><code className="rounded bg-muted px-1">*italic*</code> → <em>italic</em></span>
+              <span><code className="rounded bg-muted px-1">## Heading 2</code> → h2</span>
+              <span><code className="rounded bg-muted px-1">### Heading 3</code> → h3</span>
+              <span><code className="rounded bg-muted px-1">- item</code> → bullet list</span>
+              <span><code className="rounded bg-muted px-1">{'> quote'}</code> → blockquote</span>
+              <span className="sm:col-span-2"><code className="rounded bg-muted px-1">[text](https://url)</code> → link (opens in new tab)</span>
+            </div>
+            <p className="mt-2 text-[10px]">Tip: select text and click a toolbar button, or click with no selection to insert a placeholder.</p>
+          </div>
+        )}
         <p className="mt-1 text-[10px] text-muted-foreground">
-          {contentType === 'plain' ? 'Separate paragraphs with blank lines. Each becomes a <p> block.' : 'JSON array of content blocks: {type, text} or {type:"ul", items:[]}'}
+          Content is stored as Markdown. The public <code className="rounded bg-muted px-1">/blog/[slug]</code> route renders it with the brand prose styles. Legacy JSON-block posts are auto-converted to Markdown when opened here.
         </p>
       </div>
 
@@ -1556,6 +1746,539 @@ function BlogPostForm({ initial, onClose, onSaved }: { initial: BlogPostRow | nu
         <Button onClick={save} disabled={saving} className="rounded-full bg-brand-gradient text-white">
           {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
           {initial ? 'Update post' : 'Create post'}
+        </Button>
+        <Button variant="outline" onClick={onClose} className="rounded-full">Cancel</Button>
+      </div>
+    </div>
+  )
+}
+
+/* ============ TESTIMONIALS TAB ============ */
+type TestimonialRow = {
+  id: string
+  quote: string
+  name: string
+  role: string
+  company: string
+  rating: number
+  initials: string
+  accent: string
+  active: boolean
+  createdAt: string
+}
+
+const TESTIMONIAL_ACCENTS = [
+  { label: 'Orange → Pink', value: 'from-orange-500 to-pink-500' },
+  { label: 'Fuchsia → Rose', value: 'from-fuchsia-500 to-rose-500' },
+  { label: 'Amber → Orange', value: 'from-amber-500 to-orange-500' },
+  { label: 'Emerald → Teal', value: 'from-emerald-500 to-teal-500' },
+  { label: 'Rose → Pink', value: 'from-rose-500 to-pink-500' },
+]
+
+function TestimonialsTab() {
+  const [testimonials, setTestimonials] = React.useState<TestimonialRow[]>([])
+  const [loading, setLoading] = React.useState(true)
+  const [editing, setEditing] = React.useState<TestimonialRow | null>(null)
+  const [showForm, setShowForm] = React.useState(false)
+
+  const fetchTestimonials = React.useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/admin/testimonials')
+      const data = await res.json()
+      setTestimonials(data.testimonials || [])
+    } catch { /* ignore */ } finally { setLoading(false) }
+  }, [])
+
+  React.useEffect(() => { fetchTestimonials() }, [fetchTestimonials])
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Delete this testimonial? This cannot be undone.')) return
+    await fetch('/api/admin/testimonials', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
+    setTestimonials((prev) => prev.filter((t) => t.id !== id))
+    toast.success('Testimonial deleted')
+  }
+
+  const handleToggleActive = async (t: TestimonialRow) => {
+    await fetch('/api/admin/testimonials', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: t.id, active: !t.active }),
+    })
+    setTestimonials((prev) => prev.map((x) => (x.id === t.id ? { ...x, active: !x.active } : x)))
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="font-display text-2xl font-bold tracking-tight">Testimonials</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Manage client testimonials. The front-end still reads from the static site-data file — this powers the future CMS migration.</p>
+        </div>
+        <Button onClick={() => { setEditing(null); setShowForm(true) }} className="rounded-full bg-brand-gradient text-white">
+          <Star className="size-4" />
+          Add testimonial
+        </Button>
+      </div>
+
+      {showForm && (
+        <TestimonialForm
+          initial={editing}
+          onClose={() => { setShowForm(false); setEditing(null) }}
+          onSaved={() => { setShowForm(false); setEditing(null); fetchTestimonials() }}
+        />
+      )}
+
+      {loading ? (
+        <div className="flex justify-center py-12"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>
+      ) : testimonials.length === 0 ? (
+        <div className="flex flex-col items-center rounded-2xl border border-dashed border-border/60 py-16 text-center">
+          <Star className="size-10 text-muted-foreground/40" />
+          <p className="mt-3 font-display text-lg font-bold">No testimonials yet</p>
+          <p className="mt-1 text-sm text-muted-foreground">Add your first client testimonial to get started.</p>
+          <Button onClick={() => { setEditing(null); setShowForm(true) }} className="mt-4 rounded-full bg-brand-gradient text-white">
+            Add testimonial
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {testimonials.map((t) => (
+            <div key={t.id} className="flex items-start gap-4 rounded-2xl border border-border/60 bg-card p-4">
+              <div className={cn('grid size-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br text-white shadow-md', t.accent)}>
+                <span className="font-display text-sm font-bold">{t.initials || '★'}</span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate font-display text-sm font-bold">{t.name}</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {t.role}{t.company ? ` · ${t.company}` : ''}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <span className="flex" title={`${t.rating}/5`}>
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star
+                          key={i}
+                          className={cn('size-3.5', i < t.rating ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/30')}
+                        />
+                      ))}
+                    </span>
+                    <span className={cn('rounded-full px-2 py-1 text-[10px] font-bold uppercase', t.active ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-muted text-muted-foreground')}>
+                      {t.active ? 'Active' : 'Hidden'}
+                    </span>
+                  </div>
+                </div>
+                <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">&ldquo;{t.quote}&rdquo;</p>
+                <div className="mt-2 flex gap-2">
+                  <Button size="sm" variant="ghost" onClick={() => { setEditing(t); setShowForm(true) }} className="rounded-full text-xs">
+                    Edit
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => handleToggleActive(t)} className="rounded-full text-xs">
+                    {t.active ? 'Hide' : 'Show'}
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => handleDelete(t.id)} className="rounded-full text-xs text-destructive hover:text-destructive">
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ============ TESTIMONIAL FORM ============ */
+function TestimonialForm({ initial, onClose, onSaved }: { initial: TestimonialRow | null; onClose: () => void; onSaved: () => void }) {
+  const [quote, setQuote] = React.useState(initial?.quote || '')
+  const [name, setName] = React.useState(initial?.name || '')
+  const [role, setRole] = React.useState(initial?.role || '')
+  const [company, setCompany] = React.useState(initial?.company || '')
+  const [rating, setRating] = React.useState(initial?.rating || 5)
+  const [initials, setInitials] = React.useState(initial?.initials || '')
+  const [accent, setAccent] = React.useState(initial?.accent || 'from-orange-500 to-pink-500')
+  const [saving, setSaving] = React.useState(false)
+
+  const generateSlug = (n: string) =>
+    n.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()
+
+  const handleNameChange = (val: string) => {
+    setName(val)
+    if (!initial) setInitials(generateSlug(val))
+  }
+
+  const save = async () => {
+    if (!quote.trim() || !name.trim()) {
+      toast.error('Quote and name are required')
+      return
+    }
+    setSaving(true)
+    try {
+      const method = initial ? 'PUT' : 'POST'
+      const body = {
+        ...(initial ? { id: initial.id } : {}),
+        quote: quote.trim(),
+        name: name.trim(),
+        role: role.trim(),
+        company: company.trim(),
+        rating: Number(rating),
+        initials: initials.trim() || generateSlug(name),
+        accent,
+      }
+      const res = await fetch('/api/admin/testimonials', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const data = await res.json()
+      if (!data.ok) throw new Error(data.error || 'Save failed')
+      toast.success(initial ? 'Testimonial updated!' : 'Testimonial created!')
+      onSaved()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Save failed')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="font-display text-lg font-bold">{initial ? 'Edit Testimonial' : 'New Testimonial'}</h3>
+        <Button size="sm" variant="ghost" onClick={onClose} className="rounded-full"><X className="size-4" /></Button>
+      </div>
+
+      <div>
+        <label className="mb-1 block text-xs font-semibold">Quote *</label>
+        <Textarea
+          value={quote}
+          onChange={(e) => setQuote(e.target.value)}
+          rows={3}
+          className="bg-muted/30"
+          placeholder="What the client said about working with you…"
+        />
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label className="mb-1 block text-xs font-semibold">Name *</label>
+          <Input value={name} onChange={(e) => handleNameChange(e.target.value)} className="bg-muted/30" placeholder="Aarav Mehta" />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold">Initials</label>
+          <Input value={initials} onChange={(e) => setInitials(e.target.value.toUpperCase())} maxLength={3} className="bg-muted/30" placeholder="AM" />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold">Role</label>
+          <Input value={role} onChange={(e) => setRole(e.target.value)} className="bg-muted/30" placeholder="Founder" />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold">Company</label>
+          <Input value={company} onChange={(e) => setCompany(e.target.value)} className="bg-muted/30" placeholder="Lumen Beauty" />
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label className="mb-1 block text-xs font-semibold">Rating</label>
+          <div className="flex items-center gap-1">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => setRating(n)}
+                className="p-1"
+                aria-label={`Set rating to ${n}`}
+              >
+                <Star className={cn('size-6 transition-colors', n <= rating ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/40 hover:text-amber-300')} />
+              </button>
+            ))}
+            <span className="ml-2 text-sm font-semibold">{rating}/5</span>
+          </div>
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold">Accent gradient</label>
+          <select value={accent} onChange={(e) => setAccent(e.target.value)} className="h-9 w-full rounded-md border border-border bg-muted/30 px-3 text-sm">
+            {TESTIMONIAL_ACCENTS.map((a) => (
+              <option key={a.value} value={a.value}>{a.label}</option>
+            ))}
+          </select>
+          <div className={cn('mt-2 h-2 w-full rounded-full bg-gradient-to-r', accent)} />
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        <Button onClick={save} disabled={saving} className="rounded-full bg-brand-gradient text-white">
+          {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
+          {initial ? 'Update testimonial' : 'Create testimonial'}
+        </Button>
+        <Button variant="outline" onClick={onClose} className="rounded-full">Cancel</Button>
+      </div>
+    </div>
+  )
+}
+
+/* ============ SERVICES TAB ============ */
+type ServiceRow = {
+  id: string
+  title: string
+  slug: string
+  tagline: string
+  description: string
+  features: string[]
+  deliverables: string[]
+  accent: string
+  icon: string
+  active: boolean
+  createdAt: string
+}
+
+const SERVICE_ACCENTS = [
+  { label: 'Orange → Pink', value: 'from-orange-500 to-pink-500' },
+  { label: 'Fuchsia → Rose', value: 'from-fuchsia-500 to-rose-500' },
+  { label: 'Amber → Orange', value: 'from-amber-500 to-orange-500' },
+  { label: 'Emerald → Teal', value: 'from-emerald-500 to-teal-500' },
+  { label: 'Rose → Pink', value: 'from-rose-500 to-pink-500' },
+]
+
+const SERVICE_ICONS = ['Palette', 'Bot', 'Code2', 'Search', 'ShoppingCart', 'Rocket', 'Sparkles', 'Gauge', 'Smartphone', 'PenTool', 'Workflow', 'BrainCircuit', 'Zap', 'Globe']
+
+function ServicesTab() {
+  const [services, setServices] = React.useState<ServiceRow[]>([])
+  const [loading, setLoading] = React.useState(true)
+  const [editing, setEditing] = React.useState<ServiceRow | null>(null)
+  const [showForm, setShowForm] = React.useState(false)
+
+  const fetchServices = React.useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/admin/services')
+      const data = await res.json()
+      setServices(data.services || [])
+    } catch { /* ignore */ } finally { setLoading(false) }
+  }, [])
+
+  React.useEffect(() => { fetchServices() }, [fetchServices])
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Delete this service? This cannot be undone.')) return
+    await fetch('/api/admin/services', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
+    setServices((prev) => prev.filter((s) => s.id !== id))
+    toast.success('Service deleted')
+  }
+
+  const handleToggleActive = async (s: ServiceRow) => {
+    await fetch('/api/admin/services', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: s.id, active: !s.active }),
+    })
+    setServices((prev) => prev.map((x) => (x.id === s.id ? { ...x, active: !x.active } : x)))
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="font-display text-2xl font-bold tracking-tight">Services</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Manage the service offerings shown across the site. The front-end still reads from the static site-data file — this powers the future CMS migration.</p>
+        </div>
+        <Button onClick={() => { setEditing(null); setShowForm(true) }} className="rounded-full bg-brand-gradient text-white">
+          <Palette className="size-4" />
+          Add service
+        </Button>
+      </div>
+
+      {showForm && (
+        <ServiceForm
+          initial={editing}
+          onClose={() => { setShowForm(false); setEditing(null) }}
+          onSaved={() => { setShowForm(false); setEditing(null); fetchServices() }}
+        />
+      )}
+
+      {loading ? (
+        <div className="flex justify-center py-12"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>
+      ) : services.length === 0 ? (
+        <div className="flex flex-col items-center rounded-2xl border border-dashed border-border/60 py-16 text-center">
+          <Palette className="size-10 text-muted-foreground/40" />
+          <p className="mt-3 font-display text-lg font-bold">No services yet</p>
+          <p className="mt-1 text-sm text-muted-foreground">Add your first service offering to get started.</p>
+          <Button onClick={() => { setEditing(null); setShowForm(true) }} className="mt-4 rounded-full bg-brand-gradient text-white">
+            Add service
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {services.map((s) => (
+            <div key={s.id} className="flex items-start gap-4 rounded-2xl border border-border/60 bg-card p-4">
+              <div className={cn('grid size-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br text-white shadow-md', s.accent)}>
+                <Palette className="size-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate font-display text-sm font-bold">{s.title}</p>
+                    <p className="truncate text-xs text-muted-foreground">{s.tagline}</p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <span className="rounded-full bg-muted px-2 py-1 text-[10px] font-bold uppercase text-muted-foreground">{s.icon}</span>
+                    <span className={cn('rounded-full px-2 py-1 text-[10px] font-bold uppercase', s.active ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-muted text-muted-foreground')}>
+                      {s.active ? 'Active' : 'Hidden'}
+                    </span>
+                  </div>
+                </div>
+                <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
+                  <span className="font-mono">/{s.slug}</span>
+                  <span>·</span>
+                  <span>{s.features.length} features</span>
+                  <span>·</span>
+                  <span>{s.deliverables.length} deliverables</span>
+                </div>
+                <p className="mt-1.5 line-clamp-2 text-xs text-muted-foreground/80">{s.description}</p>
+                <div className="mt-2 flex gap-2">
+                  <Button size="sm" variant="ghost" onClick={() => { setEditing(s); setShowForm(true) }} className="rounded-full text-xs">
+                    Edit
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => handleToggleActive(s)} className="rounded-full text-xs">
+                    {s.active ? 'Hide' : 'Show'}
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => handleDelete(s.id)} className="rounded-full text-xs text-destructive hover:text-destructive">
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ============ SERVICE FORM ============ */
+function ServiceForm({ initial, onClose, onSaved }: { initial: ServiceRow | null; onClose: () => void; onSaved: () => void }) {
+  const [title, setTitle] = React.useState(initial?.title || '')
+  const [slug, setSlug] = React.useState(initial?.slug || '')
+  const [tagline, setTagline] = React.useState(initial?.tagline || '')
+  const [description, setDescription] = React.useState(initial?.description || '')
+  const [features, setFeatures] = React.useState((initial?.features || []).join(', '))
+  const [deliverables, setDeliverables] = React.useState((initial?.deliverables || []).join(', '))
+  const [accent, setAccent] = React.useState(initial?.accent || 'from-orange-500 to-pink-500')
+  const [icon, setIcon] = React.useState(initial?.icon || 'Palette')
+  const [saving, setSaving] = React.useState(false)
+
+  const generateSlug = (t: string) =>
+    t.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+
+  const handleTitleChange = (val: string) => {
+    setTitle(val)
+    if (!initial) setSlug(generateSlug(val))
+  }
+
+  const save = async () => {
+    if (!title.trim() || !slug.trim()) {
+      toast.error('Title and slug are required')
+      return
+    }
+    setSaving(true)
+    try {
+      const method = initial ? 'PUT' : 'POST'
+      const body = {
+        ...(initial ? { id: initial.id } : {}),
+        title: title.trim(),
+        slug: slug.trim(),
+        tagline: tagline.trim(),
+        description: description.trim(),
+        features,
+        deliverables,
+        accent,
+        icon,
+      }
+      const res = await fetch('/api/admin/services', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const data = await res.json()
+      if (!data.ok) throw new Error(data.error || 'Save failed')
+      toast.success(initial ? 'Service updated!' : 'Service created!')
+      onSaved()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Save failed')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="font-display text-lg font-bold">{initial ? 'Edit Service' : 'New Service'}</h3>
+        <Button size="sm" variant="ghost" onClick={onClose} className="rounded-full"><X className="size-4" /></Button>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label className="mb-1 block text-xs font-semibold">Title *</label>
+          <Input value={title} onChange={(e) => handleTitleChange(e.target.value)} className="bg-muted/30" placeholder="Website Design & Development" />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold">Slug *</label>
+          <Input value={slug} onChange={(e) => setSlug(e.target.value)} className="bg-muted/30 font-mono text-xs" placeholder="website-design-development" />
+        </div>
+      </div>
+
+      <div>
+        <label className="mb-1 block text-xs font-semibold">Tagline</label>
+        <Input value={tagline} onChange={(e) => setTagline(e.target.value)} className="bg-muted/30" placeholder="Pixel-perfect sites that convert" />
+      </div>
+
+      <div>
+        <label className="mb-1 block text-xs font-semibold">Description</label>
+        <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="bg-muted/30" placeholder="What this service includes and why it matters…" />
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label className="mb-1 block text-xs font-semibold">Features (comma-separated)</label>
+          <Textarea value={features} onChange={(e) => setFeatures(e.target.value)} rows={4} className="bg-muted/30 text-xs" placeholder="Custom UI/UX design system, Responsive layouts, CMS integration" />
+          <p className="mt-1 text-[10px] text-muted-foreground">Each item becomes a bullet point on the service card.</p>
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold">Deliverables (comma-separated)</label>
+          <Textarea value={deliverables} onChange={(e) => setDeliverables(e.target.value)} rows={4} className="bg-muted/30 text-xs" placeholder="Brand-aligned design system, Up to 8 custom pages, Headless CMS setup" />
+          <p className="mt-1 text-[10px] text-muted-foreground">What the client receives at the end of the project.</p>
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label className="mb-1 block text-xs font-semibold">Accent gradient</label>
+          <select value={accent} onChange={(e) => setAccent(e.target.value)} className="h-9 w-full rounded-md border border-border bg-muted/30 px-3 text-sm">
+            {SERVICE_ACCENTS.map((a) => (
+              <option key={a.value} value={a.value}>{a.label}</option>
+            ))}
+          </select>
+          <div className={cn('mt-2 h-2 w-full rounded-full bg-gradient-to-r', accent)} />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold">Icon (lucide name)</label>
+          <select value={icon} onChange={(e) => setIcon(e.target.value)} className="h-9 w-full rounded-md border border-border bg-muted/30 px-3 text-sm">
+            {SERVICE_ICONS.map((name) => (
+              <option key={name} value={name}>{name}</option>
+            ))}
+          </select>
+          <p className="mt-1 text-[10px] text-muted-foreground">Stored as a string; the front-end maps it to a Lucide component.</p>
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        <Button onClick={save} disabled={saving} className="rounded-full bg-brand-gradient text-white">
+          {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
+          {initial ? 'Update service' : 'Create service'}
         </Button>
         <Button variant="outline" onClick={onClose} className="rounded-full">Cancel</Button>
       </div>
