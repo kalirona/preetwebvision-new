@@ -2,17 +2,19 @@ import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 
 export const metadata: Metadata = {
-  title: 'Pricing & Tools',
-  description: 'Explore Preet Web Vision pricing plans and recommended tools. Launch, Growth, and Enterprise tiers plus curated affiliate tools for your business.',
-  keywords: ['web design pricing', 'AI automation cost', 'ecommerce development pricing', 'SEO pricing'],
+  title: 'Tools & Recommended Resources',
+  description: 'Explore Preet Web Vision recommended tools and resources for web design, AI automation, SEO, and ecommerce. Curated affiliate tools we use and trust for our clients.',
+  keywords: ['web design tools', 'AI automation tools', 'SEO tools', 'ecommerce tools', 'recommended resources'],
   openGraph: {
-    title: 'Preet Web Vision Pricing & Tools',
-    description: 'Transparent pricing for websites, AI, web apps, SEO and ecommerce.',
+    title: 'Preet Web Vision — Tools & Resources',
+    description: 'Curated tools and resources for digital growth.',
     url: 'https://preetwebvision.com/pricing-tools',
+    siteName: 'Preet Web Vision',
+    type: 'website',
   },
   alternates: { canonical: 'https://preetwebvision.com/pricing-tools' },
 }
 
 export default function PricingPage() {
-  redirect('/#pricing')
+  redirect('/')
 }

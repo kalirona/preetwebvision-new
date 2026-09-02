@@ -299,11 +299,6 @@ export function ServiceDetailPage({ slug }: { slug: string }) {
                     <ArrowRight className="size-4" />
                   </Button>
                 </a>
-                <a href="/#pricing">
-                  <Button variant="outline" className="h-12 rounded-full px-6 text-base">
-                    View pricing
-                  </Button>
-                </a>
               </div>
             </div>
           </div>

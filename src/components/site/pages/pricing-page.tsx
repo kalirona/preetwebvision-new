@@ -118,11 +118,11 @@ function AffiliateSection() {
 function ServiceMapping() {
   const { setPage } = useNav()
   const pricingHint: Record<string, string> = {
-    'web-design': 'Starts at $2.4k',
-    'ai-automation': 'Included in Growth',
-    'web-apps': 'Enterprise',
-    'seo': 'From $1.2k/mo',
-    'ecommerce': 'From $4.5k',
+    'web-design': 'Custom quote',
+    'ai-automation': 'Custom quote',
+    'web-apps': 'Custom quote',
+    'seo': 'Custom quote',
+    'ecommerce': 'Custom quote',
   }
   return (
     <section className="relative py-20 sm:py-28">
@@ -200,28 +200,28 @@ const ADDONS = [
     icon: Bot,
     name: 'AI Chatbot Agent',
     desc: 'Custom-trained LLM assistant with RAG, deployed on your site in days.',
-    price: 'from $1.8k',
+    price: 'Custom quote',
     accent: 'from-fuchsia-500 to-rose-500',
   },
   {
     icon: Search,
     name: 'Monthly SEO Retainer',
     desc: 'Ongoing technical, content & link building to compound rankings.',
-    price: 'from $1.2k/mo',
+    price: 'Custom quote',
     accent: 'from-emerald-500 to-teal-500',
   },
   {
     icon: Zap,
     name: 'CRO Experimentation',
     desc: 'A/B testing & funnel optimization to squeeze more revenue from traffic.',
-    price: 'from $2.5k/mo',
+    price: 'Custom quote',
     accent: 'from-amber-500 to-orange-500',
   },
   {
     icon: ShieldCheck,
     name: '24/7 Priority Support',
     desc: 'Round-the-clock monitoring, SLAs and same-day fixes for mission-critical apps.',
-    price: 'Custom',
+    price: 'Custom quote',
     accent: 'from-orange-500 to-pink-500',
   },
 ] as const

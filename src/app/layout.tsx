@@ -169,7 +169,7 @@ export default function RootLayout({
                     name: "How much does a website cost?",
                     acceptedAnswer: {
                       "@type": "Answer",
-                      text: "Our pricing tiers are: Launch ($2.4k/project), Growth ($6.9k/project, most popular), and Enterprise (custom retainer). Each tier includes different scopes of work. Contact us for a free consultation and quote.",
+                      text: "We offer custom quotes based on project scope. Contact us for a free consultation and personalized quote. No fixed pricing tiers — every project is unique.",
                     },
                   },
                   {

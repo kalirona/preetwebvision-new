@@ -106,7 +106,7 @@ export default function Home() {
           <h2>Why Choose Us</h2>
           <p>180+ projects shipped, 98% client retention, 14x average ROI for clients. We are a senior, remote-first team serving clients across 12 countries. Our process: Discover → Design → Build → Launch & Scale.</p>
           <h2>Pricing</h2>
-          <p>Launch ($2.4k/project), Growth ($6.9k/project — most popular), Enterprise (custom retainer). Free consultation available.</p>
+          <p>We offer custom quotes based on your project scope. Contact us for a free consultation and personalized quote.</p>
           <h2>Contact</h2>
           <p>Email: hello@preetwebvision.com | WhatsApp: +63 963 311 2000 | Remote-first, serving clients worldwide.</p>
         </div>
