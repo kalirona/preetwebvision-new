@@ -19,17 +19,21 @@ export function generateMetadata({ params }: { params: Promise<{ slug: string }>
       metadataBase: new URL('https://preetwebvision.com'),
       title: `${service.title} — Preet Web Vision`,
       description: service.description,
-      keywords: [service.title, service.tagline, ...service.features, 'Preet Web Vision', 'digital agency'],
+      keywords: [service.title, service.tagline, ...service.features, 'Preet Web Vision', 'digital agency', 'web design', 'AI automation', 'SEO'],
       openGraph: {
         title: `${service.title} — Preet Web Vision`,
         description: service.description,
         siteName: 'Preet Web Vision',
         type: 'website',
+        url: `https://preetwebvision.com/services/${service.slug}`,
       },
       twitter: {
         card: 'summary_large_image',
         title: service.title,
         description: service.description,
+      },
+      alternates: {
+        canonical: `https://preetwebvision.com/services/${service.slug}`,
       },
     }
   })

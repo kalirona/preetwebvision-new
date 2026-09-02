@@ -90,6 +90,27 @@ export default function Home() {
     <div className="relative flex min-h-screen flex-col">
       <ScrollProgress />
       <Navbar />
+      {/* SEO content for crawlers — hidden from visual users, visible to Google */}
+      <noscript>
+        <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
+          <h1>Preet Web Vision — Web Design, AI Automations & Digital Growth</h1>
+          <p>Preet Web Vision is a modern digital marketing agency crafting stunning websites, AI automations, web apps, SEO and ecommerce experiences that grow ambitious brands.</p>
+          <h2>Our Services</h2>
+          <ul>
+            <li><strong>Website Design & Development</strong> — Custom, blazing-fast websites with Next.js, responsive design, CMS integration, Core Web Vitals optimization, and WCAG accessibility.</li>
+            <li><strong>AI Automations</strong> — LLM agents, RAG knowledge bases, chatbots, workflow automation, and custom AI solutions that save time and grow revenue.</li>
+            <li><strong>Web App Development</strong> — SaaS dashboards, realtime features, role-based auth, scalable architecture, and API design.</li>
+            <li><strong>SEO & Digital Growth</strong> — Technical SEO, content strategy, keyword research, link building, and monthly growth reporting.</li>
+            <li><strong>Ecommerce Solutions</strong> — Shopify, headless commerce, custom storefronts, payment integration, and conversion optimization.</li>
+          </ul>
+          <h2>Why Choose Us</h2>
+          <p>180+ projects shipped, 98% client retention, 14x average ROI for clients. We are a senior, remote-first team serving clients across 12 countries. Our process: Discover → Design → Build → Launch & Scale.</p>
+          <h2>Pricing</h2>
+          <p>Launch ($2.4k/project), Growth ($6.9k/project — most popular), Enterprise (custom retainer). Free consultation available.</p>
+          <h2>Contact</h2>
+          <p>Email: hello@preetwebvision.com | WhatsApp: +63 963 311 2000 | Remote-first, serving clients worldwide.</p>
+        </div>
+      </noscript>
       <main className="relative flex-1 pt-24">
         <AnimatePresence mode="wait">
           <motion.div
