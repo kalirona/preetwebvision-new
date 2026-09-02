@@ -118,3 +118,16 @@ model SiteSetting {
   value     String?
   updatedAt DateTime @updatedAt
 }
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  quote     String
+  name      String
+  role      String?
+  company   String?
+  rating    Int      @default(5)
+  initials  String?
+  accent    String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}

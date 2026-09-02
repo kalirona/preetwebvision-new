@@ -27,9 +27,10 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
+COPY --from=builder /app/seed.js ./seed.js
 
 RUN mkdir -p /app/db
 
 EXPOSE 3010
 
-CMD ["sh", "-c", "node node_modules/prisma/build/index.js db push --accept-data-loss && node server.js"]
+CMD ["sh", "-c", "node node_modules/prisma/build/index.js db push --accept-data-loss && node seed.js && node server.js"]
