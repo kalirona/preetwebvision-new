@@ -58,7 +58,7 @@ function Hero() {
   const { setPage } = useNav()
   const heroRef = useCursorGlow<HTMLElement>()
   return (
-    <section ref={heroRef} className="cursor-glow relative overflow-hidden pb-20 pt-10 sm:pt-16">
+    <section ref={heroRef} className="cursor-glow mesh-shift relative overflow-hidden pb-20 pt-10 sm:pt-16">
       <AmbientBackground variant="strong" />
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="grid items-center gap-12 lg:grid-cols-[1.15fr_0.85fr]">
@@ -187,11 +187,11 @@ function HeroVisual() {
       <div className="absolute inset-0 rounded-full border border-dashed border-border/50 animate-spin-slow" />
       <div className="absolute inset-[12%] rounded-full border border-border/40 animate-spin-slow [animation-direction:reverse]" />
 
-      {/* floating cards */}
+      {/* floating cards — hidden on mobile to prevent overlap */}
       <motion.div
         animate={{ y: [0, -12, 0] }}
         transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute -left-2 top-8 w-44 rounded-2xl glass-strong p-3.5 shadow-xl"
+        className="absolute -left-2 top-8 w-44 rounded-2xl glass-strong p-3.5 shadow-xl hidden sm:block"
       >
         <div className="flex items-center gap-2">
           <span className="grid size-8 place-items-center rounded-lg bg-emerald-500/15 text-emerald-500">
@@ -210,7 +210,7 @@ function HeroVisual() {
       <motion.div
         animate={{ y: [0, 14, 0] }}
         transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-        className="absolute -right-2 top-1/3 w-44 rounded-2xl glass-strong p-3.5 shadow-xl"
+        className="absolute -right-2 top-1/3 w-44 rounded-2xl glass-strong p-3.5 shadow-xl hidden sm:block"
       >
         <div className="flex items-center gap-2">
           <span className="grid size-8 place-items-center rounded-lg bg-fuchsia-500/15 text-fuchsia-500">
@@ -235,7 +235,7 @@ function HeroVisual() {
       <motion.div
         animate={{ y: [0, -10, 0] }}
         transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
-        className="absolute -bottom-2 left-6 w-48 rounded-2xl glass-strong p-3.5 shadow-xl"
+        className="absolute -bottom-2 left-6 w-48 rounded-2xl glass-strong p-3.5 shadow-xl hidden sm:block"
       >
         <p className="text-[11px] text-muted-foreground">Lighthouse</p>
         <div className="mt-1 flex items-center justify-between">
@@ -341,7 +341,7 @@ function ServiceCard({
   return (
     <a
       href={`/services/${service.slug}`}
-      className="group card-sheen relative flex h-full flex-col overflow-hidden rounded-3xl border border-border/60 bg-card p-6 text-left transition-all duration-300 hover:-translate-y-1 hover:border-border hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      className="group card-sheen card-modern tilt-3d p-6 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
     >
       <span
         className={cn(
@@ -397,15 +397,17 @@ function StatsBand() {
         <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-card p-8 sm:p-10">
           <div className="pointer-events-none absolute inset-0 grid-bg opacity-40 [mask-image:radial-gradient(ellipse_at_center,#000,transparent_75%)]" />
           <div className="pointer-events-none absolute -left-20 top-1/2 size-64 -translate-y-1/2 rounded-full bg-brand-gradient opacity-15 blur-3xl" />
-          <div className="relative grid grid-cols-2 gap-6 sm:grid-cols-4">
+          <div className="bento-grid">
             {STATS.map((s, i) => (
-              <Reveal key={s.label} delay={i * 0.08} className="text-center sm:text-left">
-                <p className="font-display text-4xl font-bold tracking-tight sm:text-5xl">
-                  <span className="text-gradient-brand">
-                    <Counter value={s.value} suffix={s.suffix} />
-                  </span>
-                </p>
-                <p className="mt-2 text-sm text-muted-foreground">{s.label}</p>
+              <Reveal key={s.label} delay={i * 0.08} className="bento-item spotlight">
+                <div>
+                  <p className="font-display text-4xl font-bold tracking-tight sm:text-5xl">
+                    <span className="text-gradient-brand">
+                      <Counter value={s.value} suffix={s.suffix} />
+                    </span>
+                  </p>
+                  <p className="mt-2 text-sm text-muted-foreground">{s.label}</p>
+                </div>
               </Reveal>
             ))}
           </div>
@@ -448,7 +450,7 @@ function WhyUs() {
                 <motion.div
                   key={f.title}
                   variants={staggerItem}
-                  className="group flex gap-3 rounded-2xl border border-border/60 bg-card p-4 transition-colors hover:border-border"
+                  className="bento-item spotlight gap-3 p-4"
                 >
                   <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-gradient-soft">
                     <Icon className="size-5" style={{ color: 'var(--brand-pink)' }} />
@@ -630,7 +632,7 @@ function AiDemoCta() {
   return (
     <section className="relative py-20 sm:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="relative overflow-hidden rounded-[2.5rem] border border-border/60 bg-card p-8 sm:p-12 lg:p-16">
+        <div className="card-modern spotlight relative overflow-hidden rounded-[2.5rem] p-8 sm:p-12 lg:p-16">
           <div className="pointer-events-none absolute inset-0 grid-bg opacity-30 [mask-image:radial-gradient(ellipse_at_right,#000,transparent_70%)]" />
           <div className="pointer-events-none absolute -right-20 -top-20 size-80 rounded-full bg-brand-gradient opacity-20 blur-3xl animate-pulse-glow" />
           <div className="relative grid gap-10 lg:grid-cols-2 lg:items-center">
