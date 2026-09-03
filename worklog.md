@@ -1151,3 +1151,27 @@ Stage Summary:
 - Sitemap emits one URL per published blog post (previously only emitted a single `#blog` hash URL).
 - Backwards compatible: existing JSON-block posts render correctly on the public route AND open as Markdown in the admin editor.
 - All DB access uses `db.$queryRaw` / `db.$executeRaw` raw SQL. Brand palette is warm throughout (no indigo/blue). `font-display` on all headings. No new npm packages added.
+
+---
+
+## Task: Rich-Content — Add rich content to remaining 4 services
+
+**Agent:** Rich-Content (code editor)
+**File modified:** `src/lib/site-data.ts`
+
+### Summary
+Added the rich content fields (overview, benefits, process, faqs, techStack) to the 4 remaining services, mirroring the existing pattern established for the `web-design` service:
+
+1. **AI Automations** (`ai-automation`) — 175-word overview, 6 benefits, 4 process steps, 5 FAQs, 8-item tech stack (OpenAI GPT-4, Anthropic Claude, LangChain, Pinecone, n8n, Zapier, Python, pgvector).
+2. **Web App Development** (`web-apps`) — 185-word overview, 6 benefits, 4 process steps, 5 FAQs, 8-item tech stack (Next.js, TypeScript, Prisma, PostgreSQL, Stripe, Tailwind CSS, shadcn/ui, Vercel).
+3. **SEO & Digital Growth** (`seo`) — 190-word overview, 6 benefits, 4 process steps, 5 FAQs, 8-item tech stack (Ahrefs, Semrush, Google Search Console, Screaming Frog, Looker Studio, Surfer SEO, Schema.org, Google Analytics 4).
+4. **Ecommerce Solutions** (`ecommerce`) — 190-word overview, 6 benefits, 4 process steps, 5 FAQs, 8-item tech stack (Shopify, Shopify Plus, Next.js, Klaviyo, Recharge, Stripe, Yotpo, Gorgias).
+
+### Constraints followed
+- Only `src/lib/site-data.ts` was modified.
+- No existing fields (title, slug, icon, tagline, description, features, deliverables, accent, glow) were touched.
+- Each overview is 150+ words, each benefit description is 20+ words, each FAQ answer is 30+ words.
+- Content is specific and educational rather than generic marketing fluff (e.g., specific tooling, realistic timelines, real pricing ranges, concrete guardrails for AI).
+
+### Verification
+- `bun run lint` — no errors introduced in `src/lib/site-data.ts` (the 19 errors + 7 warnings are pre-existing in unrelated admin/site component files).

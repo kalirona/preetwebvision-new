@@ -130,6 +130,24 @@ export function ServiceDetailPage({ slug }: { slug: string }) {
 
       <SvgDivider />
 
+      {/* Overview — rich SEO content paragraph */}
+      {service.overview && (
+        <section className="relative py-16 sm:py-20">
+          <div className="mx-auto max-w-4xl px-4 sm:px-6">
+            <Reveal>
+              <h2 className="font-display text-2xl font-bold tracking-tight sm:text-3xl mb-5">
+                What is <GradientText>{service.title}</GradientText>?
+              </h2>
+              <p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
+                {service.overview}
+              </p>
+            </Reveal>
+          </div>
+        </section>
+      )}
+
+      <SvgDivider />
+
       {/* Features */}
       <section className="relative py-20 sm:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
@@ -159,6 +177,39 @@ export function ServiceDetailPage({ slug }: { slug: string }) {
           </StaggerGroup>
         </div>
       </section>
+
+      <SvgDivider />
+
+      {/* Benefits — why this service matters */}
+      {service.benefits && (
+        <section className="relative py-20 sm:py-28">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <SectionHeading
+              eyebrow="Why it matters"
+              title={<>The <GradientText>benefits</GradientText> you&apos;ll feel</>}
+              description="Real outcomes that impact your bottom line — not vanity metrics."
+            />
+            <StaggerGroup className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {service.benefits.map((benefit, i) => (
+                <motion.div
+                  key={benefit.title}
+                  variants={staggerItem}
+                  className="bento-item spotlight p-6"
+                >
+                  <span className={cn(
+                    'grid size-11 place-items-center rounded-xl bg-gradient-to-br text-white shadow-lg',
+                    service.accent
+                  )}>
+                    <Check className="size-5" />
+                  </span>
+                  <h3 className="mt-4 font-display text-base font-bold tracking-tight">{benefit.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{benefit.description}</p>
+                </motion.div>
+              ))}
+            </StaggerGroup>
+          </div>
+        </section>
+      )}
 
       <SvgDivider />
 
@@ -236,6 +287,46 @@ export function ServiceDetailPage({ slug }: { slug: string }) {
           </Reveal>
         </div>
       </section>
+
+      {/* Service-specific FAQs */}
+      {service.faqs && service.faqs.length > 0 && (
+        <section className="relative py-16 sm:py-20">
+          <div className="mx-auto max-w-3xl px-4 sm:px-6">
+            <SectionHeading
+              eyebrow="Good to know"
+              title={<>Service <GradientText>FAQ</GradientText></>}
+            />
+            <Reveal delay={0.1} className="mt-10">
+              <FaqWithSearch faqs={service.faqs} />
+            </Reveal>
+          </div>
+        </section>
+      )}
+
+      {/* Tech Stack */}
+      {service.techStack && service.techStack.length > 0 && (
+        <section className="relative py-16 sm:py-20">
+          <div className="mx-auto max-w-4xl px-4 sm:px-6">
+            <SectionHeading
+              eyebrow="Built with"
+              title={<>Our <GradientText>tech stack</GradientText> for this service</>}
+              description="The tools and technologies we use to deliver this service."
+            />
+            <Reveal delay={0.1}>
+              <div className="mt-10 flex flex-wrap justify-center gap-3">
+                {service.techStack.map((tech) => (
+                  <span
+                    key={tech}
+                    className="rounded-full border border-border/60 bg-muted/40 px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-border hover:text-foreground"
+                  >
+                    {tech}
+                  </span>
+                ))}
+              </div>
+            </Reveal>
+          </div>
+        </section>
+      )}
 
       <SvgDivider />
 
